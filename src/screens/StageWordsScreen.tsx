@@ -76,9 +76,9 @@ export default function StageWordsScreen({ route, navigation }: Props) {
     const scaleMap: Record<string, number> = { s: 0.9, m: 1, l: 1.1 };
     const scale = scaleMap[fontScale] ?? 1;
     return {
-      word: Math.round(20 * scale),
-      reading: Math.round(14 * scale),
-      meaning: Math.round(14 * scale),
+      word: Math.round(16 * scale),
+      reading: Math.round(12 * scale),
+      meaning: Math.round(12 * scale),
     };
   }, [fontScale]);
 
