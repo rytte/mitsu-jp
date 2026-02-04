@@ -107,6 +107,7 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>词库来源</Text>
         <Text style={styles.sourceText}>JMDict/EDRDG（词典）</Text>
         <Text style={styles.sourceText}>Open Anki JLPT（JLPT 词表）</Text>
+        <Text style={styles.sourceText}>eggrolls JLPT10k（中文释义，CC BY-NC 4.0）</Text>
         <Text style={styles.tip}>发布版本中将附带完整授权说明</Text>
       </View>
     </View>

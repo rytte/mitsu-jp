@@ -17,6 +17,8 @@ const { streamArray } = streamArrayPkg;
 const ROOT = process.cwd();
 const DATA_DIR = path.join(ROOT, 'scripts', 'data');
 const OUT_FILE = path.join(ROOT, 'src', 'data', 'words.json');
+const CHINESE_GLOSSARY_CSV = path.join(DATA_DIR, 'jlpt-zh.csv');
+const CHINESE_GLOSSARY_JSON = path.join(DATA_DIR, 'jlpt-zh.json');
 
 const JLPT_SOURCES = {
   N5: 'https://raw.githubusercontent.com/jamsinclair/open-anki-jlpt-decks/main/src/n5.csv',
@@ -147,6 +149,82 @@ function parseJlptCsv(filePath, level) {
   }));
 }
 
+function pickFirst(row, keys) {
+  for (const key of keys) {
+    if (row[key] != null && String(row[key]).trim() !== '') return String(row[key]).trim();
+  }
+  return '';
+}
+
+function toGlossaryKey(expression, reading) {
+  return `${expression}|${reading}`;
+}
+
+function loadChineseGlossaryFromJson(filePath) {
+  const map = new Map();
+  const raw = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (!item || typeof item !== 'object') continue;
+      const expression = pickFirst(item, ['expression', 'kanji', 'word', 'term']);
+      const reading = pickFirst(item, ['reading', 'kana', 'yomi', 'furigana', 'pronunciation']);
+      const meaning = pickFirst(item, ['meaning_cn', 'meaning_zh', 'meaning', 'definition', 'zh']);
+      const finalExpression = expression || reading;
+      const finalReading = reading || expression;
+      if (!finalExpression || !finalReading || !meaning) continue;
+      map.set(toGlossaryKey(finalExpression, finalReading), normalizeMeaning(meaning));
+    }
+    return map;
+  }
+
+  if (raw && typeof raw === 'object') {
+    for (const [key, value] of Object.entries(raw)) {
+      if (!key || value == null) continue;
+      if (typeof value === 'string') {
+        map.set(key, normalizeMeaning(value));
+        continue;
+      }
+      if (typeof value === 'object') {
+        const meaning = pickFirst(value, ['meaning_cn', 'meaning_zh', 'meaning', 'definition', 'zh']);
+        if (meaning) map.set(key, normalizeMeaning(meaning));
+      }
+    }
+  }
+
+  return map;
+}
+
+function loadChineseGlossaryFromCsv(filePath) {
+  const map = new Map();
+  const content = fs.readFileSync(filePath, 'utf8');
+  const records = parse(content, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  for (const row of records) {
+    const expression = pickFirst(row, ['expression', 'kanji', 'word', 'term']);
+    const reading = pickFirst(row, ['reading', 'kana', 'yomi', 'furigana', 'pronunciation']);
+    const meaning = pickFirst(row, ['meaning_cn', 'meaning_zh', 'meaning', 'definition', 'zh']);
+    const finalExpression = expression || reading;
+    const finalReading = reading || expression;
+    if (!finalExpression || !finalReading || !meaning) continue;
+    map.set(toGlossaryKey(finalExpression, finalReading), normalizeMeaning(meaning));
+  }
+
+  return map;
+}
+
+function loadChineseGlossary() {
+  if (fs.existsSync(CHINESE_GLOSSARY_JSON)) {
+    return { source: CHINESE_GLOSSARY_JSON, map: loadChineseGlossaryFromJson(CHINESE_GLOSSARY_JSON) };
+  }
+  if (fs.existsSync(CHINESE_GLOSSARY_CSV)) {
+    return { source: CHINESE_GLOSSARY_CSV, map: loadChineseGlossaryFromCsv(CHINESE_GLOSSARY_CSV) };
+  }
+  return { source: null, map: new Map() };
+}
+
 function isChineseLang(lang) {
   if (!lang) return false;
   const v = String(lang).toLowerCase();
@@ -249,7 +327,12 @@ async function main() {
   }
 
   const jmdictMap = await buildJMDictMap(jlptKeySet);
+  const { source: zhSource, map: zhGlossary } = loadChineseGlossary();
+  if (zhSource) {
+    console.log(`Loaded Chinese glossary: ${zhSource} (${zhGlossary.size} entries)`);
+  }
 
+  let zhMatched = 0;
   const words = jlptEntries.map((entry, index) => {
     const level = entry.level;
     const expression = entry.expression;
@@ -259,7 +342,9 @@ async function main() {
     const dict = jmdictMap.get(key) || jmdictMap.get(fallbackKey) || { en: '', zh: '' };
 
     const meaningEn = entry.meaning || dict.en || '';
-    const meaningZh = dict.zh || '';
+    const customZh = zhGlossary.get(key) || zhGlossary.get(fallbackKey) || '';
+    const meaningZh = customZh || dict.zh || '';
+    if (customZh) zhMatched += 1;
 
     return {
       id: makeId(level, index),
@@ -274,6 +359,10 @@ async function main() {
       tags: entry.tags.length ? entry.tags : null,
     };
   });
+
+  if (zhSource) {
+    console.log(`Chinese glossary matched: ${zhMatched} / ${words.length}`);
+  }
 
   fs.writeFileSync(OUT_FILE, JSON.stringify(words, null, 2), 'utf8');
   console.log(`Generated ${words.length} words -> ${OUT_FILE}`);
