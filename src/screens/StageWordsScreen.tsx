@@ -1,11 +1,11 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
-import { getStage, getWordsByIds } from '../db/queries';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { getStage, getWordsByIds, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
-import { Word } from '../types';
+import { Settings, Word } from '../types';
 import { getMeaning } from '../utils/meaning';
 
 type Props = NativeStackScreenProps<LearnStackParamList, 'StageWords'>;
@@ -14,7 +14,11 @@ export default function StageWordsScreen({ route }: Props) {
   const { stageId, stageIndex } = route.params;
   const [loading, setLoading] = useState(true);
   const [words, setWords] = useState<Word[]>([]);
-  const meaningLanguage = useAppStore((state) => state.settings.meaning_language);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const settings = useAppStore((state) => state.settings);
+  const setSettings = useAppStore((state) => state.setSettings);
+  const meaningLanguage = settings.meaning_language;
+  const compactMode = settings.compact_mode;
 
   useEffect(() => {
     let active = true;
@@ -40,6 +44,33 @@ export default function StageWordsScreen({ route }: Props) {
     };
   }, [stageId]);
 
+  useEffect(() => {
+    if (!compactMode) {
+      setExpandedIds(new Set());
+    }
+  }, [compactMode]);
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const persistSettings = async (next: Settings) => {
+    setSettings(next);
+    await updateSettings(next);
+  };
+
+  const toggleCompactMode = async (value: boolean) => {
+    await persistSettings({ ...settings, compact_mode: value });
+  };
+
   if (loading) {
     return (
       <View style={styles.loading}>
@@ -52,20 +83,48 @@ export default function StageWordsScreen({ route }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>第 {stageIndex} 关词汇</Text>
-        <Text style={styles.subtitle}>共 {words.length} 个</Text>
+        <View>
+          <Text style={styles.title}>第 {stageIndex} 关词汇</Text>
+          <Text style={styles.subtitle}>共 {words.length} 个</Text>
+          {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
+        </View>
+        <View style={styles.modeToggle}>
+          <Text style={styles.modeText}>紧凑模式</Text>
+          <Switch
+            value={compactMode}
+            onValueChange={toggleCompactMode}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
       </View>
       <FlatList
         data={words}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.word}>{item.kanji ?? item.kana}</Text>
-            <Text style={styles.reading}>{item.kana}</Text>
-            <Text style={styles.meaning}>{getMeaning(item, meaningLanguage)}</Text>
-          </View>
-        )}
+        renderItem={({ item }) => {
+          const isExpanded = expandedIds.has(item.id);
+          return (
+            <Pressable
+              disabled={!compactMode}
+              onPress={() => toggleExpanded(item.id)}
+              style={({ pressed }) => [
+                styles.card,
+                compactMode ? styles.cardCompact : null,
+                pressed && compactMode ? styles.cardPressed : null,
+              ]}
+            >
+              <Text style={[styles.word, compactMode ? styles.wordCompact : null]}>{item.kanji ?? item.kana}</Text>
+              {(!compactMode || isExpanded) && (
+                <>
+                  <Text style={[styles.reading, compactMode ? styles.readingCompact : null]}>{item.kana}</Text>
+                  <Text style={[styles.meaning, compactMode ? styles.meaningCompact : null]}>
+                    {getMeaning(item, meaningLanguage)}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          );
+        }}
       />
     </View>
   );
@@ -89,6 +148,9 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: spacing.m,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   title: {
     fontSize: 20,
@@ -98,6 +160,19 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: spacing.xs,
     color: colors.muted,
+  },
+  hint: {
+    marginTop: spacing.xs,
+    color: colors.muted,
+    fontSize: 12,
+  },
+  modeToggle: {
+    alignItems: 'center',
+  },
+  modeText: {
+    color: colors.muted,
+    marginBottom: spacing.xs,
+    fontSize: 12,
   },
   list: {
     paddingBottom: spacing.l,
@@ -110,17 +185,37 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     marginBottom: spacing.m,
   },
+  cardCompact: {
+    padding: spacing.s,
+    borderRadius: radius.m,
+    marginBottom: spacing.s,
+  },
+  cardPressed: {
+    opacity: 0.7,
+  },
   word: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
   },
+  wordCompact: {
+    fontSize: 16,
+  },
   reading: {
     color: colors.muted,
     marginTop: spacing.xs,
   },
+  readingCompact: {
+    marginTop: spacing.xs,
+    fontSize: 12,
+  },
   meaning: {
     marginTop: spacing.s,
     color: colors.text,
+  },
+  meaningCompact: {
+    marginTop: spacing.xs,
+    fontSize: 12,
+    color: colors.muted,
   },
 });

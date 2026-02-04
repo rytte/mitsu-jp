@@ -134,7 +134,11 @@ export async function getAllWordsByLevel(level: Level): Promise<Word[]> {
 
 export async function getSettings(): Promise<Settings> {
   const settings = loadSettings() as Settings;
-  return { ...settings, meaning_language: normalizeMeaningLanguage(settings.meaning_language) };
+  return {
+    ...settings,
+    meaning_language: normalizeMeaningLanguage(settings.meaning_language),
+    compact_mode: Boolean(settings.compact_mode),
+  };
 }
 
 export async function updateSettings(settings: Settings) {

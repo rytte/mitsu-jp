@@ -6,6 +6,10 @@ function normalizeMeaningLanguage(value?: string): MeaningLanguage {
   return value === 'en' ? 'en' : 'zh';
 }
 
+function normalizeCompactMode(value: unknown) {
+  return value === 1 || value === true || value === '1';
+}
+
 export async function getStagesByLevel(level: Level): Promise<Stage[]> {
   const rows = await getAll<{
     id: string;
@@ -122,7 +126,13 @@ export async function getAllWordsByLevel(level: Level): Promise<Word[]> {
 }
 
 export async function getSettings(): Promise<Settings> {
-  const row = await getFirst<{ tts_rate: number; tts_voice: string | null; quiz_mix: string; meaning_language?: string }>(
+  const row = await getFirst<{
+    tts_rate: number;
+    tts_voice: string | null;
+    quiz_mix: string;
+    meaning_language?: string;
+    compact_mode?: number | null;
+  }>(
     'SELECT * FROM settings WHERE id = ? LIMIT 1',
     ['default']
   );
@@ -132,17 +142,22 @@ export async function getSettings(): Promise<Settings> {
     tts_voice: row.tts_voice,
     quiz_mix: row.quiz_mix ? JSON.parse(row.quiz_mix) : DEFAULT_SETTINGS.quiz_mix,
     meaning_language: normalizeMeaningLanguage(row.meaning_language ?? DEFAULT_SETTINGS.meaning_language),
+    compact_mode: normalizeCompactMode(row.compact_mode ?? (DEFAULT_SETTINGS.compact_mode ? 1 : 0)),
   };
 }
 
 export async function updateSettings(settings: Settings) {
-  await run('UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, meaning_language = ? WHERE id = ?;', [
-    settings.tts_rate,
-    settings.tts_voice,
-    JSON.stringify(settings.quiz_mix),
-    settings.meaning_language,
-    'default',
-  ]);
+  await run(
+    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, meaning_language = ?, compact_mode = ? WHERE id = ?;',
+    [
+      settings.tts_rate,
+      settings.tts_voice,
+      JSON.stringify(settings.quiz_mix),
+      settings.meaning_language,
+      settings.compact_mode ? 1 : 0,
+      'default',
+    ]
+  );
 }
 
 export async function getStats() {

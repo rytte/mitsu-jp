@@ -42,6 +42,7 @@ export type Settings = {
   tts_voice: string | null;
   quiz_mix: QuizMix;
   meaning_language: MeaningLanguage;
+  compact_mode: boolean;
 };
 
 export type QuizItem =
