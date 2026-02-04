@@ -18,13 +18,13 @@
 ## 架构设计
 - 技术栈：React Native + Expo + TypeScript
 - 状态管理：Zustand（轻量、易扩展）
-- 本地存储：SQLite（expo-sqlite）用于词库和进度；AsyncStorage 用于轻量设置
+- 本地存储：SQLite（expo-sqlite）用于词库、进度与设置；Web 端使用 localStorage 保存设置与进度
 - TTS：expo-speech（优先系统 TTS）
 - 题目生成：本地算法生成题目，基于词库与错误率
 
 ## 数据模型（SQLite）
 - `words`  
-  - `id` (PK), `level` (N5–N1), `kana`, `kanji`, `meaning_cn`, `pos`, `example`, `example_cn`, `tags`
+  - `id` (PK), `level` (N5–N1), `kana`, `kanji`, `meaning_cn`, `meaning_en`, `pos`, `example`, `example_cn`, `tags`
 - `stages`  
   - `id` (PK), `level`, `index`, `word_ids` (json list)
 - `progress`  
@@ -32,12 +32,13 @@
 - `mistakes`  
   - `id` (PK), `word_id`, `wrong_times`, `last_wrong_at`
 - `settings`  
-  - `id` (PK), `tts_rate`, `tts_voice`, `quiz_mix`
+  - `id` (PK), `tts_rate`, `tts_voice`, `quiz_mix`, `meaning_language`, `compact_mode`, `lexicon_level`
 
 ## 功能模块
 1. **词库与关卡**
    - N5–N1 每级别划分固定关卡（例如每关 20 词）
    - 关卡解锁机制：上一关 ≥2 星解锁下一关
+   - 词库选择：N1–N5 作为“词库”，可设置默认词库并自动进入
 
 2. **闯关测验**
    - 题型组合：
@@ -61,6 +62,9 @@
 5. **发音**
    - TTS 播放单词与例句
    - 可调语速（settings）
+6. **词汇预览**
+   - 紧凑模式开关（可保存设置）
+   - 紧凑模式下点击词条展开/收起释义
 
 ## 关键界面（MVP）
 - 启动页 / 级别选择页（N5–N1）
@@ -69,6 +73,7 @@
 - 结算页
 - 错题本
 - 设置页（TTS、题型占比）
+ - 词汇预览页：紧凑模式与展开/收起
 
 ## 重要接口/类型变更
 - 新增数据初始化脚本：把静态词库 JSON 导入 SQLite
@@ -80,10 +85,22 @@
     kana: string;
     kanji?: string;
     meaning_cn: string;
+    meaning_en: string;
     pos?: string;
     example?: string;
     example_cn?: string;
     tags?: string[];
+  };
+  ```
+ - 设置结构新增字段：
+  ```ts
+  type Settings = {
+    tts_rate: number;
+    tts_voice: string | null;
+    quiz_mix: QuizMix;
+    meaning_language: "zh" | "en";
+    compact_mode: boolean;
+    lexicon_level: "N5"|"N4"|"N3"|"N2"|"N1";
   };
   ```
 - 题目结构：
@@ -120,4 +137,5 @@
 - 采用系统 TTS（expo-speech），不集成真人录音
 - 首版不做账号与云同步
 - 词库以静态内置包随版本更新
+ - 词库中文释义来自开源词库合并（详见 SOURCES.md）
 
