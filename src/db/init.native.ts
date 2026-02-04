@@ -67,13 +67,15 @@ async function runInit() {
       tts_voice TEXT,
       quiz_mix TEXT NOT NULL,
       meaning_language TEXT,
-      compact_mode INTEGER
+      compact_mode INTEGER,
+      lexicon_level TEXT
     );`
   );
 
   await ensureColumn('words', 'meaning_en', 'TEXT');
   await ensureColumn('settings', 'meaning_language', 'TEXT');
   await ensureColumn('settings', 'compact_mode', 'INTEGER');
+  await ensureColumn('settings', 'lexicon_level', 'TEXT');
 
   const countRow = await getFirst<{ count: number }>('SELECT COUNT(*) as count FROM words');
   const count = countRow?.count ?? 0;
@@ -149,7 +151,7 @@ async function ensureDefaultSettings() {
   );
   if (!existing) {
     await run(
-      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, meaning_language, compact_mode) VALUES (?, ?, ?, ?, ?, ?);',
+      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, meaning_language, compact_mode, lexicon_level) VALUES (?, ?, ?, ?, ?, ?, ?);',
       [
         'default',
         DEFAULT_SETTINGS.tts_rate,
@@ -157,6 +159,7 @@ async function ensureDefaultSettings() {
         JSON.stringify(DEFAULT_SETTINGS.quiz_mix),
         DEFAULT_SETTINGS.meaning_language,
         DEFAULT_SETTINGS.compact_mode ? 1 : 0,
+        DEFAULT_SETTINGS.lexicon_level,
       ]
     );
   } else {
@@ -173,6 +176,16 @@ async function ensureDefaultSettings() {
     if (compact?.compact_mode == null) {
       await run('UPDATE settings SET compact_mode = ? WHERE id = ?;', [
         DEFAULT_SETTINGS.compact_mode ? 1 : 0,
+        'default',
+      ]);
+    }
+    const lexicon = await getFirst<{ lexicon_level?: string | null }>(
+      'SELECT lexicon_level FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (!lexicon?.lexicon_level) {
+      await run('UPDATE settings SET lexicon_level = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.lexicon_level,
         'default',
       ]);
     }

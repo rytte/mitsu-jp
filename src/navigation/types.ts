@@ -1,7 +1,7 @@
 ﻿import { Level } from '../types';
 
 export type LearnStackParamList = {
-  LevelSelect: undefined;
+  LevelSelect: { skipAuto?: boolean } | undefined;
   StageList: { level: Level };
   StageWords: { stageId: string; level: Level; stageIndex: number };
   Quiz: { stageId: string; level: Level; stageIndex: number };

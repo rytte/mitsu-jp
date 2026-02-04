@@ -21,6 +21,12 @@ function normalizeMeaningLanguage(value?: string): MeaningLanguage {
   return value === 'en' ? 'en' : 'zh';
 }
 
+function normalizeLexiconLevel(value: unknown): Level {
+  const v = String(value || '').toUpperCase();
+  if (v === 'N1' || v === 'N2' || v === 'N3' || v === 'N4' || v === 'N5') return v as Level;
+  return DEFAULT_SETTINGS.lexicon_level;
+}
+
 const wordList = toWordList(words);
 let stageCache: Record<Level, Stage[]> | null = null;
 
@@ -138,6 +144,7 @@ export async function getSettings(): Promise<Settings> {
     ...settings,
     meaning_language: normalizeMeaningLanguage(settings.meaning_language),
     compact_mode: Boolean(settings.compact_mode),
+    lexicon_level: normalizeLexiconLevel(settings.lexicon_level),
   };
 }
 

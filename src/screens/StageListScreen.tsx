@@ -1,7 +1,7 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PrimaryButton from '../components/PrimaryButton';
 import { getProgressMapByLevel, getStagesByLevel } from '../db/queries';
@@ -43,7 +43,12 @@ export default function StageListScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>等级 {level} 关卡</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>词库 {level} 关卡</Text>
+        <Pressable onPress={() => navigation.replace('LevelSelect', { skipAuto: true })}>
+          <Text style={styles.switchText}>切换词库</Text>
+        </Pressable>
+      </View>
       <FlatList
         data={stages}
         keyExtractor={(item) => item.id}
@@ -98,7 +103,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
+  },
+  headerRow: {
     marginBottom: spacing.m,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  switchText: {
+    color: colors.primary,
+    fontWeight: '600',
   },
   list: {
     paddingBottom: spacing.l,

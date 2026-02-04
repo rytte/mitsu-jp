@@ -43,6 +43,7 @@ export type Settings = {
   quiz_mix: QuizMix;
   meaning_language: MeaningLanguage;
   compact_mode: boolean;
+  lexicon_level: Level;
 };
 
 export type QuizItem =
