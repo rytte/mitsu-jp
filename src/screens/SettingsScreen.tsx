@@ -1,0 +1,166 @@
+﻿import { useEffect, useState } from 'react';
+import { StyleSheet, Switch, Text, View } from 'react-native';
+import PrimaryButton from '../components/PrimaryButton';
+import { updateSettings } from '../db/queries';
+import { useAppStore } from '../store/useAppStore';
+import { colors, radius, spacing } from '../theme';
+
+const RATE_OPTIONS = [0.8, 1.0, 1.2];
+
+export default function SettingsScreen() {
+  const settings = useAppStore((state) => state.settings);
+  const setSettings = useAppStore((state) => state.setSettings);
+  const [spellingEnabled, setSpellingEnabled] = useState(settings.quiz_mix.spelling > 0);
+  const [listeningEnabled, setListeningEnabled] = useState(settings.quiz_mix.listening > 0);
+  const [meaningEnglish, setMeaningEnglish] = useState(settings.meaning_language === 'en');
+
+  useEffect(() => {
+    setSpellingEnabled(settings.quiz_mix.spelling > 0);
+    setListeningEnabled(settings.quiz_mix.listening > 0);
+    setMeaningEnglish(settings.meaning_language === 'en');
+  }, [settings.meaning_language, settings.quiz_mix.listening, settings.quiz_mix.spelling]);
+
+  const persist = async (next: typeof settings) => {
+    setSettings(next);
+    await updateSettings(next);
+  };
+
+  const buildMix = (spell: boolean, listen: boolean) => {
+    const spelling = spell ? 0.2 : 0;
+    const listening = listen ? 0.2 : 0;
+    const mcq = Math.max(0.4, 1 - spelling - listening);
+    return { mcq, spelling, listening };
+  };
+
+  const handleToggle = async (type: 'spelling' | 'listening', value: boolean) => {
+    if (type === 'spelling') setSpellingEnabled(value);
+    if (type === 'listening') setListeningEnabled(value);
+    const nextMix = buildMix(type === 'spelling' ? value : spellingEnabled, type === 'listening' ? value : listeningEnabled);
+    await persist({ ...settings, quiz_mix: nextMix });
+  };
+
+  const handleRate = async (rate: number) => {
+    await persist({ ...settings, tts_rate: rate });
+  };
+
+  const handleMeaningLanguage = async (useEnglish: boolean) => {
+    setMeaningEnglish(useEnglish);
+    await persist({ ...settings, meaning_language: useEnglish ? 'en' : 'zh' });
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>发音速度</Text>
+        <View style={styles.rateRow}>
+          {RATE_OPTIONS.map((rate, index) => (
+            <PrimaryButton
+              key={rate}
+              title={`${rate}x`}
+              onPress={() => handleRate(rate)}
+              style={[
+                styles.rateBtn,
+                index < RATE_OPTIONS.length - 1 ? styles.rateBtnGap : null,
+                settings.tts_rate === rate ? styles.rateActive : null,
+              ]}
+            />
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>释义语言</Text>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>中文</Text>
+          <Switch
+            value={meaningEnglish}
+            onValueChange={handleMeaningLanguage}
+            trackColor={{ false: colors.primary, true: colors.primary }}
+          />
+          <Text style={styles.toggleText}>英文</Text>
+        </View>
+        <Text style={styles.tip}>当中文释义缺失时，自动回退为英文</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>题型设置</Text>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>拼写题</Text>
+          <Switch
+            value={spellingEnabled}
+            onValueChange={(value) => handleToggle('spelling', value)}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>听力题</Text>
+          <Switch
+            value={listeningEnabled}
+            onValueChange={(value) => handleToggle('listening', value)}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+        <Text style={styles.tip}>关闭会减少对应题型的出题比例</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>词库来源</Text>
+        <Text style={styles.sourceText}>JMDict/EDRDG（词典）</Text>
+        <Text style={styles.sourceText}>Open Anki JLPT（JLPT 词表）</Text>
+        <Text style={styles.tip}>发布版本中将附带完整授权说明</Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: spacing.m,
+  },
+  section: {
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    padding: spacing.m,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.m,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: spacing.m,
+  },
+  rateRow: {
+    flexDirection: 'row',
+  },
+  rateBtn: {
+    flex: 1,
+  },
+  rateBtnGap: {
+    marginRight: spacing.s,
+  },
+  rateActive: {
+    backgroundColor: colors.success,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.s,
+  },
+  toggleText: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  tip: {
+    color: colors.muted,
+    marginTop: spacing.s,
+  },
+  sourceText: {
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+});
