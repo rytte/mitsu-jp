@@ -107,6 +107,11 @@ export default function StageListScreen({ navigation, route }: Props) {
           </View>
         </View>
         <View style={styles.headerActions}>
+          {!currentZone && (
+            <Pressable style={styles.headerAction} onPress={() => navigation.replace('LevelSelect', { skipAuto: true })}>
+              <Text style={styles.switchText}>切换词库</Text>
+            </Pressable>
+          )}
           {currentZone && (
             <Pressable
               style={styles.headerAction}
