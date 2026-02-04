@@ -1,4 +1,4 @@
-import { Level, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import { FontScale, Level, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
 import { DEFAULT_SETTINGS } from './constants';
 import { getAll, getFirst, run } from './db';
 
@@ -14,6 +14,10 @@ function normalizeLexiconLevel(value: unknown): Level {
   const v = String(value || '').toUpperCase();
   if (v === 'N1' || v === 'N2' || v === 'N3' || v === 'N4' || v === 'N5') return v as Level;
   return DEFAULT_SETTINGS.lexicon_level;
+}
+
+function normalizeFontScale(value: unknown): FontScale {
+  return value === 's' || value === 'm' || value === 'l' ? value : DEFAULT_SETTINGS.font_scale;
 }
 
 export async function getStagesByLevel(level: Level): Promise<Stage[]> {
@@ -139,6 +143,7 @@ export async function getSettings(): Promise<Settings> {
     meaning_language?: string;
     compact_mode?: number | null;
     lexicon_level?: string | null;
+    font_scale?: string | null;
   }>(
     'SELECT * FROM settings WHERE id = ? LIMIT 1',
     ['default']
@@ -151,12 +156,13 @@ export async function getSettings(): Promise<Settings> {
     meaning_language: normalizeMeaningLanguage(row.meaning_language ?? DEFAULT_SETTINGS.meaning_language),
     compact_mode: normalizeCompactMode(row.compact_mode ?? (DEFAULT_SETTINGS.compact_mode ? 1 : 0)),
     lexicon_level: normalizeLexiconLevel(row.lexicon_level ?? DEFAULT_SETTINGS.lexicon_level),
+    font_scale: normalizeFontScale(row.font_scale ?? DEFAULT_SETTINGS.font_scale),
   };
 }
 
 export async function updateSettings(settings: Settings) {
   await run(
-    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, meaning_language = ?, compact_mode = ?, lexicon_level = ? WHERE id = ?;',
+    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, meaning_language = ?, compact_mode = ?, lexicon_level = ?, font_scale = ? WHERE id = ?;',
     [
       settings.tts_rate,
       settings.tts_voice,
@@ -164,6 +170,7 @@ export async function updateSettings(settings: Settings) {
       settings.meaning_language,
       settings.compact_mode ? 1 : 0,
       settings.lexicon_level,
+      settings.font_scale,
       'default',
     ]
   );

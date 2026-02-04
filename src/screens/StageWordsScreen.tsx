@@ -1,5 +1,5 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { getStage, getWordsByIds, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
@@ -19,6 +19,7 @@ export default function StageWordsScreen({ route, navigation }: Props) {
   const setSettings = useAppStore((state) => state.setSettings);
   const meaningLanguage = settings.meaning_language;
   const compactMode = settings.compact_mode;
+  const fontScale = settings.font_scale;
 
   useEffect(() => {
     let active = true;
@@ -71,6 +72,16 @@ export default function StageWordsScreen({ route, navigation }: Props) {
     await persistSettings({ ...settings, compact_mode: value });
   };
 
+  const fontSizes = useMemo(() => {
+    const scaleMap: Record<string, number> = { s: 0.9, m: 1, l: 1.1 };
+    const scale = scaleMap[fontScale] ?? 1;
+    return {
+      word: Math.round(20 * scale),
+      reading: Math.round(14 * scale),
+      meaning: Math.round(14 * scale),
+    };
+  }, [fontScale]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -122,11 +133,13 @@ export default function StageWordsScreen({ route, navigation }: Props) {
                 pressed && compactMode ? styles.cardPressed : null,
               ]}
             >
-              <Text style={[styles.word, compactMode ? styles.wordCompact : null]}>{item.kanji ?? item.kana}</Text>
+              <Text style={[styles.word, { fontSize: fontSizes.word }]}>{item.kanji ?? item.kana}</Text>
               {(!compactMode || isExpanded) && (
                 <>
-                  <Text style={[styles.reading, compactMode ? styles.readingCompact : null]}>{item.kana}</Text>
-                  <Text style={[styles.meaning, compactMode ? styles.meaningCompact : null]}>
+                  <Text style={[styles.reading, { fontSize: fontSizes.reading }, compactMode ? styles.readingCompact : null]}>
+                    {item.kana}
+                  </Text>
+                  <Text style={[styles.meaning, { fontSize: fontSizes.meaning }, compactMode ? styles.meaningCompact : null]}>
                     {getMeaning(item, meaningLanguage)}
                   </Text>
                 </>
@@ -208,16 +221,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
-  wordCompact: {
-    fontSize: 16,
-  },
   reading: {
     color: colors.muted,
     marginTop: spacing.xs,
   },
   readingCompact: {
     marginTop: spacing.xs,
-    fontSize: 12,
   },
   meaning: {
     marginTop: spacing.s,
@@ -225,7 +234,6 @@ const styles = StyleSheet.create({
   },
   meaningCompact: {
     marginTop: spacing.xs,
-    fontSize: 12,
     color: colors.muted,
   },
 });

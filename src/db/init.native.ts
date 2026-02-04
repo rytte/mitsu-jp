@@ -68,7 +68,8 @@ async function runInit() {
       quiz_mix TEXT NOT NULL,
       meaning_language TEXT,
       compact_mode INTEGER,
-      lexicon_level TEXT
+      lexicon_level TEXT,
+      font_scale TEXT
     );`
   );
 
@@ -76,6 +77,7 @@ async function runInit() {
   await ensureColumn('settings', 'meaning_language', 'TEXT');
   await ensureColumn('settings', 'compact_mode', 'INTEGER');
   await ensureColumn('settings', 'lexicon_level', 'TEXT');
+  await ensureColumn('settings', 'font_scale', 'TEXT');
 
   const countRow = await getFirst<{ count: number }>('SELECT COUNT(*) as count FROM words');
   const count = countRow?.count ?? 0;
@@ -151,7 +153,7 @@ async function ensureDefaultSettings() {
   );
   if (!existing) {
     await run(
-      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, meaning_language, compact_mode, lexicon_level) VALUES (?, ?, ?, ?, ?, ?, ?);',
+      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, meaning_language, compact_mode, lexicon_level, font_scale) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
       [
         'default',
         DEFAULT_SETTINGS.tts_rate,
@@ -160,6 +162,7 @@ async function ensureDefaultSettings() {
         DEFAULT_SETTINGS.meaning_language,
         DEFAULT_SETTINGS.compact_mode ? 1 : 0,
         DEFAULT_SETTINGS.lexicon_level,
+        DEFAULT_SETTINGS.font_scale,
       ]
     );
   } else {
@@ -186,6 +189,16 @@ async function ensureDefaultSettings() {
     if (!lexicon?.lexicon_level) {
       await run('UPDATE settings SET lexicon_level = ? WHERE id = ?;', [
         DEFAULT_SETTINGS.lexicon_level,
+        'default',
+      ]);
+    }
+    const fontScale = await getFirst<{ font_scale?: string | null }>(
+      'SELECT font_scale FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (!fontScale?.font_scale) {
+      await run('UPDATE settings SET font_scale = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.font_scale,
         'default',
       ]);
     }

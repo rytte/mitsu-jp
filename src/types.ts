@@ -2,6 +2,8 @@ export type Level = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 
 export type MeaningLanguage = 'zh' | 'en';
 
+export type FontScale = 's' | 'm' | 'l';
+
 export type Word = {
   id: string;
   level: Level;
@@ -44,6 +46,7 @@ export type Settings = {
   meaning_language: MeaningLanguage;
   compact_mode: boolean;
   lexicon_level: Level;
+  font_scale: FontScale;
 };
 
 export type QuizItem =

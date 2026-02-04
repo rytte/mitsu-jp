@@ -32,7 +32,7 @@
 - `mistakes`  
   - `id` (PK), `word_id`, `wrong_times`, `last_wrong_at`
 - `settings`  
-  - `id` (PK), `tts_rate`, `tts_voice`, `quiz_mix`, `meaning_language`, `compact_mode`, `lexicon_level`
+  - `id` (PK), `tts_rate`, `tts_voice`, `quiz_mix`, `meaning_language`, `compact_mode`, `lexicon_level`, `font_scale`
 
 ## 功能模块
 1. **词库与关卡**
@@ -69,6 +69,7 @@
 6. **词汇预览**
    - 紧凑模式开关（可保存设置）
    - 紧凑模式下点击词条展开/收起释义
+   - 词汇字号支持小/中/大三档（紧凑/非紧凑统一字号）
 
 ## 关键界面（MVP）
 - 启动页 / 级别选择页（N5–N1）
@@ -105,6 +106,7 @@
     meaning_language: "zh" | "en";
     compact_mode: boolean;
     lexicon_level: "N5"|"N4"|"N3"|"N2"|"N1";
+    font_scale: "s" | "m" | "l";
   };
   ```
 - 题目结构：

@@ -6,6 +6,11 @@ import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 
 const RATE_OPTIONS = [0.8, 1.0, 1.2];
+const FONT_OPTIONS = [
+  { label: '小', value: 's' },
+  { label: '中', value: 'm' },
+  { label: '大', value: 'l' },
+] as const;
 
 export default function SettingsScreen() {
   const settings = useAppStore((state) => state.settings);
@@ -48,6 +53,10 @@ export default function SettingsScreen() {
     await persist({ ...settings, meaning_language: useEnglish ? 'en' : 'zh' });
   };
 
+  const handleFontScale = async (value: (typeof FONT_OPTIONS)[number]['value']) => {
+    await persist({ ...settings, font_scale: value });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.section}>
@@ -80,6 +89,25 @@ export default function SettingsScreen() {
           <Text style={styles.toggleText}>英文</Text>
         </View>
         <Text style={styles.tip}>当中文释义缺失时，自动回退为英文</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>词汇字号</Text>
+        <View style={styles.rateRow}>
+          {FONT_OPTIONS.map((option, index) => (
+            <PrimaryButton
+              key={option.value}
+              title={option.label}
+              onPress={() => handleFontScale(option.value)}
+              style={[
+                styles.rateBtn,
+                index < FONT_OPTIONS.length - 1 ? styles.rateBtnGap : null,
+                settings.font_scale === option.value ? styles.rateActive : null,
+              ]}
+            />
+          ))}
+        </View>
+        <Text style={styles.tip}>词条与释义使用统一字号</Text>
       </View>
 
       <View style={styles.section}>

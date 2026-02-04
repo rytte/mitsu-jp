@@ -1,5 +1,5 @@
 import words from '../data/words.json';
-import { Level, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import { FontScale, Level, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
 import { DEFAULT_SETTINGS, STAGE_SIZE } from './constants';
 import {
   ensureWebStorage,
@@ -25,6 +25,10 @@ function normalizeLexiconLevel(value: unknown): Level {
   const v = String(value || '').toUpperCase();
   if (v === 'N1' || v === 'N2' || v === 'N3' || v === 'N4' || v === 'N5') return v as Level;
   return DEFAULT_SETTINGS.lexicon_level;
+}
+
+function normalizeFontScale(value: unknown): FontScale {
+  return value === 's' || value === 'm' || value === 'l' ? value : DEFAULT_SETTINGS.font_scale;
 }
 
 const wordList = toWordList(words);
@@ -145,6 +149,7 @@ export async function getSettings(): Promise<Settings> {
     meaning_language: normalizeMeaningLanguage(settings.meaning_language),
     compact_mode: Boolean(settings.compact_mode),
     lexicon_level: normalizeLexiconLevel(settings.lexicon_level),
+    font_scale: normalizeFontScale(settings.font_scale),
   };
 }
 

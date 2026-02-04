@@ -9,4 +9,5 @@ export const DEFAULT_SETTINGS: Settings = {
   meaning_language: 'zh',
   compact_mode: false,
   lexicon_level: 'N5',
+  font_scale: 'm',
 };
