@@ -6,6 +6,7 @@ import { LearnStackParamList } from '../navigation/types';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { Settings, Word } from '../types';
+import { bumpFontScale, getWordFontSizes } from '../utils/fontScale';
 import { getMeaning } from '../utils/meaning';
 
 type Props = NativeStackScreenProps<LearnStackParamList, 'StageWords'>;
@@ -73,14 +74,9 @@ export default function StageWordsScreen({ route, navigation }: Props) {
   };
 
   const fontSizes = useMemo(() => {
-    const scaleMap: Record<string, number> = { s: 0.9, m: 1, l: 1.1 };
-    const scale = scaleMap[fontScale] ?? 1;
-    return {
-      word: Math.round(16 * scale),
-      reading: Math.round(12 * scale),
-      meaning: Math.round(12 * scale),
-    };
-  }, [fontScale]);
+    const effectiveScale = compactMode ? fontScale : bumpFontScale(fontScale);
+    return getWordFontSizes(effectiveScale);
+  }, [compactMode, fontScale]);
 
   useLayoutEffect(() => {
     navigation.setOptions({

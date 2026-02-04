@@ -1,11 +1,12 @@
 ﻿import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import { clearAllMistakes, getMistakeWords } from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { Word } from '../types';
+import { bumpFontScale, getWordFontSizes } from '../utils/fontScale';
 import { getMeaning } from '../utils/meaning';
 
 type MistakeWord = Word & { wrong_times: number };
@@ -13,6 +14,11 @@ type MistakeWord = Word & { wrong_times: number };
 export default function MistakesScreen() {
   const [mistakes, setMistakes] = useState<MistakeWord[]>([]);
   const meaningLanguage = useAppStore((state) => state.settings.meaning_language);
+  const fontScale = useAppStore((state) => state.settings.font_scale);
+
+  const fontSizes = useMemo(() => {
+    return getWordFontSizes(bumpFontScale(fontScale));
+  }, [fontScale]);
 
   const load = useCallback(() => {
     let active = true;
@@ -48,9 +54,11 @@ export default function MistakesScreen() {
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <View style={styles.card}>
-              <Text style={styles.word}>{item.kanji ?? item.kana}</Text>
-              <Text style={styles.reading}>{item.kana}</Text>
-              <Text style={styles.meaning}>{getMeaning(item, meaningLanguage)}</Text>
+              <Text style={[styles.word, { fontSize: fontSizes.word }]}>{item.kanji ?? item.kana}</Text>
+              <Text style={[styles.reading, { fontSize: fontSizes.reading }]}>{item.kana}</Text>
+              <Text style={[styles.meaning, { fontSize: fontSizes.meaning }]}>
+                {getMeaning(item, meaningLanguage)}
+              </Text>
               <Text style={styles.times}>错误次数：{item.wrong_times}</Text>
             </View>
           )}
