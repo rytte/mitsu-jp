@@ -54,7 +54,7 @@ export default function LevelSelectScreen({ navigation, route }: Props) {
       const targetLevel = settings.lexicon_level;
       if (targetLevel) {
         setAutoEntered(true);
-        navigation.replace('StageList', { level: targetLevel });
+        navigation.replace('ZoneList', { level: targetLevel });
       }
       return () => {};
     }, [autoEntered, navigation, settings.lexicon_level, skipAuto, suppressAuto])
@@ -78,7 +78,7 @@ export default function LevelSelectScreen({ navigation, route }: Props) {
     if (settings.lexicon_level !== level) {
       await persistSettings({ ...settings, lexicon_level: level });
     }
-    navigation.navigate('StageList', { level });
+    navigation.navigate('ZoneList', { level });
   };
 
   const accuracy = stats

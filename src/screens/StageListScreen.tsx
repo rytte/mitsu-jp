@@ -1,6 +1,6 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PrimaryButton from '../components/PrimaryButton';
@@ -15,9 +15,8 @@ type StageRow = Stage & { stars: number; locked: boolean };
 const SECTION_SIZE = 10;
 
 export default function StageListScreen({ navigation, route }: Props) {
-  const { level } = route.params;
+  const { level, zoneIndex } = route.params;
   const [stages, setStages] = useState<StageRow[]>([]);
-  const [selectedZone, setSelectedZone] = useState<number | null>(null);
 
   const load = useCallback(() => {
     let active = true;
@@ -42,10 +41,6 @@ export default function StageListScreen({ navigation, route }: Props) {
   }, [level]);
 
   useFocusEffect(load);
-
-  useEffect(() => {
-    setSelectedZone(null);
-  }, [level]);
 
   const zones = useMemo(() => {
     const map = new Map<number, StageRow[]>();
@@ -75,139 +70,111 @@ export default function StageListScreen({ navigation, route }: Props) {
       });
   }, [stages]);
 
-  useEffect(() => {
-    if (selectedZone && !zones.some((zone) => zone.sectionIndex === selectedZone)) {
-      setSelectedZone(null);
-    }
-  }, [selectedZone, zones]);
-
-  const currentZone = selectedZone ? zones.find((zone) => zone.sectionIndex === selectedZone) ?? null : null;
+  const currentZone = zones.find((zone) => zone.sectionIndex === zoneIndex) ?? null;
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerTitleRow}>
-          {selectedZone && (
-            <Pressable style={styles.backButton} onPress={() => setSelectedZone(null)}>
-              <Ionicons name="chevron-back" size={20} color={colors.primary} />
-            </Pressable>
-          )}
-          <View>
-            <Text style={styles.title}>
-              {selectedZone ? `词库 ${level} · 第${selectedZone}区` : `词库 ${level} 分区`}
-            </Text>
-            {currentZone ? (
-              <Text style={styles.subtitle}>
-                第 {currentZone.startIndex}-{currentZone.endIndex} 关 · 完成 {currentZone.completed}/{currentZone.total} ·
-                星级 {currentZone.starsSum}/{currentZone.total * 3}
-              </Text>
-            ) : (
-              <Text style={styles.subtitle}>每 10 关为一区，点击进入查看关卡</Text>
-            )}
-          </View>
-        </View>
-        <View style={styles.headerActions}>
-          {!currentZone && (
-            <Pressable style={styles.headerAction} onPress={() => navigation.replace('LevelSelect', { skipAuto: true })}>
-              <Text style={styles.switchText}>切换词库</Text>
-            </Pressable>
-          )}
-          {currentZone && (
-            <Pressable
-              style={styles.headerAction}
-              onPress={() => {
-                const wordIds: string[] = [];
-                const seen = new Set<string>();
-                const wordStageMap: Record<string, number> = {};
-                for (const stage of currentZone.data) {
-                  for (const wordId of stage.word_ids) {
-                    if (seen.has(wordId)) continue;
-                    seen.add(wordId);
-                    wordIds.push(wordId);
-                    wordStageMap[wordId] = stage.index;
-                  }
-                }
-                navigation.navigate('ZoneWords', {
-                  level,
-                  zoneIndex: currentZone.sectionIndex,
-                  startIndex: currentZone.startIndex,
-                  endIndex: currentZone.endIndex,
-                  wordIds,
-                  wordStageMap,
-                });
-              }}
-            >
-              <Text style={styles.switchText}>本区词汇</Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
-      {!currentZone && (
-        <FlatList
-          data={zones}
-          keyExtractor={(item) => `zone-${item.sectionIndex}`}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => setSelectedZone(item.sectionIndex)}
-              style={({ pressed }) => [styles.zoneCard, pressed ? styles.zoneCardPressed : null]}
-            >
-              <View>
-                <Text style={styles.zoneTitle}>第{item.sectionIndex}区</Text>
-                <Text style={styles.zoneSubtitle}>
-                  第 {item.startIndex}-{item.endIndex} 关
-                </Text>
-                <Text style={styles.zoneMeta}>
-                  完成 {item.completed}/{item.total} · 星级 {item.starsSum}/{item.total * 3}
-                </Text>
+      <FlatList
+        data={currentZone?.data ?? []}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        ListHeaderComponent={
+          <View style={styles.headerCard}>
+            <View style={styles.headerRow}>
+              <View style={styles.headerTitleRow}>
+                <View>
+                  <View style={styles.headerBadgeRow}>
+                    <Text style={styles.headerBadge}>JLPT</Text>
+                    <Text style={styles.headerBadgeLevel}>{level}</Text>
+                  </View>
+                  <Text style={styles.title}>第{zoneIndex}区</Text>
+                  {currentZone && (
+                    <Text style={styles.subtitle}>
+                      第 {currentZone.startIndex}-{currentZone.endIndex} 关 · 完成 {currentZone.completed}/
+                      {currentZone.total} · 星级 {currentZone.starsSum}/{currentZone.total * 3}
+                    </Text>
+                  )}
+                </View>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-            </Pressable>
-          )}
-        />
-      )}
-      {currentZone && (
-        <FlatList
-          data={currentZone.data}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <View style={[styles.card, item.locked ? styles.locked : null]}>
-              <View>
-                <Text style={styles.cardTitle}>第 {item.index} 关</Text>
-                <Text style={styles.cardText}>
-                  星级：{item.stars} <Ionicons name="star" size={14} color={colors.warn} />
-                </Text>
-              </View>
-              <View style={styles.actions}>
-                <PrimaryButton
-                  title="词汇"
-                  onPress={() =>
-                    navigation.navigate('StageWords', {
-                      stageId: item.id,
-                      level,
-                      stageIndex: item.index,
-                    })
-                  }
-                  style={styles.actionBtn}
-                />
-                <PrimaryButton
-                  title={item.locked ? '未解锁' : '开始'}
-                  onPress={() =>
-                    navigation.navigate('Quiz', {
-                      stageId: item.id,
-                      level,
-                      stageIndex: item.index,
-                    })
-                  }
-                  disabled={item.locked}
-                  style={[styles.actionBtn, styles.actionBtnGap]}
-                />
+              <View style={styles.headerActions}>
+                {currentZone && (
+                  <Pressable
+                    style={styles.headerAction}
+                    onPress={() => {
+                      const wordIds: string[] = [];
+                      const seen = new Set<string>();
+                      const wordStageMap: Record<string, number> = {};
+                      for (const stage of currentZone.data) {
+                        for (const wordId of stage.word_ids) {
+                          if (seen.has(wordId)) continue;
+                          seen.add(wordId);
+                          wordIds.push(wordId);
+                          wordStageMap[wordId] = stage.index;
+                        }
+                      }
+                      navigation.navigate('ZoneWords', {
+                        level,
+                        zoneIndex: currentZone.sectionIndex,
+                        startIndex: currentZone.startIndex,
+                        endIndex: currentZone.endIndex,
+                        wordIds,
+                        wordStageMap,
+                      });
+                    }}
+                  >
+                    <Text style={styles.switchText}>本区词汇</Text>
+                  </Pressable>
+                )}
               </View>
             </View>
-          )}
-        />
-      )}
+          </View>
+        }
+        ListEmptyComponent={
+          stages.length > 0 ? (
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyText}>未找到该分区</Text>
+              <Pressable style={styles.emptyBtn} onPress={() => navigation.goBack()}>
+                <Text style={styles.emptyBtnText}>返回分区</Text>
+              </Pressable>
+            </View>
+          ) : null
+        }
+        renderItem={({ item }) => (
+          <View style={[styles.card, item.locked ? styles.locked : null]}>
+            <View>
+              <Text style={styles.cardTitle}>第 {item.index} 关</Text>
+              <Text style={styles.cardText}>
+                星级：{item.stars} <Ionicons name="star" size={14} color={colors.warn} />
+              </Text>
+            </View>
+            <View style={styles.actions}>
+              <PrimaryButton
+                title="词汇"
+                onPress={() =>
+                  navigation.navigate('StageWords', {
+                    stageId: item.id,
+                    level,
+                    stageIndex: item.index,
+                  })
+                }
+                style={styles.actionBtn}
+              />
+              <PrimaryButton
+                title={item.locked ? '未解锁' : '开始'}
+                onPress={() =>
+                  navigation.navigate('Quiz', {
+                    stageId: item.id,
+                    level,
+                    stageIndex: item.index,
+                  })
+                }
+                disabled={item.locked}
+                style={[styles.actionBtn, styles.actionBtnGap]}
+              />
+            </View>
+          </View>
+        )}
+      />
     </View>
   );
 }
@@ -219,12 +186,19 @@ const styles = StyleSheet.create({
     padding: spacing.m,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.text,
   },
-  headerRow: {
+  headerCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    padding: spacing.m,
+    borderWidth: 1,
+    borderColor: colors.border,
     marginBottom: spacing.m,
+  },
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -233,10 +207,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  backButton: {
-    marginRight: spacing.s,
-    padding: spacing.xs,
   },
   headerActions: {
     alignItems: 'flex-end',
@@ -253,36 +223,55 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 12,
   },
+  headerBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  headerBadge: {
+    paddingHorizontal: spacing.s,
+    paddingVertical: 2,
+    borderRadius: radius.s,
+    backgroundColor: '#111827',
+    color: '#fff',
+    fontSize: 11,
+    marginRight: spacing.xs,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  headerBadgeLevel: {
+    paddingHorizontal: spacing.s,
+    paddingVertical: 2,
+    borderRadius: radius.s,
+    backgroundColor: colors.primary,
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+  },
   list: {
     paddingBottom: spacing.l,
   },
-  zoneCard: {
+  emptyBox: {
     backgroundColor: colors.card,
     borderRadius: radius.l,
-    padding: spacing.m,
-    marginBottom: spacing.m,
+    padding: spacing.l,
     borderWidth: 1,
     borderColor: colors.border,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
-  zoneCardPressed: {
-    opacity: 0.7,
-  },
-  zoneTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  zoneSubtitle: {
-    marginTop: spacing.xs,
+  emptyText: {
     color: colors.muted,
+    marginBottom: spacing.m,
   },
-  zoneMeta: {
-    marginTop: spacing.xs,
-    color: colors.muted,
-    fontSize: 12,
+  emptyBtn: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.l,
+    borderRadius: radius.m,
+  },
+  emptyBtnText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   card: {
     backgroundColor: colors.card,
@@ -294,6 +283,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   actions: {
     flexDirection: 'row',
@@ -318,4 +312,3 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
 });
-

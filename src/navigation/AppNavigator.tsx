@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import LevelSelectScreen from '../screens/LevelSelectScreen';
+import ZoneListScreen from '../screens/ZoneListScreen';
 import StageListScreen from '../screens/StageListScreen';
 import StageWordsScreen from '../screens/StageWordsScreen';
 import ZoneWordsScreen from '../screens/ZoneWordsScreen';
@@ -25,6 +26,11 @@ function LearnStackScreen() {
       }}
     >
       <LearnStack.Screen name="LevelSelect" component={LevelSelectScreen} options={{ title: '等级选择' }} />
+      <LearnStack.Screen
+        name="ZoneList"
+        component={ZoneListScreen}
+        options={{ title: '分区选择', headerBackVisible: false, headerLeft: () => null }}
+      />
       <LearnStack.Screen name="StageList" component={StageListScreen} options={{ title: '关卡列表' }} />
       <LearnStack.Screen name="StageWords" component={StageWordsScreen} options={{ title: '本关词汇' }} />
       <LearnStack.Screen name="ZoneWords" component={ZoneWordsScreen} options={{ title: '本区词汇' }} />

@@ -1,5 +1,5 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
+﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, SectionList, StyleSheet, Switch, Text, View } from 'react-native';
 import { getWordsByIds, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
@@ -63,16 +63,7 @@ export default function ZoneWordsScreen({ route }: Props) {
     await persistSettings({ ...settings, compact_mode: value });
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>词汇加载中...</Text>
-      </View>
-    );
-  }
-
-  const sections = (() => {
+  const sections = useMemo(() => {
     const orderMap = new Map<string, number>();
     wordIds.forEach((id, index) => orderMap.set(id, index));
     const grouped = new Map<number, Word[]>();
@@ -93,31 +84,44 @@ export default function ZoneWordsScreen({ route }: Props) {
       result.push({ title: `第 ${i} 关`, data: sorted });
     }
     return result;
-  })();
+  }, [endIndex, startIndex, wordIds, wordStageMap, words]);
+
+  if (loading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>词汇加载中...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>第 {zoneIndex} 区词汇</Text>
-          <Text style={styles.subtitle}>
-            第 {startIndex}-{endIndex} 关 · 共 {words.length} 个
-          </Text>
-          {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
-        </View>
-        <View style={styles.modeToggle}>
-          <Text style={styles.modeText}>紧凑模式</Text>
-          <Switch
-            value={compactMode}
-            onValueChange={toggleCompactMode}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
-      </View>
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <View>
+              <View style={styles.headerBadgeRow}>
+                <Text style={styles.headerBadge}>ZONE</Text>
+                <Text style={styles.headerBadgeLevel}>{zoneIndex}</Text>
+              </View>
+              <Text style={styles.title}>第 {zoneIndex} 区词汇</Text>
+              <Text style={styles.subtitle}>第 {startIndex}-{endIndex} 关</Text>
+              {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
+            </View>
+            <View style={styles.modeToggle}>
+              <Text style={styles.modeText}>紧凑模式</Text>
+              <Switch
+                value={compactMode}
+                onValueChange={toggleCompactMode}
+                trackColor={{ false: colors.border, true: colors.primary }}
+              />
+            </View>
+          </View>
+        }
         renderSectionHeader={({ section }) => (
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{section.title}</Text>
@@ -173,9 +177,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    padding: spacing.m,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.text,
   },
@@ -187,6 +196,31 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     color: colors.muted,
     fontSize: 12,
+  },
+  headerBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  headerBadge: {
+    paddingHorizontal: spacing.s,
+    paddingVertical: 2,
+    borderRadius: radius.s,
+    backgroundColor: '#111827',
+    color: '#fff',
+    fontSize: 11,
+    marginRight: spacing.xs,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  headerBadgeLevel: {
+    paddingHorizontal: spacing.s,
+    paddingVertical: 2,
+    borderRadius: radius.s,
+    backgroundColor: colors.primary,
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
   },
   modeToggle: {
     alignItems: 'center',
@@ -200,14 +234,12 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.l,
   },
   sectionHeader: {
-    backgroundColor: colors.background,
-    paddingVertical: spacing.s,
     marginBottom: spacing.s,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.muted,
   },
   card: {
     backgroundColor: colors.card,
@@ -216,6 +248,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     marginBottom: spacing.m,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   cardCompact: {
     padding: spacing.s,

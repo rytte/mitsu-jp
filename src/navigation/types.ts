@@ -2,7 +2,8 @@
 
 export type LearnStackParamList = {
   LevelSelect: { skipAuto?: boolean } | undefined;
-  StageList: { level: Level };
+  ZoneList: { level: Level };
+  StageList: { level: Level; zoneIndex: number };
   StageWords: { stageId: string; level: Level; stageIndex: number };
   ZoneWords: {
     level: Level;
