@@ -1,5 +1,5 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, SectionList, StyleSheet, Switch, Text, View } from 'react-native';
 import { getWordsByIds, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
@@ -10,7 +10,7 @@ import { getMeaning } from '../utils/meaning';
 
 type Props = NativeStackScreenProps<LearnStackParamList, 'ZoneWords'>;
 
-export default function ZoneWordsScreen({ route }: Props) {
+export default function ZoneWordsScreen({ route, navigation }: Props) {
   const { zoneIndex, startIndex, endIndex, wordIds, wordStageMap } = route.params;
   const [loading, setLoading] = useState(true);
   const [words, setWords] = useState<Word[]>([]);
@@ -63,6 +63,21 @@ export default function ZoneWordsScreen({ route }: Props) {
     await persistSettings({ ...settings, compact_mode: value });
   };
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerToggle}>
+          <Text style={styles.headerToggleText}>紧凑</Text>
+          <Switch
+            value={compactMode}
+            onValueChange={toggleCompactMode}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+      ),
+    });
+  }, [compactMode, navigation, toggleCompactMode]);
+
   const sections = useMemo(() => {
     const orderMap = new Map<string, number>();
     wordIds.forEach((id, index) => orderMap.set(id, index));
@@ -111,14 +126,6 @@ export default function ZoneWordsScreen({ route }: Props) {
               <Text style={styles.title}>第 {zoneIndex} 区词汇</Text>
               <Text style={styles.subtitle}>第 {startIndex}-{endIndex} 关</Text>
               {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
-            </View>
-            <View style={styles.modeToggle}>
-              <Text style={styles.modeText}>紧凑模式</Text>
-              <Switch
-                value={compactMode}
-                onValueChange={toggleCompactMode}
-                trackColor={{ false: colors.border, true: colors.primary }}
-              />
             </View>
           </View>
         }
@@ -222,12 +229,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
-  modeToggle: {
+  headerToggle: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  modeText: {
+  headerToggleText: {
     color: colors.muted,
-    marginBottom: spacing.xs,
+    marginRight: spacing.xs,
     fontSize: 12,
   },
   list: {

@@ -1,5 +1,5 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { getStage, getWordsByIds, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
@@ -10,7 +10,7 @@ import { getMeaning } from '../utils/meaning';
 
 type Props = NativeStackScreenProps<LearnStackParamList, 'StageWords'>;
 
-export default function StageWordsScreen({ route }: Props) {
+export default function StageWordsScreen({ route, navigation }: Props) {
   const { stageId, stageIndex } = route.params;
   const [loading, setLoading] = useState(true);
   const [words, setWords] = useState<Word[]>([]);
@@ -71,6 +71,21 @@ export default function StageWordsScreen({ route }: Props) {
     await persistSettings({ ...settings, compact_mode: value });
   };
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerToggle}>
+          <Text style={styles.headerToggleText}>紧凑</Text>
+          <Switch
+            value={compactMode}
+            onValueChange={toggleCompactMode}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+      ),
+    });
+  }, [compactMode, navigation, toggleCompactMode]);
+
   if (loading) {
     return (
       <View style={styles.loading}>
@@ -82,25 +97,19 @@ export default function StageWordsScreen({ route }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>第 {stageIndex} 关词汇</Text>
-          <Text style={styles.subtitle}>共 {words.length} 个</Text>
-          {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
-        </View>
-        <View style={styles.modeToggle}>
-          <Text style={styles.modeText}>紧凑模式</Text>
-          <Switch
-            value={compactMode}
-            onValueChange={toggleCompactMode}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
-      </View>
       <FlatList
         data={words}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.title}>第 {stageIndex} 关词汇</Text>
+              <Text style={styles.subtitle}>共 {words.length} 个</Text>
+              {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
+            </View>
+          </View>
+        }
         renderItem={({ item }) => {
           const isExpanded = expandedIds.has(item.id);
           return (
@@ -166,12 +175,13 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 12,
   },
-  modeToggle: {
+  headerToggle: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  modeText: {
+  headerToggleText: {
     color: colors.muted,
-    marginBottom: spacing.xs,
+    marginRight: spacing.xs,
     fontSize: 12,
   },
   list: {
