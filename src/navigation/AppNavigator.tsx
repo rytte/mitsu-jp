@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LevelSelectScreen from '../screens/LevelSelectScreen';
 import StageListScreen from '../screens/StageListScreen';
 import StageWordsScreen from '../screens/StageWordsScreen';
+import ZoneWordsScreen from '../screens/ZoneWordsScreen';
 import QuizScreen from '../screens/QuizScreen';
 import ResultScreen from '../screens/ResultScreen';
 import MistakesScreen from '../screens/MistakesScreen';
@@ -26,6 +27,7 @@ function LearnStackScreen() {
       <LearnStack.Screen name="LevelSelect" component={LevelSelectScreen} options={{ title: '等级选择' }} />
       <LearnStack.Screen name="StageList" component={StageListScreen} options={{ title: '关卡列表' }} />
       <LearnStack.Screen name="StageWords" component={StageWordsScreen} options={{ title: '本关词汇' }} />
+      <LearnStack.Screen name="ZoneWords" component={ZoneWordsScreen} options={{ title: '本区词汇' }} />
       <LearnStack.Screen name="Quiz" component={QuizScreen} options={{ title: '闯关测验' }} />
       <LearnStack.Screen name="Result" component={ResultScreen} options={{ title: '结果' }} />
     </LearnStack.Navigator>
@@ -60,4 +62,3 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
-

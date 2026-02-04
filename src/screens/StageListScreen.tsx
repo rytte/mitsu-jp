@@ -107,9 +107,34 @@ export default function StageListScreen({ navigation, route }: Props) {
           </View>
         </View>
         <View style={styles.headerActions}>
-          <Pressable style={styles.headerAction} onPress={() => navigation.replace('LevelSelect', { skipAuto: true })}>
-            <Text style={styles.switchText}>切换词库</Text>
-          </Pressable>
+          {currentZone && (
+            <Pressable
+              style={styles.headerAction}
+              onPress={() => {
+                const wordIds: string[] = [];
+                const seen = new Set<string>();
+                const wordStageMap: Record<string, number> = {};
+                for (const stage of currentZone.data) {
+                  for (const wordId of stage.word_ids) {
+                    if (seen.has(wordId)) continue;
+                    seen.add(wordId);
+                    wordIds.push(wordId);
+                    wordStageMap[wordId] = stage.index;
+                  }
+                }
+                navigation.navigate('ZoneWords', {
+                  level,
+                  zoneIndex: currentZone.sectionIndex,
+                  startIndex: currentZone.startIndex,
+                  endIndex: currentZone.endIndex,
+                  wordIds,
+                  wordStageMap,
+                });
+              }}
+            >
+              <Text style={styles.switchText}>本区词汇</Text>
+            </Pressable>
+          )}
         </View>
       </View>
       {!currentZone && (
