@@ -92,7 +92,7 @@ export function generateQuizItems(params: {
         id: `${word.id}-spell-${i}`,
         wordId: word.id,
         type: 'spelling',
-        prompt: `${meaning}${word.kanji ? `(${word.kanji})` : ''}`,
+        prompt: meaning,
         answer: word.kana,
       });
       continue;
