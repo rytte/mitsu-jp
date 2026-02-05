@@ -1,6 +1,7 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, SectionList, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, SectionList, StyleSheet, Switch, Text, View } from 'react-native';
+import WordCard from '../components/WordCard';
 import { getWordsByIds, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
 import { useAppStore } from '../store/useAppStore';
@@ -144,27 +145,16 @@ export default function ZoneWordsScreen({ route, navigation }: Props) {
         renderItem={({ item }) => {
           const isExpanded = expandedIds.has(item.id);
           return (
-            <Pressable
+            <WordCard
+              word={item}
+              meaning={getMeaning(item, meaningLanguage)}
+              compact={compactMode}
+              expanded={isExpanded}
               disabled={!compactMode}
               onPress={() => toggleExpanded(item.id)}
-              style={({ pressed }) => [
-                styles.card,
-                compactMode ? styles.cardCompact : null,
-                pressed && compactMode ? styles.cardPressed : null,
-              ]}
-            >
-              <Text style={[styles.word, { fontSize: fontSizes.word }]}>{item.kanji ?? item.kana}</Text>
-              {(!compactMode || isExpanded) && (
-                <>
-                  <Text style={[styles.reading, { fontSize: fontSizes.reading }, compactMode ? styles.readingCompact : null]}>
-                    {item.kana}
-                  </Text>
-                  <Text style={[styles.meaning, { fontSize: fontSizes.meaning }, compactMode ? styles.meaningCompact : null]}>
-                    {getMeaning(item, meaningLanguage)}
-                  </Text>
-                </>
-              )}
-            </Pressable>
+              fontSizes={fontSizes}
+              shadow
+            />
           );
         }}
       />
@@ -256,47 +246,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.muted,
-  },
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: radius.l,
-    padding: spacing.m,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.m,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
-  },
-  cardCompact: {
-    padding: spacing.s,
-    borderRadius: radius.m,
-    marginBottom: spacing.s,
-  },
-  cardPressed: {
-    opacity: 0.7,
-  },
-  word: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  reading: {
-    color: colors.muted,
-    marginTop: spacing.xs,
-  },
-  readingCompact: {
-    marginTop: spacing.xs,
-  },
-  meaning: {
-    marginTop: spacing.s,
-    color: colors.text,
-  },
-  meaningCompact: {
-    marginTop: spacing.xs,
     color: colors.muted,
   },
 });

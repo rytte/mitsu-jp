@@ -1,10 +1,11 @@
 ﻿import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
+import WordCard from '../components/WordCard';
 import PrimaryButton from '../components/PrimaryButton';
 import { clearAllMistakes, getMistakeWords } from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
-import { colors, radius, spacing } from '../theme';
+import { colors, spacing } from '../theme';
 import { Word } from '../types';
 import { bumpFontScale, getWordFontSizes } from '../utils/fontScale';
 import { getMeaning } from '../utils/meaning';
@@ -53,14 +54,12 @@ export default function MistakesScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={[styles.word, { fontSize: fontSizes.word }]}>{item.kanji ?? item.kana}</Text>
-              <Text style={[styles.reading, { fontSize: fontSizes.reading }]}>{item.kana}</Text>
-              <Text style={[styles.meaning, { fontSize: fontSizes.meaning }]}>
-                {getMeaning(item, meaningLanguage)}
-              </Text>
-              <Text style={styles.times}>错误次数：{item.wrong_times}</Text>
-            </View>
+            <WordCard
+              word={item}
+              meaning={getMeaning(item, meaningLanguage)}
+              fontSizes={fontSizes}
+              footer={<Text style={styles.times}>错误次数：{item.wrong_times}</Text>}
+            />
           )}
         />
       )}
@@ -95,27 +94,6 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: spacing.l,
-  },
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: radius.l,
-    padding: spacing.m,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.m,
-  },
-  word: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  reading: {
-    color: colors.muted,
-    marginTop: spacing.xs,
-  },
-  meaning: {
-    marginTop: spacing.s,
-    color: colors.text,
   },
   times: {
     marginTop: spacing.s,
