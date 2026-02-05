@@ -1,5 +1,5 @@
 import words from '../data/words.json';
-import { FontScale, Level, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import { FontScale, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
 import { DEFAULT_SETTINGS, STAGE_SIZE } from './constants';
 import {
   ensureWebStorage,
@@ -29,6 +29,15 @@ function normalizeLexiconLevel(value: unknown): Level {
 
 function normalizeFontScale(value: unknown): FontScale {
   return value === 's' || value === 'm' || value === 'l' ? value : DEFAULT_SETTINGS.font_scale;
+}
+
+function normalizeMcqModes(value: unknown): McqModes {
+  if (!value || typeof value !== 'object') return DEFAULT_SETTINGS.mcq_modes;
+  const raw = value as Partial<McqModes>;
+  return {
+    ja_to_meaning: Boolean(raw.ja_to_meaning),
+    meaning_to_ja: Boolean(raw.meaning_to_ja),
+  };
 }
 
 const wordList = toWordList(words);
@@ -146,6 +155,7 @@ export async function getSettings(): Promise<Settings> {
   const settings = { ...DEFAULT_SETTINGS, ...(loadSettings() as Partial<Settings>) };
   return {
     ...settings,
+    mcq_modes: normalizeMcqModes(settings.mcq_modes),
     meaning_language: normalizeMeaningLanguage(settings.meaning_language),
     compact_mode: Boolean(settings.compact_mode),
     compact_single_expand: Boolean(settings.compact_single_expand),

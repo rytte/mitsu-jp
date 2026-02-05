@@ -5,8 +5,6 @@ import * as Speech from 'expo-speech';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
 import {
-  getAllWordsByLevel,
-  getMistakeWordIdsByLevel,
   getStage,
   getWordsByIds,
   recordMistake,
@@ -19,8 +17,6 @@ import { getMeaningLabel } from '../utils/meaning';
 import { generateQuizItems } from '../utils/quiz';
 
 type Props = NativeStackScreenProps<LearnStackParamList, 'Quiz'>;
-
-const QUESTION_COUNT = 10;
 
 export default function QuizScreen({ navigation, route }: Props) {
   const { stageId, level, stageIndex } = route.params;
@@ -45,15 +41,10 @@ export default function QuizScreen({ navigation, route }: Props) {
       const stage = await getStage(stageId);
       if (!stage) return;
       const stageWords = await getWordsByIds(stage.word_ids);
-      const mistakeIds = await getMistakeWordIdsByLevel(level);
-      const mistakeWords = mistakeIds.length ? await getWordsByIds(mistakeIds) : [];
-      const allLevelWords = await getAllWordsByLevel(level);
       const list = generateQuizItems({
         stageWords,
-        mistakeWords,
-        allLevelWords,
-        questionCount: QUESTION_COUNT,
         mix: settings.quiz_mix,
+        mcqModes: settings.mcq_modes,
         meaningLanguage: settings.meaning_language,
       });
       if (!active) return;
@@ -65,7 +56,14 @@ export default function QuizScreen({ navigation, route }: Props) {
     return () => {
       active = false;
     };
-  }, [level, settings.meaning_language, settings.quiz_mix, stageId]);
+  }, [
+    level,
+    settings.meaning_language,
+    settings.mcq_modes.ja_to_meaning,
+    settings.mcq_modes.meaning_to_ja,
+    settings.quiz_mix,
+    stageId,
+  ]);
 
   const progressText = useMemo(() => {
     if (!items.length) return '';

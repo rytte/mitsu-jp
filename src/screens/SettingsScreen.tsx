@@ -15,33 +15,78 @@ const FONT_OPTIONS = [
 export default function SettingsScreen() {
   const settings = useAppStore((state) => state.settings);
   const setSettings = useAppStore((state) => state.setSettings);
+  const [mcqJaToMeaningEnabled, setMcqJaToMeaningEnabled] = useState(settings.mcq_modes.ja_to_meaning);
+  const [mcqMeaningToJaEnabled, setMcqMeaningToJaEnabled] = useState(settings.mcq_modes.meaning_to_ja);
   const [spellingEnabled, setSpellingEnabled] = useState(settings.quiz_mix.spelling > 0);
   const [listeningEnabled, setListeningEnabled] = useState(settings.quiz_mix.listening > 0);
   const [meaningEnglish, setMeaningEnglish] = useState(settings.meaning_language === 'en');
   const compactSingleExpand = settings.compact_single_expand;
 
   useEffect(() => {
+    setMcqJaToMeaningEnabled(settings.mcq_modes.ja_to_meaning);
+    setMcqMeaningToJaEnabled(settings.mcq_modes.meaning_to_ja);
     setSpellingEnabled(settings.quiz_mix.spelling > 0);
     setListeningEnabled(settings.quiz_mix.listening > 0);
     setMeaningEnglish(settings.meaning_language === 'en');
-  }, [settings.meaning_language, settings.quiz_mix.listening, settings.quiz_mix.spelling]);
+  }, [
+    settings.mcq_modes.ja_to_meaning,
+    settings.mcq_modes.meaning_to_ja,
+    settings.meaning_language,
+    settings.quiz_mix.listening,
+    settings.quiz_mix.spelling,
+  ]);
 
   const persist = async (next: typeof settings) => {
     setSettings(next);
     await updateSettings(next);
   };
 
-  const buildMix = (spell: boolean, listen: boolean) => {
-    const spelling = spell ? 0.2 : 0;
-    const listening = listen ? 0.2 : 0;
-    const mcq = Math.max(0.4, 1 - spelling - listening);
-    return { mcq, spelling, listening };
+  const buildMix = (mcqEnabled: boolean, spellEnabled: boolean, listenEnabled: boolean) => {
+    const enabledCount = [mcqEnabled, spellEnabled, listenEnabled].filter(Boolean).length;
+    if (enabledCount <= 0) return settings.quiz_mix;
+    const weight = 1 / enabledCount;
+    return {
+      mcq: mcqEnabled ? weight : 0,
+      spelling: spellEnabled ? weight : 0,
+      listening: listenEnabled ? weight : 0,
+    };
+  };
+
+  const handleMcqModeToggle = async (mode: 'ja_to_meaning' | 'meaning_to_ja', value: boolean) => {
+    const nextModes = { ...settings.mcq_modes, [mode]: value };
+    const nextMcqEnabled = nextModes.ja_to_meaning || nextModes.meaning_to_ja;
+    if (!nextMcqEnabled && !spellingEnabled && !listeningEnabled) {
+      if (mode === 'ja_to_meaning') {
+        setMcqJaToMeaningEnabled(true);
+      } else {
+        setMcqMeaningToJaEnabled(true);
+      }
+      return;
+    }
+    if (mode === 'ja_to_meaning') {
+      setMcqJaToMeaningEnabled(value);
+    } else {
+      setMcqMeaningToJaEnabled(value);
+    }
+    const nextMix = buildMix(nextMcqEnabled, spellingEnabled, listeningEnabled);
+    await persist({ ...settings, mcq_modes: nextModes, quiz_mix: nextMix });
   };
 
   const handleToggle = async (type: 'spelling' | 'listening', value: boolean) => {
+    const nextSpelling = type === 'spelling' ? value : spellingEnabled;
+    const nextListening = type === 'listening' ? value : listeningEnabled;
+    const mcqEnabled = mcqJaToMeaningEnabled || mcqMeaningToJaEnabled;
+    if (!mcqEnabled && !nextSpelling && !nextListening) {
+      if (type === 'spelling') {
+        setSpellingEnabled(true);
+      } else {
+        setListeningEnabled(true);
+      }
+      return;
+    }
     if (type === 'spelling') setSpellingEnabled(value);
     if (type === 'listening') setListeningEnabled(value);
-    const nextMix = buildMix(type === 'spelling' ? value : spellingEnabled, type === 'listening' ? value : listeningEnabled);
+    const nextMix = buildMix(mcqEnabled, nextSpelling, nextListening);
     await persist({ ...settings, quiz_mix: nextMix });
   };
 
@@ -131,6 +176,22 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>题型设置</Text>
         <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>日语选释义</Text>
+          <Switch
+            value={mcqJaToMeaningEnabled}
+            onValueChange={(value) => handleMcqModeToggle('ja_to_meaning', value)}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>释义选日语</Text>
+          <Switch
+            value={mcqMeaningToJaEnabled}
+            onValueChange={(value) => handleMcqModeToggle('meaning_to_ja', value)}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+        <View style={styles.toggleRow}>
           <Text style={styles.toggleText}>拼写题</Text>
           <Switch
             value={spellingEnabled}
@@ -146,7 +207,7 @@ export default function SettingsScreen() {
             trackColor={{ false: colors.border, true: colors.primary }}
           />
         </View>
-        <Text style={styles.tip}>关闭会减少对应题型的出题比例</Text>
+        <Text style={styles.tip}>至少开启一种题型；关闭后不再出该题型，多选题型等概率出题</Text>
       </View>
 
       <View style={styles.section}>

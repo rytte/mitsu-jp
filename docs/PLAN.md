@@ -32,7 +32,7 @@
 - `mistakes`  
   - `id` (PK), `word_id`, `wrong_times`, `last_wrong_at`
 - `settings`  
-  - `id` (PK), `tts_rate`, `tts_voice`, `quiz_mix`, `meaning_language`, `compact_mode`, `lexicon_level`, `font_scale`
+  - `id` (PK), `tts_rate`, `tts_voice`, `quiz_mix`, `mcq_modes`, `meaning_language`, `compact_mode`, `lexicon_level`, `font_scale`
 
 ## 功能模块
 1. **词库与关卡**
@@ -49,10 +49,9 @@
      - 选择题：给中文选日语/给日语选中文
      - 拼写题：日语假名输入（软键盘或选字拼写）
      - 听写题：TTS 播放 → 选/输答案
-   - 题目生成策略：
-     - 70% 当前关词汇
-     - 20% 本级别错题
-     - 10% 随机关卡复习词
+  - 题目生成策略：
+     - 每关仅使用本关词汇，保证覆盖所有词汇
+     - 题量 = 本关词汇数量（每词一题）
 
 3. **错题本**
    - 错题收集与标记
@@ -103,6 +102,7 @@
     tts_rate: number;
     tts_voice: string | null;
     quiz_mix: QuizMix;
+    mcq_modes: { ja_to_meaning: boolean; meaning_to_ja: boolean };
     meaning_language: "zh" | "en";
     compact_mode: boolean;
     lexicon_level: "N5"|"N4"|"N3"|"N2"|"N1";

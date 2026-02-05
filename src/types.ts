@@ -39,10 +39,16 @@ export type QuizMix = {
   listening: number;
 };
 
+export type McqModes = {
+  ja_to_meaning: boolean;
+  meaning_to_ja: boolean;
+};
+
 export type Settings = {
   tts_rate: number;
   tts_voice: string | null;
   quiz_mix: QuizMix;
+  mcq_modes: McqModes;
   meaning_language: MeaningLanguage;
   compact_mode: boolean;
   compact_single_expand: boolean;

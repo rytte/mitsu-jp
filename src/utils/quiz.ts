@@ -1,6 +1,6 @@
-﻿import { MeaningLanguage, QuizItem, QuizMix, Word } from '../types';
+﻿import { McqModes, MeaningLanguage, QuizItem, QuizMix, Word } from '../types';
 import { getMeaning } from './meaning';
-import { pickOne, sample, shuffle } from './random';
+import { sample, shuffle } from './random';
 
 function displayJa(word: Word) {
   return word.kanji ?? word.kana;
@@ -13,6 +13,26 @@ function weightedPick(mix: QuizMix): 'mcq' | 'spelling' | 'listening' {
   return 'listening';
 }
 
+function pickMcqDirection(modes: McqModes): 'ja_to_meaning' | 'meaning_to_ja' {
+  if (modes.ja_to_meaning && modes.meaning_to_ja) {
+    return Math.random() < 0.5 ? 'ja_to_meaning' : 'meaning_to_ja';
+  }
+  if (modes.ja_to_meaning) return 'ja_to_meaning';
+  if (modes.meaning_to_ja) return 'meaning_to_ja';
+  return 'ja_to_meaning';
+}
+
+function buildEqualMix(mcqEnabled: boolean, spellingEnabled: boolean, listeningEnabled: boolean): QuizMix {
+  const enabledCount = [mcqEnabled, spellingEnabled, listeningEnabled].filter(Boolean).length;
+  if (enabledCount <= 0) return { mcq: 1, spelling: 0, listening: 0 };
+  const weight = 1 / enabledCount;
+  return {
+    mcq: mcqEnabled ? weight : 0,
+    spelling: spellingEnabled ? weight : 0,
+    listening: listeningEnabled ? weight : 0,
+  };
+}
+
 function buildOptions(answer: string, candidates: string[], count = 4): string[] {
   const filtered = candidates.filter((item) => item !== answer);
   const picked = sample(filtered, Math.max(0, count - 1));
@@ -21,30 +41,29 @@ function buildOptions(answer: string, candidates: string[], count = 4): string[]
 
 export function generateQuizItems(params: {
   stageWords: Word[];
-  mistakeWords: Word[];
-  allLevelWords: Word[];
-  questionCount: number;
   mix: QuizMix;
+  mcqModes: McqModes;
   meaningLanguage: MeaningLanguage;
 }): QuizItem[] {
-  const { stageWords, mistakeWords, allLevelWords, questionCount, mix, meaningLanguage } = params;
+  const { stageWords, mix, mcqModes, meaningLanguage } = params;
+  if (!stageWords.length) return [];
+  const mcqEnabled = mcqModes.ja_to_meaning || mcqModes.meaning_to_ja;
+  const spellingEnabled = mix.spelling > 0;
+  const listeningEnabled = mix.listening > 0;
+  const effectiveMix = buildEqualMix(mcqEnabled, spellingEnabled, listeningEnabled);
   const items: QuizItem[] = [];
-  const allWords = allLevelWords.length ? allLevelWords : stageWords;
-  const meanings = allWords.map((item) => getMeaning(item, meaningLanguage));
+  const shuffledWords = shuffle([...stageWords]);
+  const meanings = stageWords.map((item) => getMeaning(item, meaningLanguage));
+  const jaWords = stageWords.map((item) => displayJa(item));
 
-  for (let i = 0; i < questionCount; i += 1) {
-    const roll = Math.random();
-    let source = stageWords;
-    if (roll >= 0.7 && roll < 0.9 && mistakeWords.length > 0) source = mistakeWords;
-    if (roll >= 0.9) source = allWords;
-
-    const word = pickOne(source.length ? source : allWords);
-    const type = weightedPick(mix);
+  for (let i = 0; i < shuffledWords.length; i += 1) {
+    const word = shuffledWords[i];
+    const type = weightedPick(effectiveMix);
     const meaning = getMeaning(word, meaningLanguage);
 
     if (type === 'mcq') {
-      const jaToCn = Math.random() < 0.5;
-      if (jaToCn) {
+      const direction = pickMcqDirection(mcqModes);
+      if (direction === 'ja_to_meaning') {
         const options = buildOptions(meaning, meanings);
         items.push({
           id: `${word.id}-mcq-ja-${i}`,
@@ -55,7 +74,7 @@ export function generateQuizItems(params: {
           answer: meaning,
         });
       } else {
-        const options = buildOptions(displayJa(word), allWords.map((item) => displayJa(item)));
+        const options = buildOptions(displayJa(word), jaWords);
         items.push({
           id: `${word.id}-mcq-cn-${i}`,
           wordId: word.id,
@@ -79,7 +98,7 @@ export function generateQuizItems(params: {
       continue;
     }
 
-    const options = buildOptions(displayJa(word), allWords.map((item) => displayJa(item)));
+    const options = buildOptions(displayJa(word), jaWords);
     items.push({
       id: `${word.id}-listen-${i}`,
       wordId: word.id,

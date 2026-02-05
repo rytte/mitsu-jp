@@ -1,4 +1,4 @@
-import { FontScale, Level, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import { FontScale, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
 import { DEFAULT_SETTINGS } from './constants';
 import { getAll, getFirst, run } from './db';
 
@@ -22,6 +22,15 @@ function normalizeLexiconLevel(value: unknown): Level {
 
 function normalizeFontScale(value: unknown): FontScale {
   return value === 's' || value === 'm' || value === 'l' ? value : DEFAULT_SETTINGS.font_scale;
+}
+
+function normalizeMcqModes(value: unknown): McqModes {
+  if (!value || typeof value !== 'object') return DEFAULT_SETTINGS.mcq_modes;
+  const raw = value as Partial<McqModes>;
+  return {
+    ja_to_meaning: Boolean(raw.ja_to_meaning),
+    meaning_to_ja: Boolean(raw.meaning_to_ja),
+  };
 }
 
 export async function getStagesByLevel(level: Level): Promise<Stage[]> {
@@ -144,6 +153,7 @@ export async function getSettings(): Promise<Settings> {
     tts_rate: number;
     tts_voice: string | null;
     quiz_mix: string;
+    mcq_modes?: string | null;
     meaning_language?: string;
     compact_mode?: number | null;
     compact_single_expand?: number | null;
@@ -158,6 +168,9 @@ export async function getSettings(): Promise<Settings> {
     tts_rate: row.tts_rate,
     tts_voice: row.tts_voice,
     quiz_mix: row.quiz_mix ? JSON.parse(row.quiz_mix) : DEFAULT_SETTINGS.quiz_mix,
+    mcq_modes: normalizeMcqModes(
+      row.mcq_modes ? (JSON.parse(row.mcq_modes) as McqModes) : DEFAULT_SETTINGS.mcq_modes
+    ),
     meaning_language: normalizeMeaningLanguage(row.meaning_language ?? DEFAULT_SETTINGS.meaning_language),
     compact_mode: normalizeCompactMode(row.compact_mode ?? (DEFAULT_SETTINGS.compact_mode ? 1 : 0)),
     compact_single_expand: normalizeCompactSingleExpand(
@@ -170,11 +183,12 @@ export async function getSettings(): Promise<Settings> {
 
 export async function updateSettings(settings: Settings) {
   await run(
-    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, meaning_language = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ? WHERE id = ?;',
+    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, meaning_language = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ? WHERE id = ?;',
     [
       settings.tts_rate,
       settings.tts_voice,
       JSON.stringify(settings.quiz_mix),
+      JSON.stringify(settings.mcq_modes),
       settings.meaning_language,
       settings.compact_mode ? 1 : 0,
       settings.compact_single_expand ? 1 : 0,

@@ -66,6 +66,7 @@ async function runInit() {
       tts_rate REAL NOT NULL,
       tts_voice TEXT,
       quiz_mix TEXT NOT NULL,
+      mcq_modes TEXT,
       meaning_language TEXT,
       compact_mode INTEGER,
       compact_single_expand INTEGER,
@@ -76,6 +77,7 @@ async function runInit() {
 
   await ensureColumn('words', 'meaning_en', 'TEXT');
   await ensureColumn('settings', 'meaning_language', 'TEXT');
+  await ensureColumn('settings', 'mcq_modes', 'TEXT');
   await ensureColumn('settings', 'compact_mode', 'INTEGER');
   await ensureColumn('settings', 'compact_single_expand', 'INTEGER');
   await ensureColumn('settings', 'lexicon_level', 'TEXT');
@@ -155,12 +157,13 @@ async function ensureDefaultSettings() {
   );
   if (!existing) {
     await run(
-      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, meaning_language, compact_mode, compact_single_expand, lexicon_level, font_scale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, mcq_modes, meaning_language, compact_mode, compact_single_expand, lexicon_level, font_scale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
       [
         'default',
         DEFAULT_SETTINGS.tts_rate,
         DEFAULT_SETTINGS.tts_voice,
         JSON.stringify(DEFAULT_SETTINGS.quiz_mix),
+        JSON.stringify(DEFAULT_SETTINGS.mcq_modes),
         DEFAULT_SETTINGS.meaning_language,
         DEFAULT_SETTINGS.compact_mode ? 1 : 0,
         DEFAULT_SETTINGS.compact_single_expand ? 1 : 0,
@@ -172,6 +175,16 @@ async function ensureDefaultSettings() {
     if (!existing.meaning_language) {
       await run('UPDATE settings SET meaning_language = ? WHERE id = ?;', [
         DEFAULT_SETTINGS.meaning_language,
+        'default',
+      ]);
+    }
+    const mcqModes = await getFirst<{ mcq_modes?: string | null }>(
+      'SELECT mcq_modes FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (!mcqModes?.mcq_modes) {
+      await run('UPDATE settings SET mcq_modes = ? WHERE id = ?;', [
+        JSON.stringify(DEFAULT_SETTINGS.mcq_modes),
         'default',
       ]);
     }
