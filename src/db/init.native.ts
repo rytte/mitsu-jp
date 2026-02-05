@@ -68,6 +68,7 @@ async function runInit() {
       quiz_mix TEXT NOT NULL,
       meaning_language TEXT,
       compact_mode INTEGER,
+      compact_single_expand INTEGER,
       lexicon_level TEXT,
       font_scale TEXT
     );`
@@ -76,6 +77,7 @@ async function runInit() {
   await ensureColumn('words', 'meaning_en', 'TEXT');
   await ensureColumn('settings', 'meaning_language', 'TEXT');
   await ensureColumn('settings', 'compact_mode', 'INTEGER');
+  await ensureColumn('settings', 'compact_single_expand', 'INTEGER');
   await ensureColumn('settings', 'lexicon_level', 'TEXT');
   await ensureColumn('settings', 'font_scale', 'TEXT');
 
@@ -153,7 +155,7 @@ async function ensureDefaultSettings() {
   );
   if (!existing) {
     await run(
-      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, meaning_language, compact_mode, lexicon_level, font_scale) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, meaning_language, compact_mode, compact_single_expand, lexicon_level, font_scale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
       [
         'default',
         DEFAULT_SETTINGS.tts_rate,
@@ -161,6 +163,7 @@ async function ensureDefaultSettings() {
         JSON.stringify(DEFAULT_SETTINGS.quiz_mix),
         DEFAULT_SETTINGS.meaning_language,
         DEFAULT_SETTINGS.compact_mode ? 1 : 0,
+        DEFAULT_SETTINGS.compact_single_expand ? 1 : 0,
         DEFAULT_SETTINGS.lexicon_level,
         DEFAULT_SETTINGS.font_scale,
       ]
@@ -179,6 +182,16 @@ async function ensureDefaultSettings() {
     if (compact?.compact_mode == null) {
       await run('UPDATE settings SET compact_mode = ? WHERE id = ?;', [
         DEFAULT_SETTINGS.compact_mode ? 1 : 0,
+        'default',
+      ]);
+    }
+    const compactSingle = await getFirst<{ compact_single_expand?: number | null }>(
+      'SELECT compact_single_expand FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (compactSingle?.compact_single_expand == null) {
+      await run('UPDATE settings SET compact_single_expand = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.compact_single_expand ? 1 : 0,
         'default',
       ]);
     }

@@ -18,6 +18,7 @@ export default function SettingsScreen() {
   const [spellingEnabled, setSpellingEnabled] = useState(settings.quiz_mix.spelling > 0);
   const [listeningEnabled, setListeningEnabled] = useState(settings.quiz_mix.listening > 0);
   const [meaningEnglish, setMeaningEnglish] = useState(settings.meaning_language === 'en');
+  const compactSingleExpand = settings.compact_single_expand;
 
   useEffect(() => {
     setSpellingEnabled(settings.quiz_mix.spelling > 0);
@@ -55,6 +56,10 @@ export default function SettingsScreen() {
 
   const handleFontScale = async (value: (typeof FONT_OPTIONS)[number]['value']) => {
     await persist({ ...settings, font_scale: value });
+  };
+
+  const handleCompactSingleExpand = async (value: boolean) => {
+    await persist({ ...settings, compact_single_expand: value });
   };
 
   return (
@@ -108,6 +113,19 @@ export default function SettingsScreen() {
           ))}
         </View>
         <Text style={styles.tip}>词条与释义使用统一字号</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>紧凑模式</Text>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>仅展开一个词条</Text>
+          <Switch
+            value={compactSingleExpand}
+            onValueChange={handleCompactSingleExpand}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+        <Text style={styles.tip}>在紧凑模式下，展开新词条会自动收起上一个</Text>
       </View>
 
       <View style={styles.section}>

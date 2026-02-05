@@ -45,6 +45,7 @@ export type Settings = {
   quiz_mix: QuizMix;
   meaning_language: MeaningLanguage;
   compact_mode: boolean;
+  compact_single_expand: boolean;
   lexicon_level: Level;
   font_scale: FontScale;
 };

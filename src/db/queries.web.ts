@@ -143,11 +143,12 @@ export async function getAllWordsByLevel(level: Level): Promise<Word[]> {
 }
 
 export async function getSettings(): Promise<Settings> {
-  const settings = loadSettings() as Settings;
+  const settings = { ...DEFAULT_SETTINGS, ...(loadSettings() as Partial<Settings>) };
   return {
     ...settings,
     meaning_language: normalizeMeaningLanguage(settings.meaning_language),
     compact_mode: Boolean(settings.compact_mode),
+    compact_single_expand: Boolean(settings.compact_single_expand),
     lexicon_level: normalizeLexiconLevel(settings.lexicon_level),
     font_scale: normalizeFontScale(settings.font_scale),
   };

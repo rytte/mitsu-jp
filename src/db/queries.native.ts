@@ -10,6 +10,10 @@ function normalizeCompactMode(value: unknown) {
   return value === 1 || value === true || value === '1';
 }
 
+function normalizeCompactSingleExpand(value: unknown) {
+  return value === 1 || value === true || value === '1';
+}
+
 function normalizeLexiconLevel(value: unknown): Level {
   const v = String(value || '').toUpperCase();
   if (v === 'N1' || v === 'N2' || v === 'N3' || v === 'N4' || v === 'N5') return v as Level;
@@ -142,6 +146,7 @@ export async function getSettings(): Promise<Settings> {
     quiz_mix: string;
     meaning_language?: string;
     compact_mode?: number | null;
+    compact_single_expand?: number | null;
     lexicon_level?: string | null;
     font_scale?: string | null;
   }>(
@@ -155,6 +160,9 @@ export async function getSettings(): Promise<Settings> {
     quiz_mix: row.quiz_mix ? JSON.parse(row.quiz_mix) : DEFAULT_SETTINGS.quiz_mix,
     meaning_language: normalizeMeaningLanguage(row.meaning_language ?? DEFAULT_SETTINGS.meaning_language),
     compact_mode: normalizeCompactMode(row.compact_mode ?? (DEFAULT_SETTINGS.compact_mode ? 1 : 0)),
+    compact_single_expand: normalizeCompactSingleExpand(
+      row.compact_single_expand ?? (DEFAULT_SETTINGS.compact_single_expand ? 1 : 0)
+    ),
     lexicon_level: normalizeLexiconLevel(row.lexicon_level ?? DEFAULT_SETTINGS.lexicon_level),
     font_scale: normalizeFontScale(row.font_scale ?? DEFAULT_SETTINGS.font_scale),
   };
@@ -162,13 +170,14 @@ export async function getSettings(): Promise<Settings> {
 
 export async function updateSettings(settings: Settings) {
   await run(
-    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, meaning_language = ?, compact_mode = ?, lexicon_level = ?, font_scale = ? WHERE id = ?;',
+    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, meaning_language = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ? WHERE id = ?;',
     [
       settings.tts_rate,
       settings.tts_voice,
       JSON.stringify(settings.quiz_mix),
       settings.meaning_language,
       settings.compact_mode ? 1 : 0,
+      settings.compact_single_expand ? 1 : 0,
       settings.lexicon_level,
       settings.font_scale,
       'default',

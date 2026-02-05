@@ -21,6 +21,7 @@ export default function StageWordsScreen({ route, navigation }: Props) {
   const setSettings = useAppStore((state) => state.setSettings);
   const meaningLanguage = settings.meaning_language;
   const compactMode = settings.compact_mode;
+  const compactSingleExpand = settings.compact_single_expand;
   const fontScale = settings.font_scale;
 
   useEffect(() => {
@@ -53,12 +54,21 @@ export default function StageWordsScreen({ route, navigation }: Props) {
     }
   }, [compactMode]);
 
+  useEffect(() => {
+    if (!compactMode || !compactSingleExpand || expandedIds.size <= 1) return;
+    const lastExpanded = Array.from(expandedIds).pop();
+    setExpandedIds(lastExpanded ? new Set([lastExpanded]) : new Set());
+  }, [compactMode, compactSingleExpand, expandedIds]);
+
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
       } else {
+        if (compactMode && compactSingleExpand) {
+          return new Set([id]);
+        }
         next.add(id);
       }
       return next;

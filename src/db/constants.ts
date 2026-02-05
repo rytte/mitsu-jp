@@ -8,6 +8,7 @@ export const DEFAULT_SETTINGS: Settings = {
   quiz_mix: { mcq: 0.6, spelling: 0.2, listening: 0.2 },
   meaning_language: 'zh',
   compact_mode: false,
+  compact_single_expand: false,
   lexicon_level: 'N5',
   font_scale: 'm',
 };
