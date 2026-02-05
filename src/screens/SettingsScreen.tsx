@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import { updateSettings } from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
@@ -63,7 +63,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>发音速度</Text>
         <View style={styles.rateRow}>
@@ -156,7 +156,7 @@ export default function SettingsScreen() {
         <Text style={styles.sourceText}>eggrolls JLPT10k（中文释义，CC BY-NC 4.0）</Text>
         <Text style={styles.tip}>发布版本中将附带完整授权说明</Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -164,7 +164,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  content: {
     padding: spacing.m,
+    paddingBottom: spacing.l,
   },
   section: {
     backgroundColor: colors.card,
