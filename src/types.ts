@@ -1,4 +1,6 @@
-export type Level = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
+import type { LexiconId } from './data/lexicons';
+
+export type Level = LexiconId;
 
 export type MeaningLanguage = 'zh' | 'en';
 

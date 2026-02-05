@@ -1,3 +1,4 @@
+import { LEXICONS } from '../data/lexicons';
 import { Settings } from '../types';
 
 export const STAGE_SIZE = 15;
@@ -10,6 +11,6 @@ export const DEFAULT_SETTINGS: Settings = {
   meaning_language: 'zh',
   compact_mode: false,
   compact_single_expand: false,
-  lexicon_level: 'N5',
+  lexicon_level: LEXICONS[0].id,
   font_scale: 'm',
 };

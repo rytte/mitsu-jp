@@ -16,7 +16,8 @@ const { streamArray } = streamArrayPkg;
 
 const ROOT = process.cwd();
 const DATA_DIR = path.join(ROOT, 'scripts', 'data');
-const OUT_FILE = path.join(ROOT, 'src', 'data', 'words.json');
+const WORDS_DIR = path.join(ROOT, 'src', 'data');
+const OUT_FILE = path.join(WORDS_DIR, 'words.json');
 const CHINESE_GLOSSARY_CSV = path.join(DATA_DIR, 'jlpt-zh.csv');
 const CHINESE_GLOSSARY_JSON = path.join(DATA_DIR, 'jlpt-zh.json');
 
@@ -302,6 +303,7 @@ async function buildJMDictMap(jlptKeySet) {
 
 async function main() {
   ensureDir(DATA_DIR);
+  ensureDir(WORDS_DIR);
 
   const jlptEntries = [];
   const jlptKeySet = new Set();
@@ -362,6 +364,19 @@ async function main() {
 
   if (zhSource) {
     console.log(`Chinese glossary matched: ${zhMatched} / ${words.length}`);
+  }
+
+  const byLevel = new Map();
+  for (const word of words) {
+    const list = byLevel.get(word.level) || [];
+    list.push(word);
+    byLevel.set(word.level, list);
+  }
+
+  for (const [level, list] of byLevel.entries()) {
+    const out = path.join(WORDS_DIR, `words-${String(level).toLowerCase()}.json`);
+    fs.writeFileSync(out, JSON.stringify(list, null, 2), 'utf8');
+    console.log(`Generated ${list.length} words -> ${out}`);
   }
 
   fs.writeFileSync(OUT_FILE, JSON.stringify(words, null, 2), 'utf8');

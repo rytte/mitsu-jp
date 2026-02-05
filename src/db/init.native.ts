@@ -1,4 +1,4 @@
-import words from '../data/words.json';
+import { getAllWords, getLexiconIds } from '../data/lexicons';
 import { Word } from '../types';
 import { DEFAULT_SETTINGS, STAGE_SIZE } from './constants';
 import { getAll, getFirst, run } from './db';
@@ -91,6 +91,7 @@ async function runInit() {
     await seedStages();
   } else {
     await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
+    await seedMissingLexicons();
   }
 
   await ensureDefaultSettings();
@@ -109,10 +110,42 @@ export async function initDb() {
 }
 
 async function seedWords() {
-  const list = toWordList(words);
+  const list = toWordList(getAllWords());
+  await insertWords(list);
+}
+
+async function seedStages() {
+  const list = toWordList(getAllWords());
+  const levels = getLexiconIds();
+  for (const level of levels) {
+    const levelWords = list.filter((word) => word.level === level);
+    await insertStages(level, levelWords);
+  }
+}
+
+async function seedMissingLexicons() {
+  const list = toWordList(getAllWords());
+  const levels = getLexiconIds();
+  for (const level of levels) {
+    const row = await getFirst<{ count: number }>('SELECT COUNT(*) as count FROM words WHERE level = ?', [level]);
+    const levelCount = row?.count ?? 0;
+    const levelWords = list.filter((word) => word.level === level);
+    if (levelWords.length === 0) continue;
+    if (levelCount === 0) {
+      await insertWords(levelWords);
+    }
+    const stageRow = await getFirst<{ count: number }>('SELECT COUNT(*) as count FROM stages WHERE level = ?', [level]);
+    const stageCount = stageRow?.count ?? 0;
+    if (stageCount === 0) {
+      await insertStages(level, levelWords);
+    }
+  }
+}
+
+async function insertWords(list: Word[]) {
   for (const word of list) {
     await run(
-      `INSERT INTO words (id, level, kana, kanji, meaning_cn, meaning_en, pos, example, example_cn, tags)
+      `INSERT OR REPLACE INTO words (id, level, kana, kanji, meaning_cn, meaning_en, pos, example, example_cn, tags)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         word.id,
@@ -130,23 +163,17 @@ async function seedWords() {
   }
 }
 
-async function seedStages() {
-  const list = toWordList(words);
-  const levels = ['N5', 'N4', 'N3', 'N2', 'N1'] as const;
+async function insertStages(level: string, levelWords: Word[]) {
+  const totalStages = Math.ceil(levelWords.length / STAGE_SIZE) || 1;
 
-  for (const level of levels) {
-    const levelWords = list.filter((word) => word.level === level);
-    const totalStages = Math.ceil(levelWords.length / STAGE_SIZE) || 1;
-
-    for (let i = 0; i < totalStages; i += 1) {
-      const chunk = levelWords.slice(i * STAGE_SIZE, (i + 1) * STAGE_SIZE);
-      const stageId = `${level}-${i + 1}`;
-      await run(
-        `INSERT INTO stages (id, level, stage_index, word_ids)
-         VALUES (?, ?, ?, ?);`,
-        [stageId, level, i + 1, JSON.stringify(chunk.map((word) => word.id))]
-      );
-    }
+  for (let i = 0; i < totalStages; i += 1) {
+    const chunk = levelWords.slice(i * STAGE_SIZE, (i + 1) * STAGE_SIZE);
+    const stageId = `${level}-${i + 1}`;
+    await run(
+      `INSERT OR REPLACE INTO stages (id, level, stage_index, word_ids)
+       VALUES (?, ?, ?, ?);`,
+      [stageId, level, i + 1, JSON.stringify(chunk.map((word) => word.id))]
+    );
   }
 }
 

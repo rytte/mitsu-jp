@@ -1,4 +1,4 @@
-import words from '../data/words.json';
+import { getAllWords, getLexiconIds, isLexiconId } from '../data/lexicons';
 import { FontScale, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
 import { DEFAULT_SETTINGS, STAGE_SIZE } from './constants';
 import {
@@ -11,7 +11,7 @@ import {
   saveSettings,
 } from './webStore';
 
-const LEVELS: Level[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
+const LEVELS: Level[] = getLexiconIds();
 
 function toWordList(data: unknown): Word[] {
   return data as Word[];
@@ -23,7 +23,7 @@ function normalizeMeaningLanguage(value?: string): MeaningLanguage {
 
 function normalizeLexiconLevel(value: unknown): Level {
   const v = String(value || '').toUpperCase();
-  if (v === 'N1' || v === 'N2' || v === 'N3' || v === 'N4' || v === 'N5') return v as Level;
+  if (isLexiconId(v)) return v as Level;
   return DEFAULT_SETTINGS.lexicon_level;
 }
 
@@ -40,7 +40,7 @@ function normalizeMcqModes(value: unknown): McqModes {
   };
 }
 
-const wordList = toWordList(words);
+const wordList = toWordList(getAllWords());
 let stageCache: Record<Level, Stage[]> | null = null;
 
 function buildStages(): Record<Level, Stage[]> {

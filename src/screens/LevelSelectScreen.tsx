@@ -3,6 +3,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
+import { LEXICONS } from '../data/lexicons';
 import { getStats, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
 import { useAppStore } from '../store/useAppStore';
@@ -18,7 +19,7 @@ type Stats = {
   wrong: number;
 };
 
-const LEVELS: Level[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
+const LEVELS = LEXICONS;
 
 export default function LevelSelectScreen({ navigation, route }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -97,18 +98,18 @@ export default function LevelSelectScreen({ navigation, route }: Props) {
 
       <FlatList
         data={LEVELS}
-        keyExtractor={(item) => item}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <View style={styles.levelCard}>
             <View>
               <View style={styles.levelTitleRow}>
-                <Text style={styles.levelTitle}>词库 {item}</Text>
-                {settings.lexicon_level === item && <Text style={styles.defaultTag}>默认</Text>}
+                <Text style={styles.levelTitle}>词库 {item.label}</Text>
+                {settings.lexicon_level === item.id && <Text style={styles.defaultTag}>默认</Text>}
               </View>
               <Text style={styles.levelSubtitle}>选择词库进入关卡</Text>
             </View>
-            <PrimaryButton title="进入" onPress={() => handleEnter(item)} />
+            <PrimaryButton title="进入" onPress={() => handleEnter(item.id)} />
           </View>
         )}
       />

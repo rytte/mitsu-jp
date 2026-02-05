@@ -1,4 +1,5 @@
 import { FontScale, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import { isLexiconId } from '../data/lexicons';
 import { DEFAULT_SETTINGS } from './constants';
 import { getAll, getFirst, run } from './db';
 
@@ -16,7 +17,7 @@ function normalizeCompactSingleExpand(value: unknown) {
 
 function normalizeLexiconLevel(value: unknown): Level {
   const v = String(value || '').toUpperCase();
-  if (v === 'N1' || v === 'N2' || v === 'N3' || v === 'N4' || v === 'N5') return v as Level;
+  if (isLexiconId(v)) return v as Level;
   return DEFAULT_SETTINGS.lexicon_level;
 }
 
