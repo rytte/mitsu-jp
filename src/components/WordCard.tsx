@@ -60,7 +60,7 @@ export default function WordCard({
   footer,
 }: Props) {
   const showDetails = !compact || expanded;
-  const cardStyles = [styles.card, compact ? styles.cardCompact : null, shadow ? styles.cardShadow : null];
+  const cardStyles = [styles.card, shadow ? styles.cardShadow : null];
   const example = word.examples?.[0];
   const exampleJa = (example?.ja_furigana ?? example?.ja ?? '').trim();
   const exampleCn = (example?.zh_cn ?? '').trim();
@@ -77,19 +77,12 @@ export default function WordCard({
       <View style={styles.headRow}>
         <View style={styles.headText}>
           <Text style={[styles.word, { fontSize: fontSizes.word }]}>{word.kanji ?? word.kana}</Text>
-          {showDetails && (
-            <Text style={[styles.reading, { fontSize: fontSizes.reading }, compact ? styles.readingCompact : null]}>
-              {word.kana}
-            </Text>
-          )}
+          {showDetails && <Text style={[styles.reading, { fontSize: fontSizes.reading }]}>{word.kana}</Text>}
         </View>
         {showDetails && metaItems.length > 0 ? (
-          <View style={[styles.metaRow, compact ? styles.metaRowCompact : null]}>
+          <View style={styles.metaRow}>
             {metaItems.map((item, index) => (
-              <View
-                key={`${item.label}-${index}`}
-                style={[styles.metaChip, index > 0 ? styles.metaChipGap : null, compact ? styles.metaChipCompact : null]}
-              >
+              <View key={`${item.label}-${index}`} style={[styles.metaChip, index > 0 ? styles.metaChipGap : null]}>
                 <Text style={styles.metaLabel}>{item.label}</Text>
                 <Text style={styles.metaValue}>{item.value}</Text>
               </View>
@@ -99,11 +92,11 @@ export default function WordCard({
       </View>
       {showDetails && (
         <>
-          <Text style={[styles.meaning, { fontSize: fontSizes.meaning }, compact ? styles.meaningCompact : null]}>
+          <Text style={[styles.meaning, { fontSize: fontSizes.meaning }]}>
             {meaning}
           </Text>
           {showExample && (
-            <View style={[styles.example, compact ? styles.exampleCompact : null]}>
+            <View style={styles.example}>
               <View style={styles.exampleHeader}>
                 <Text style={styles.exampleTag}>例句</Text>
               </View>
@@ -159,11 +152,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     marginBottom: spacing.m,
   },
-  cardCompact: {
-    padding: spacing.s,
-    borderRadius: radius.m,
-    marginBottom: spacing.s,
-  },
   cardPressed: {
     opacity: 0.7,
   },
@@ -191,17 +179,11 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginTop: spacing.xs,
   },
-  readingCompact: {
-    marginTop: spacing.xs,
-  },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-end',
     maxWidth: '45%',
-  },
-  metaRowCompact: {
-    maxWidth: '50%',
   },
   metaChip: {
     flexDirection: 'row',
@@ -212,9 +194,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  metaChipCompact: {
-    paddingHorizontal: spacing.xs,
   },
   metaChipGap: {
     marginLeft: spacing.xs,
@@ -234,14 +213,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.s,
     color: colors.text,
   },
-  meaningCompact: {
-    marginTop: spacing.xs,
-  },
   example: {
     marginTop: spacing.s,
-  },
-  exampleCompact: {
-    marginTop: spacing.xs,
   },
   exampleHeader: {
     marginBottom: spacing.xs,
