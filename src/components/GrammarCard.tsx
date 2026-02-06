@@ -73,7 +73,7 @@ export default function GrammarCard({
 
   const metaItems: string[] = [];
   if (grammar.level) metaItems.push(grammar.level);
-  if (grammar.subOrder) metaItems.push(`序号 ${grammar.subOrder}`);
+  if (grammar.subOrder) metaItems.push(`No. ${grammar.subOrder}`);
 
   const content = (
     <>
