@@ -2,6 +2,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Switch, Text, View } from 'react-native';
 import GrammarCard from '../components/GrammarCard';
+import PrimaryButton from '../components/PrimaryButton';
 import { getGrammarByLevel } from '../data/grammars';
 import { updateSettings } from '../db/queries';
 import { GrammarStackParamList } from '../navigation/types';
@@ -84,11 +85,12 @@ export default function GrammarListScreen({ route, navigation }: Props) {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.header}>
-            <View>
+            <View style={styles.headerTextWrap}>
               <Text style={styles.title}>{level} 文法列表</Text>
               <Text style={styles.subtitle}>共 {items.length} 条</Text>
               {compactMode && <Text style={styles.hint}>点击条目展开/收起</Text>}
             </View>
+            <PrimaryButton title="开始练习" onPress={() => navigation.navigate('GrammarQuiz', { level })} />
           </View>
         }
         renderItem={({ item }) => {
@@ -119,6 +121,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerTextWrap: {
+    flex: 1,
+    paddingRight: spacing.s,
   },
   title: {
     fontSize: 20,

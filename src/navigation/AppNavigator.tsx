@@ -12,6 +12,7 @@ import ResultScreen from '../screens/ResultScreen';
 import GrammarLevelScreen from '../screens/GrammarLevelScreen';
 import GrammarListScreen from '../screens/GrammarListScreen';
 import GrammarDetailScreen from '../screens/GrammarDetailScreen';
+import GrammarQuizScreen from '../screens/GrammarQuizScreen';
 import MistakesScreen from '../screens/MistakesScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { GrammarStackParamList, LearnStackParamList, RootTabParamList } from './types';
@@ -55,6 +56,7 @@ function GrammarStackScreen() {
       <GrammarStack.Screen name="GrammarLevel" component={GrammarLevelScreen} options={{ title: '文法等级' }} />
       <GrammarStack.Screen name="GrammarList" component={GrammarListScreen} options={{ title: '文法列表' }} />
       <GrammarStack.Screen name="GrammarDetail" component={GrammarDetailScreen} options={{ title: '文法详情' }} />
+      <GrammarStack.Screen name="GrammarQuiz" component={GrammarQuizScreen} options={{ title: '文法练习' }} />
     </GrammarStack.Navigator>
   );
 }

@@ -27,6 +27,7 @@ export type GrammarStackParamList = {
   GrammarLevel: undefined;
   GrammarList: { level: Level };
   GrammarDetail: { level: Level; id: string };
+  GrammarQuiz: { level: Level };
 };
 
 export type RootTabParamList = {
