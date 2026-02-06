@@ -1,6 +1,7 @@
-﻿import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
+import { TabView } from 'react-native-tab-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GrammarCard from '../components/GrammarCard';
 import WordCard from '../components/WordCard';
@@ -18,16 +19,24 @@ type Mode = 'word' | 'grammar';
 
 export default function MistakesScreen() {
   const insets = useSafeAreaInsets();
-  const [mode, setMode] = useState<Mode>('word');
+  const [tabIndex, setTabIndex] = useState(0);
   const [wordMistakes, setWordMistakes] = useState<MistakeWord[]>([]);
   const [grammarMistakes, setGrammarMistakes] = useState<MistakeGrammar[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const layout = useWindowDimensions();
   const settings = useAppStore((state) => state.settings);
   const setSettings = useAppStore((state) => state.setSettings);
   const meaningLanguage = useAppStore((state) => state.settings.meaning_language);
   const fontScale = useAppStore((state) => state.settings.font_scale);
   const compactMode = settings.compact_mode;
   const compactSingleExpand = settings.compact_single_expand;
+  const routes = useMemo(
+    () => [
+      { key: 'word', title: '词汇' },
+      { key: 'grammar', title: '文法' },
+    ],
+    []
+  );
 
   const wordFontSizes = useMemo(() => getWordFontSizes(bumpFontScale(fontScale)), [fontScale]);
   const grammarFontSizes = useMemo(() => getGrammarFontSizes(bumpFontScale(fontScale)), [fontScale]);
@@ -83,6 +92,8 @@ export default function MistakesScreen() {
     await persistSettings({ ...settings, compact_mode: value });
   };
 
+  const mode: Mode = tabIndex === 0 ? 'word' : 'grammar';
+
   const handleClear = async () => {
     if (mode === 'word') {
       await clearAllMistakes();
@@ -96,48 +107,25 @@ export default function MistakesScreen() {
   const showingWord = mode === 'word';
   const listEmpty = showingWord ? wordMistakes.length === 0 : grammarMistakes.length === 0;
 
-  return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.m }]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>错题本</Text>
-        <View style={styles.headerActions}>
-          <Pressable onPress={() => toggleCompactMode(!compactMode)} style={styles.compactToggle}>
-            <Text style={styles.compactLabel}>紧凑</Text>
-            <Switch
-              value={compactMode}
-              onValueChange={toggleCompactMode}
-              trackColor={{ false: colors.border, true: colors.primary }}
-            />
-          </Pressable>
-          <PrimaryButton title="清空错题" onPress={handleClear} disabled={listEmpty} style={styles.clearBtn} />
-        </View>
-      </View>
-      <View style={styles.toggleRow}>
-        <Pressable
-          onPress={() => setMode('word')}
-          style={[styles.toggleBtn, showingWord ? styles.toggleActive : null]}
-        >
-          <Text style={[styles.toggleText, showingWord ? styles.toggleTextActive : null]}>词汇</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setMode('grammar')}
-          style={[styles.toggleBtn, !showingWord ? styles.toggleActive : null]}
-        >
-          <Text style={[styles.toggleText, !showingWord ? styles.toggleTextActive : null]}>文法</Text>
-        </Pressable>
-      </View>
+  const renderScene = useCallback(
+    ({ route }: { route: { key: string } }) => {
+      const isWord = route.key === 'word';
+      const data = isWord ? wordMistakes : grammarMistakes;
+      if (data.length === 0) {
+        return (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>暂无错题，继续加油！</Text>
+          </View>
+        );
+      }
 
-      {listEmpty ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>暂无错题，继续加油！</Text>
-        </View>
-      ) : (
+      return (
         <FlatList
-          data={showingWord ? wordMistakes : grammarMistakes}
+          data={data}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) =>
-            showingWord ? (
+            isWord ? (
               <WordCard
                 word={item as MistakeWord}
                 meaning={getMeaning(item as MistakeWord, meaningLanguage)}
@@ -161,7 +149,49 @@ export default function MistakesScreen() {
             )
           }
         />
-      )}
+      );
+    },
+    [compactMode, expandedIds, grammarFontSizes, grammarMistakes, meaningLanguage, wordFontSizes, wordMistakes]
+  );
+
+  const renderTabBar = useCallback(() => {
+    const isWord = tabIndex === 0;
+    return (
+      <View style={styles.toggleRow}>
+        <Pressable onPress={() => setTabIndex(0)} style={[styles.toggleBtn, isWord ? styles.toggleActive : null]}>
+          <Text style={[styles.toggleText, isWord ? styles.toggleTextActive : null]}>词汇</Text>
+        </Pressable>
+        <Pressable onPress={() => setTabIndex(1)} style={[styles.toggleBtn, !isWord ? styles.toggleActive : null]}>
+          <Text style={[styles.toggleText, !isWord ? styles.toggleTextActive : null]}>文法</Text>
+        </Pressable>
+      </View>
+    );
+  }, [tabIndex]);
+
+  return (
+    <View style={[styles.container, { paddingTop: insets.top + spacing.m }]}>
+      <View style={styles.header}>
+        <Text style={styles.title}>错题本</Text>
+        <View style={styles.headerActions}>
+          <Pressable onPress={() => toggleCompactMode(!compactMode)} style={styles.compactToggle}>
+            <Text style={styles.compactLabel}>紧凑</Text>
+            <Switch
+              value={compactMode}
+              onValueChange={toggleCompactMode}
+              trackColor={{ false: colors.border, true: colors.primary }}
+            />
+          </Pressable>
+          <PrimaryButton title="清空错题" onPress={handleClear} disabled={listEmpty} style={styles.clearBtn} />
+        </View>
+      </View>
+      <TabView
+        navigationState={{ index: tabIndex, routes }}
+        onIndexChange={setTabIndex}
+        initialLayout={{ width: layout.width }}
+        renderScene={renderScene}
+        renderTabBar={renderTabBar}
+        style={styles.tabView}
+      />
     </View>
   );
 }
@@ -217,6 +247,9 @@ const styles = StyleSheet.create({
   },
   toggleTextActive: {
     color: '#fff',
+  },
+  tabView: {
+    flex: 1,
   },
   title: {
     fontSize: 20,
