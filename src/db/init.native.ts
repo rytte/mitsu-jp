@@ -1,6 +1,6 @@
 import { getAllWords, getLexiconIds } from '../data/lexicons';
 import { Word } from '../types';
-import { DEFAULT_SETTINGS, STAGE_SIZE } from './constants';
+import { DEFAULT_SETTINGS, LEXICON_VERSION, STAGE_SIZE } from './constants';
 import { getAll, getFirst, run } from './db';
 
 function toWordList(data: unknown): Word[] {
@@ -77,7 +77,8 @@ async function runInit() {
       compact_mode INTEGER,
       compact_single_expand INTEGER,
       lexicon_level TEXT,
-      font_scale TEXT
+      font_scale TEXT,
+      lexicon_version TEXT
     );`
   );
 
@@ -91,16 +92,21 @@ async function runInit() {
   await ensureColumn('settings', 'compact_single_expand', 'INTEGER');
   await ensureColumn('settings', 'lexicon_level', 'TEXT');
   await ensureColumn('settings', 'font_scale', 'TEXT');
+  await ensureColumn('settings', 'lexicon_version', 'TEXT');
 
   const countRow = await getFirst<{ count: number }>('SELECT COUNT(*) as count FROM words');
   const count = countRow?.count ?? 0;
+  const storedLexiconVersion = await getStoredLexiconVersion();
+  const shouldReseedByVersion = storedLexiconVersion !== LEXICON_VERSION;
 
   if (count === 0) {
     await seedWords();
     await seedStages();
   } else {
     const shouldReseed = await needsReseedWords(lexiconList);
-    if (shouldReseed) {
+    if (shouldReseedByVersion) {
+      await reseedWordsAndStagesPreserveProgress(lexiconList);
+    } else if (shouldReseed) {
       await reseedWordsAndStages(lexiconList);
     } else {
       await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
@@ -251,6 +257,23 @@ async function reseedWordsAndStages(list: Word[]) {
   await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
 }
 
+async function reseedWordsAndStagesPreserveProgress(list: Word[]) {
+  const existingWords = await getAll<{ id: string; level: string; kana: string; kanji: string | null }>(
+    'SELECT id, level, kana, kanji FROM words'
+  );
+  const mapping = buildWordIdMapping(existingWords, list);
+  await run('DELETE FROM words;');
+  await run('DELETE FROM stages;');
+  await insertWords(list);
+  const levels = getLexiconIds();
+  for (const level of levels) {
+    const levelWords = list.filter((word) => word.level === level);
+    await insertStages(level, levelWords);
+  }
+  await updateMistakeWordIds(mapping);
+  await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
+}
+
 async function insertWords(list: Word[]) {
   for (const word of list) {
     const examplesJson = serializeExamples(word);
@@ -287,14 +310,52 @@ async function insertStages(level: string, levelWords: Word[]) {
   }
 }
 
+function makeWordKey(level: string, kana: string, kanji?: string | null) {
+  return `${level}||${kana}||${kanji ?? ''}`;
+}
+
+function buildWordIdMapping(
+  existingWords: Array<{ id: string; level: string; kana: string; kanji: string | null }>,
+  newWords: Word[]
+) {
+  const buckets = new Map<string, string[]>();
+  for (const word of existingWords) {
+    const key = makeWordKey(word.level, word.kana, word.kanji);
+    const list = buckets.get(key) ?? [];
+    list.push(word.id);
+    buckets.set(key, list);
+  }
+
+  const mapping = new Map<string, string>();
+  for (const word of newWords) {
+    const key = makeWordKey(word.level, word.kana, word.kanji);
+    const list = buckets.get(key);
+    if (!list || list.length === 0) continue;
+    const oldId = list.shift();
+    if (oldId) mapping.set(oldId, word.id);
+  }
+
+  return mapping;
+}
+
+async function updateMistakeWordIds(mapping: Map<string, string>) {
+  if (mapping.size === 0) return;
+  const rows = await getAll<{ word_id: string }>('SELECT DISTINCT word_id FROM mistakes');
+  for (const row of rows) {
+    const nextId = mapping.get(row.word_id);
+    if (!nextId || nextId === row.word_id) continue;
+    await run('UPDATE mistakes SET word_id = ? WHERE word_id = ?;', [nextId, row.word_id]);
+  }
+}
+
 async function ensureDefaultSettings() {
-  const existing = await getFirst<{ id: string; meaning_language?: string }>(
-    'SELECT id, meaning_language FROM settings WHERE id = ?',
+  const existing = await getFirst<{ id: string; meaning_language?: string; lexicon_version?: string | null }>(
+    'SELECT id, meaning_language, lexicon_version FROM settings WHERE id = ?',
     ['default']
   );
   if (!existing) {
     await run(
-      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, mcq_modes, meaning_language, compact_mode, compact_single_expand, lexicon_level, font_scale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, mcq_modes, meaning_language, compact_mode, compact_single_expand, lexicon_level, font_scale, lexicon_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
       [
         'default',
         DEFAULT_SETTINGS.tts_rate,
@@ -306,6 +367,7 @@ async function ensureDefaultSettings() {
         DEFAULT_SETTINGS.compact_single_expand ? 1 : 0,
         DEFAULT_SETTINGS.lexicon_level,
         DEFAULT_SETTINGS.font_scale,
+        LEXICON_VERSION,
       ]
     );
   } else {
@@ -365,7 +427,18 @@ async function ensureDefaultSettings() {
         'default',
       ]);
     }
+    if (!existing.lexicon_version || existing.lexicon_version !== LEXICON_VERSION) {
+      await run('UPDATE settings SET lexicon_version = ? WHERE id = ?;', [LEXICON_VERSION, 'default']);
+    }
   }
 }
 
 export { DEFAULT_SETTINGS };
+
+async function getStoredLexiconVersion() {
+  const row = await getFirst<{ lexicon_version?: string | null }>(
+    'SELECT lexicon_version FROM settings WHERE id = ?',
+    ['default']
+  );
+  return row?.lexicon_version ?? null;
+}

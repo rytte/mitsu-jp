@@ -2,6 +2,7 @@ import { LEXICONS } from '../data/lexicons';
 import { Settings } from '../types';
 
 export const STAGE_SIZE = 15;
+export const LEXICON_VERSION = '2026-02-06-1';
 
 export const DEFAULT_SETTINGS: Settings = {
   tts_rate: 1.0,
