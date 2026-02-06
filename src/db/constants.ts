@@ -11,7 +11,7 @@ export const DEFAULT_SETTINGS: Settings = {
   mcq_modes: { ja_to_meaning: true, meaning_to_ja: true },
   meaning_language: 'zh',
   compact_mode: false,
-  compact_single_expand: false,
+  compact_single_expand: true,
   lexicon_level: LEXICONS[0].id,
   font_scale: 'm',
 };
