@@ -1,6 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import PrimaryButton from '../components/PrimaryButton';
+import { Ionicons } from '@expo/vector-icons';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { GRAMMARS } from '../data/grammars';
 import { GrammarStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
@@ -20,13 +20,22 @@ export default function GrammarLevelScreen({ navigation }: Props) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <View style={styles.levelCard}>
-            <View>
-              <Text style={styles.levelTitle}>文法 {item.label}</Text>
-              <Text style={styles.levelSubtitle}>共 {item.items.length} 条</Text>
+          <Pressable
+            onPress={() => navigation.navigate('GrammarList', { level: item.id })}
+            style={({ pressed }) => [styles.levelCard, pressed ? styles.levelCardPressed : null]}
+          >
+            <View style={styles.levelLeft}>
+              <View style={styles.levelBadge}>
+                <Text style={styles.levelBadgeLabel}>JLPT</Text>
+                <Text style={styles.levelBadgeValue}>{item.label}</Text>
+              </View>
+              <View style={styles.levelInfo}>
+                <Text style={styles.levelTitle}>文法库</Text>
+                <Text style={styles.levelSubtitle}>共 {item.items.length} 条</Text>
+              </View>
             </View>
-            <PrimaryButton title="进入" onPress={() => navigation.navigate('GrammarList', { level: item.id })} />
-          </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+          </Pressable>
         )}
       />
     </View>
@@ -62,7 +71,8 @@ const styles = StyleSheet.create({
   levelCard: {
     backgroundColor: colors.card,
     borderRadius: radius.l,
-    padding: spacing.m,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.m,
     marginBottom: spacing.m,
     borderWidth: 1,
     borderColor: colors.border,
@@ -70,13 +80,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  levelCardPressed: {
+    opacity: 0.7,
+  },
+  levelLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    paddingRight: spacing.s,
+  },
+  levelBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.m,
+    backgroundColor: '#eef2ff',
+    borderWidth: 1,
+    borderColor: '#c7d2fe',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.m,
+  },
+  levelBadgeLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: colors.primaryDark,
+  },
+  levelBadgeValue: {
+    marginTop: 2,
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.primaryDark,
+  },
+  levelInfo: {
+    flex: 1,
+  },
   levelTitle: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '700',
     color: colors.text,
   },
   levelSubtitle: {
     color: colors.muted,
     marginTop: spacing.xs,
+    fontSize: 12,
   },
 });

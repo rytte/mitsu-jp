@@ -1,8 +1,8 @@
 ﻿import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import PrimaryButton from '../components/PrimaryButton';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LEXICONS } from '../data/lexicons';
 import { getStats, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
@@ -101,16 +101,25 @@ export default function LevelSelectScreen({ navigation, route }: Props) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <View style={styles.levelCard}>
-            <View>
-              <View style={styles.levelTitleRow}>
-                <Text style={styles.levelTitle}>词库 {item.label}</Text>
-                {settings.lexicon_level === item.id && <Text style={styles.defaultTag}>默认</Text>}
+          <Pressable
+            onPress={() => handleEnter(item.id)}
+            style={({ pressed }) => [styles.levelCard, pressed ? styles.levelCardPressed : null]}
+          >
+            <View style={styles.levelInfoRow}>
+              <View style={styles.levelIcon}>
+                <Text style={styles.levelIconLabel}>LEVEL</Text>
+                <Text style={styles.levelIconText}>{item.label}</Text>
               </View>
-              <Text style={styles.levelSubtitle}>共 {item.words.length} 词</Text>
+              <View style={styles.levelMain}>
+                <View style={styles.levelTitleRow}>
+                  <Text style={styles.levelTitle}>词库 {item.label}</Text>
+                  {settings.lexicon_level === item.id && <Text style={styles.defaultTag}>默认</Text>}
+                </View>
+                <Text style={styles.levelSubtitle}>共 {item.words.length} 词</Text>
+              </View>
             </View>
-            <PrimaryButton title="进入" onPress={() => handleEnter(item.id)} />
-          </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+          </Pressable>
         )}
       />
     </View>
@@ -150,10 +159,49 @@ const styles = StyleSheet.create({
     padding: spacing.m,
     marginBottom: spacing.m,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#e2e8f0',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  levelCardPressed: {
+    opacity: 0.7,
+  },
+  levelInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    paddingRight: spacing.s,
+  },
+  levelIcon: {
+    width: 54,
+    height: 54,
+    borderRadius: radius.m,
+    backgroundColor: '#ecfeff',
+    borderWidth: 1,
+    borderColor: '#a5f3fc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.m,
+  },
+  levelIconLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    color: '#0e7490',
+  },
+  levelIconText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0e7490',
+  },
+  levelMain: {
+    flex: 1,
   },
   levelTitle: {
     fontSize: 20,
@@ -169,8 +217,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.s,
     paddingVertical: 2,
     borderRadius: radius.s,
-    backgroundColor: colors.border,
-    color: colors.muted,
+    backgroundColor: '#e0f2fe',
+    color: '#0369a1',
     fontSize: 12,
   },
   levelSubtitle: {
