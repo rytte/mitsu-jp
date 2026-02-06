@@ -28,8 +28,8 @@ export default function PrimaryButton({ title, onPress, disabled, style }: Props
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.primary,
-    paddingVertical: spacing.s,
-    paddingHorizontal: spacing.l,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.m,
     borderRadius: radius.m,
     alignItems: 'center',
   },
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
 });

@@ -295,6 +295,8 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     minWidth: 72,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.m,
   },
   actionBtnGap: {
     marginLeft: spacing.s,

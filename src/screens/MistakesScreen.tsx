@@ -109,7 +109,7 @@ export default function MistakesScreen() {
               trackColor={{ false: colors.border, true: colors.primary }}
             />
           </Pressable>
-          <PrimaryButton title="清空错题" onPress={handleClear} disabled={listEmpty} />
+          <PrimaryButton title="清空错题" onPress={handleClear} disabled={listEmpty} style={styles.clearBtn} />
         </View>
       </View>
       <View style={styles.toggleRow}>
@@ -237,5 +237,9 @@ const styles = StyleSheet.create({
   times: {
     marginTop: spacing.s,
     color: colors.warn,
+  },
+  clearBtn: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.m,
   },
 });
