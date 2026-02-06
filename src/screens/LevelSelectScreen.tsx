@@ -107,7 +107,7 @@ export default function LevelSelectScreen({ navigation, route }: Props) {
                 <Text style={styles.levelTitle}>词库 {item.label}</Text>
                 {settings.lexicon_level === item.id && <Text style={styles.defaultTag}>默认</Text>}
               </View>
-              <Text style={styles.levelSubtitle}>选择词库进入关卡</Text>
+              <Text style={styles.levelSubtitle}>共 {item.words.length} 词</Text>
             </View>
             <PrimaryButton title="进入" onPress={() => handleEnter(item.id)} />
           </View>
