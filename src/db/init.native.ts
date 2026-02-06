@@ -21,7 +21,6 @@ async function ensureColumn(table: string, column: string, definition: string) {
 }
 
 async function runInit() {
-  const lexiconList = toWordList(getAllWords());
   await run(
     `CREATE TABLE IF NOT EXISTS words (
       id TEXT PRIMARY KEY NOT NULL,
@@ -105,26 +104,24 @@ async function runInit() {
 
   const countRow = await getFirst<{ count: number }>('SELECT COUNT(*) as count FROM words');
   const count = countRow?.count ?? 0;
+  const stageRow = await getFirst<{ count: number }>('SELECT COUNT(*) as count FROM stages');
+  const stageCount = stageRow?.count ?? 0;
   const storedLexiconVersion = await getStoredLexiconVersion();
-  const shouldReseedByVersion = storedLexiconVersion !== LEXICON_VERSION;
+  const hasStoredVersion = storedLexiconVersion != null && storedLexiconVersion !== '';
+  const shouldReseedByVersion = hasStoredVersion && storedLexiconVersion !== LEXICON_VERSION;
 
   if (count === 0) {
-    await seedWords();
-    await seedStages();
+    const lexiconList = toWordList(getAllWords());
+    await insertWords(lexiconList);
+    await insertStagesFromList(lexiconList);
+    await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
+  } else if (stageCount === 0) {
+    const lexiconList = toWordList(getAllWords());
+    await insertStagesFromList(lexiconList);
+  } else if (shouldReseedByVersion) {
+    const lexiconList = toWordList(getAllWords());
+    await reseedWordsAndStagesPreserveProgress(lexiconList);
   } else {
-    const shouldReseed = await needsReseedWords(lexiconList);
-    if (shouldReseedByVersion) {
-      await reseedWordsAndStagesPreserveProgress(lexiconList);
-    } else if (shouldReseed) {
-      await reseedWordsAndStages(lexiconList);
-    } else {
-      await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
-      await seedMissingLexicons();
-      await backfillPitch(lexiconList);
-    }
-  }
-
-  if (count === 0) {
     await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
   }
 
@@ -150,11 +147,7 @@ async function seedWords() {
 
 async function seedStages() {
   const list = toWordList(getAllWords());
-  const levels = getLexiconIds();
-  for (const level of levels) {
-    const levelWords = list.filter((word) => word.level === level);
-    await insertStages(level, levelWords);
-  }
+  await insertStagesFromList(list);
 }
 
 async function seedMissingLexicons() {
@@ -258,11 +251,7 @@ async function reseedWordsAndStages(list: Word[]) {
   await run('DELETE FROM stages;');
   await run('DELETE FROM mistakes;');
   await insertWords(list);
-  const levels = getLexiconIds();
-  for (const level of levels) {
-    const levelWords = list.filter((word) => word.level === level);
-    await insertStages(level, levelWords);
-  }
+  await insertStagesFromList(list);
   await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
 }
 
@@ -274,11 +263,7 @@ async function reseedWordsAndStagesPreserveProgress(list: Word[]) {
   await run('DELETE FROM words;');
   await run('DELETE FROM stages;');
   await insertWords(list);
-  const levels = getLexiconIds();
-  for (const level of levels) {
-    const levelWords = list.filter((word) => word.level === level);
-    await insertStages(level, levelWords);
-  }
+  await insertStagesFromList(list);
   await updateMistakeWordIds(mapping);
   await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
 }
@@ -316,6 +301,14 @@ async function insertStages(level: string, levelWords: Word[]) {
        VALUES (?, ?, ?, ?);`,
       [stageId, level, i + 1, JSON.stringify(chunk.map((word) => word.id))]
     );
+  }
+}
+
+async function insertStagesFromList(list: Word[]) {
+  const levels = getLexiconIds();
+  for (const level of levels) {
+    const levelWords = list.filter((word) => word.level === level);
+    await insertStages(level, levelWords);
   }
 }
 
