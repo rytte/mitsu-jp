@@ -1,13 +1,13 @@
 ﻿import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import GrammarCard from '../components/GrammarCard';
 import WordCard from '../components/WordCard';
 import PrimaryButton from '../components/PrimaryButton';
-import { clearAllGrammarMistakes, clearAllMistakes, getGrammarMistakes, getMistakeWords } from '../db/queries';
+import { clearAllGrammarMistakes, clearAllMistakes, getGrammarMistakes, getMistakeWords, updateSettings } from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
 import { colors, spacing } from '../theme';
-import { GrammarPoint, Word } from '../types';
+import { GrammarPoint, Settings, Word } from '../types';
 import { bumpFontScale, getGrammarFontSizes, getWordFontSizes } from '../utils/fontScale';
 import { getMeaning } from '../utils/meaning';
 
@@ -19,8 +19,13 @@ export default function MistakesScreen() {
   const [mode, setMode] = useState<Mode>('word');
   const [wordMistakes, setWordMistakes] = useState<MistakeWord[]>([]);
   const [grammarMistakes, setGrammarMistakes] = useState<MistakeGrammar[]>([]);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const settings = useAppStore((state) => state.settings);
+  const setSettings = useAppStore((state) => state.setSettings);
   const meaningLanguage = useAppStore((state) => state.settings.meaning_language);
   const fontScale = useAppStore((state) => state.settings.font_scale);
+  const compactMode = settings.compact_mode;
+  const compactSingleExpand = settings.compact_single_expand;
 
   const wordFontSizes = useMemo(() => getWordFontSizes(bumpFontScale(fontScale)), [fontScale]);
   const grammarFontSizes = useMemo(() => getGrammarFontSizes(bumpFontScale(fontScale)), [fontScale]);
@@ -40,6 +45,42 @@ export default function MistakesScreen() {
 
   useFocusEffect(load);
 
+  useEffect(() => {
+    if (!compactMode) {
+      setExpandedIds(new Set());
+    }
+  }, [compactMode]);
+
+  useEffect(() => {
+    if (!compactMode || !compactSingleExpand || expandedIds.size <= 1) return;
+    const lastExpanded = Array.from(expandedIds).pop();
+    setExpandedIds(lastExpanded ? new Set([lastExpanded]) : new Set());
+  }, [compactMode, compactSingleExpand, expandedIds]);
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (compactMode && compactSingleExpand) {
+          return new Set([id]);
+        }
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const persistSettings = async (next: Settings) => {
+    setSettings(next);
+    await updateSettings(next);
+  };
+
+  const toggleCompactMode = async (value: boolean) => {
+    await persistSettings({ ...settings, compact_mode: value });
+  };
+
   const handleClear = async () => {
     if (mode === 'word') {
       await clearAllMistakes();
@@ -57,7 +98,17 @@ export default function MistakesScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>错题本</Text>
-        <PrimaryButton title="清空错题" onPress={handleClear} disabled={listEmpty} />
+        <View style={styles.headerActions}>
+          <Pressable onPress={() => toggleCompactMode(!compactMode)} style={styles.compactToggle}>
+            <Text style={styles.compactLabel}>紧凑</Text>
+            <Switch
+              value={compactMode}
+              onValueChange={toggleCompactMode}
+              trackColor={{ false: colors.border, true: colors.primary }}
+            />
+          </Pressable>
+          <PrimaryButton title="清空错题" onPress={handleClear} disabled={listEmpty} />
+        </View>
       </View>
       <View style={styles.toggleRow}>
         <Pressable
@@ -89,12 +140,20 @@ export default function MistakesScreen() {
                 word={item as MistakeWord}
                 meaning={getMeaning(item as MistakeWord, meaningLanguage)}
                 fontSizes={wordFontSizes}
+                compact={compactMode}
+                expanded={expandedIds.has((item as MistakeWord).id)}
+                disabled={!compactMode}
+                onPress={() => toggleExpanded((item as MistakeWord).id)}
                 footer={<Text style={styles.times}>错误次数：{(item as MistakeWord).wrong_times}</Text>}
               />
             ) : (
               <GrammarCard
                 grammar={item as MistakeGrammar}
+                compact={compactMode}
                 fontSizes={grammarFontSizes}
+                expanded={expandedIds.has((item as MistakeGrammar).id)}
+                disabled={!compactMode}
+                onPress={() => toggleExpanded((item as MistakeGrammar).id)}
                 footer={<Text style={styles.times}>错误次数：{(item as MistakeGrammar).wrong_times}</Text>}
               />
             )
@@ -116,6 +175,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.m,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  compactToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: spacing.s,
+  },
+  compactLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '600',
+    marginRight: spacing.xs,
   },
   toggleRow: {
     flexDirection: 'row',
