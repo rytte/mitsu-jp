@@ -124,7 +124,7 @@ export default function GrammarCard({
       {showDetails && examTags.length > 0 ? (
         <View style={styles.tagRow}>
           {examTags.map((tag, index) => (
-            <View key={`${tag}-${index}`} style={[styles.tagChip, index > 0 ? styles.tagChipGap : null]}>
+            <View key={`${tag}-${index}`} style={styles.tagChip}>
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
@@ -237,10 +237,18 @@ const styles = StyleSheet.create({
     marginTop: spacing.s,
   },
   blockLabel: {
+    alignSelf: 'flex-start',
     fontSize: 11,
-    color: colors.muted,
-    fontWeight: '600',
+    color: colors.primaryDark,
+    fontWeight: '700',
     marginBottom: spacing.xs,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderRadius: radius.s,
+    backgroundColor: '#eef2ff',
+    borderWidth: 1,
+    borderColor: '#c7d2fe',
+    includeFontPadding: false,
   },
   blockText: {
     color: colors.text,
@@ -252,21 +260,22 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   tagChip: {
+    alignSelf: 'flex-start',
     paddingHorizontal: spacing.s,
     paddingVertical: 2,
     borderRadius: radius.s,
     backgroundColor: '#fff7ed',
     borderWidth: 1,
     borderColor: '#fed7aa',
-  },
-  tagChipGap: {
-    marginLeft: spacing.xs,
+    marginRight: spacing.xs,
     marginTop: spacing.xs,
   },
   tagText: {
     fontSize: 10,
     color: '#9a3412',
     fontWeight: '600',
+    lineHeight: 12,
+    includeFontPadding: false,
   },
   example: {
     marginTop: spacing.s,
