@@ -17,14 +17,19 @@ import MistakesScreen from '../screens/MistakesScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { GrammarStackParamList, LearnStackParamList, RootTabParamList } from './types';
 import { colors } from '../theme';
+import { useAppStore } from '../store/useAppStore';
 
 const LearnStack = createNativeStackNavigator<LearnStackParamList>();
 const GrammarStack = createNativeStackNavigator<GrammarStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 function LearnStackScreen() {
+  const lexiconLevel = useAppStore((state) => state.settings.lexicon_level);
+  const initialRouteName: keyof LearnStackParamList = lexiconLevel ? 'ZoneList' : 'LevelSelect';
+
   return (
     <LearnStack.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerStyle: { backgroundColor: colors.background },
         headerTitleStyle: { color: colors.text },
@@ -34,6 +39,7 @@ function LearnStackScreen() {
       <LearnStack.Screen
         name="ZoneList"
         component={ZoneListScreen}
+        initialParams={lexiconLevel ? { level: lexiconLevel } : undefined}
         options={{ title: '分区选择', headerBackVisible: false, headerLeft: () => null }}
       />
       <LearnStack.Screen name="StageList" component={StageListScreen} options={{ title: '关卡列表' }} />
