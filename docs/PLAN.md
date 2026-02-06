@@ -24,7 +24,7 @@
 
 ## 数据模型（SQLite）
 - `words`  
-  - `id` (PK), `level` (N5–N1), `kana`, `kanji`, `meaning_cn`, `meaning_en`, `pos`, `example`, `example_cn`, `tags`
+  - `id` (PK), `level` (N5–N1), `kana`, `kanji`, `meaning_cn`, `meaning_en`, `pos`, `pitch`, `examples` (json list), `tags` (json list)
 - `stages`  
   - `id` (PK), `level`, `index`, `word_ids` (json list)
 - `progress`  
@@ -32,7 +32,12 @@
 - `mistakes`  
   - `id` (PK), `word_id`, `wrong_times`, `last_wrong_at`
 - `settings`  
-  - `id` (PK), `tts_rate`, `tts_voice`, `quiz_mix`, `mcq_modes`, `meaning_language`, `compact_mode`, `lexicon_level`, `font_scale`
+  - `id` (PK), `tts_rate`, `tts_voice`, `quiz_mix`, `mcq_modes`, `meaning_language`, `compact_mode`, `compact_single_expand`, `lexicon_level`, `font_scale`, `lexicon_version`
+
+## 数据初始化与兼容性
+- 词库版本号写入 `settings.lexicon_version`，用于检测词库变更。
+- 词库版本变化时重建 `words/stages`，并基于 `level + kana + kanji` 映射保留 `progress` 与 `mistakes`。
+- 旧字段 `example/example_cn` 迁移为 `examples` 列表；缺失的 `pitch` 在初始化时回填。
 
 ## 功能模块
 1. **词库与关卡**
@@ -69,6 +74,7 @@
    - 紧凑模式开关（可保存设置）
    - 紧凑模式下点击词条展开/收起释义
    - 词汇字号支持小/中/大三档（紧凑模式为基准，非紧凑与错题本大一档）
+   - 词性 / 音调 / 标签展示，例句区域卡片化
 
 ## 关键界面（MVP）
 - 启动页 / 级别选择页（N5–N1）
@@ -90,13 +96,23 @@
     kanji?: string;
     meaning_cn: string;
     meaning_en: string;
-    pos?: string;
-    example?: string;
-    example_cn?: string;
-    tags?: string[];
+    pos?: string | null;
+    pitch?: string | null;
+    examples?: WordExample[] | null;
+    tags?: string[] | null;
   };
   ```
- - 设置结构新增字段：
+- 例句结构：
+  ```ts
+  type WordExample = {
+    type?: string | null;
+    ja?: string | null;
+    ja_furigana?: string | null;
+    zh_cn?: string | null;
+    audio?: string | null;
+  };
+  ```
+- 设置结构新增字段：
   ```ts
   type Settings = {
     tts_rate: number;
@@ -105,6 +121,7 @@
     mcq_modes: { ja_to_meaning: boolean; meaning_to_ja: boolean };
     meaning_language: "zh" | "en";
     compact_mode: boolean;
+    compact_single_expand: boolean;
     lexicon_level: "N5"|"N4"|"N3"|"N2"|"N1";
     font_scale: "s" | "m" | "l";
   };
