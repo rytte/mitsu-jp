@@ -67,10 +67,10 @@ export default function WordCard({
   const showExample = Boolean(exampleJa || exampleCn);
   const posText = (word.pos ?? '').trim();
   const pitchText = (word.pitch ?? '').trim();
-  const metaItems: Array<{ label: string; value: string }> = [];
+  const metaItems: string[] = [];
 
-  if (posText) metaItems.push({ label: '词性', value: posText });
-  if (pitchText) metaItems.push({ label: '音调', value: pitchText });
+  if (posText) metaItems.push(posText);
+  if (pitchText) metaItems.push(pitchText);
 
   const content = (
     <>
@@ -82,9 +82,8 @@ export default function WordCard({
         {showDetails && metaItems.length > 0 ? (
           <View style={styles.metaRow}>
             {metaItems.map((item, index) => (
-              <View key={`${item.label}-${index}`} style={[styles.metaChip, index > 0 ? styles.metaChipGap : null]}>
-                <Text style={styles.metaLabel}>{item.label}</Text>
-                <Text style={styles.metaValue}>{item.value}</Text>
+              <View key={`${item}-${index}`} style={[styles.metaChip, index > 0 ? styles.metaChipGap : null]}>
+                <Text style={styles.metaValue}>{item}</Text>
               </View>
             ))}
           </View>
@@ -198,13 +197,8 @@ const styles = StyleSheet.create({
   metaChipGap: {
     marginLeft: spacing.xs,
   },
-  metaLabel: {
-    fontSize: 11,
-    color: colors.muted,
-    fontWeight: '600',
-  },
   metaValue: {
-    marginLeft: 4,
+    letterSpacing: 0.2,
     fontSize: 11,
     color: colors.text,
     fontWeight: '600',
@@ -215,19 +209,24 @@ const styles = StyleSheet.create({
   },
   example: {
     marginTop: spacing.s,
+    padding: spacing.s,
+    borderRadius: radius.m,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: '#c7d2fe',
   },
   exampleHeader: {
-    marginBottom: spacing.xs,
+    marginBottom: spacing.s,
   },
   exampleTag: {
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
     borderRadius: radius.s,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.muted,
+    backgroundColor: '#eef2ff',
+    color: colors.primaryDark,
     fontSize: 10,
     fontWeight: '600',
   },
@@ -238,7 +237,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   exampleCn: {
-    marginTop: spacing.xs,
+    marginTop: spacing.s,
     color: colors.muted,
   },
 });
