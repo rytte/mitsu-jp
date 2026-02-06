@@ -20,10 +20,17 @@ type Props = {
   footer?: ReactNode;
 };
 
-function renderBoldMarkup(text: string, boldStyle: TextStyle) {
-  if (!text || !/<\/?b>/i.test(text)) return text;
-  const parts = text.split(/(<\/?b>)/gi);
+function renderInlineMarkup(
+  text: string,
+  boldStyle: TextStyle,
+  underlineStyle: TextStyle,
+  strikeStyle: TextStyle
+) {
+  if (!text || !/<\/?(b|u|s)>|<br\s*\/?>/i.test(text)) return text;
+  const parts = text.split(/(<\/?b>|<\/?u>|<\/?s>|<br\s*\/?>)/gi);
   let bold = false;
+  let underline = false;
+  let strike = false;
   let key = 0;
   const nodes: ReactNode[] = [];
   for (const part of parts) {
@@ -37,8 +44,31 @@ function renderBoldMarkup(text: string, boldStyle: TextStyle) {
       bold = false;
       continue;
     }
+    if (lower === '<u>') {
+      underline = true;
+      continue;
+    }
+    if (lower === '</u>') {
+      underline = false;
+      continue;
+    }
+    if (lower === '<s>') {
+      strike = true;
+      continue;
+    }
+    if (lower === '</s>') {
+      strike = false;
+      continue;
+    }
+    if (lower.startsWith('<br')) {
+      nodes.push('\n');
+      continue;
+    }
+    const inlineStyles = [bold ? boldStyle : null, underline ? underlineStyle : null, strike ? strikeStyle : null].filter(
+      Boolean
+    );
     nodes.push(
-      <Text key={`b-${key}`} style={bold ? boldStyle : undefined}>
+      <Text key={`m-${key}`} style={inlineStyles.length ? inlineStyles : undefined}>
         {part}
       </Text>
     );
@@ -96,7 +126,9 @@ export default function GrammarCard({
       </View>
 
       {showDetails && meaning ? (
-        <Text style={[styles.meaning, { fontSize: fontSizes.meaning }]}>{meaning}</Text>
+        <Text style={[styles.meaning, { fontSize: fontSizes.meaning }]}>
+          {renderInlineMarkup(meaning, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+        </Text>
       ) : null}
 
       {showDetails && usageLines.length > 0 ? (
@@ -104,7 +136,7 @@ export default function GrammarCard({
           <Text style={styles.blockLabel}>用法</Text>
           {usageLines.map((line, index) => (
             <Text key={`usage-${index}`} style={[styles.blockText, { fontSize: fontSizes.detail }]}>
-              {line}
+              {renderInlineMarkup(line, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
             </Text>
           ))}
         </View>
@@ -115,7 +147,7 @@ export default function GrammarCard({
           <Text style={styles.blockLabel}>备注</Text>
           {noteLines.map((line, index) => (
             <Text key={`note-${index}`} style={[styles.blockText, { fontSize: fontSizes.detail }]}>
-              {line}
+              {renderInlineMarkup(line, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
             </Text>
           ))}
         </View>
@@ -138,12 +170,12 @@ export default function GrammarCard({
           </View>
           {exampleJa ? (
             <Text style={[styles.exampleJa, { fontSize: fontSizes.detail, lineHeight: Math.round(fontSizes.detail * 1.5) }]}>
-              {renderBoldMarkup(exampleJa, styles.exampleBold)}
+              {renderInlineMarkup(exampleJa, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
             </Text>
           ) : null}
           {exampleZh ? (
             <Text style={[styles.exampleZh, { fontSize: fontSizes.detail, lineHeight: Math.round(fontSizes.detail * 1.5) }]}>
-              {exampleZh}
+              {renderInlineMarkup(exampleZh, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
             </Text>
           ) : null}
         </View>
@@ -303,8 +335,14 @@ const styles = StyleSheet.create({
   exampleJa: {
     color: colors.text,
   },
-  exampleBold: {
+  inlineBold: {
     fontWeight: '700',
+  },
+  inlineUnderline: {
+    textDecorationLine: 'underline',
+  },
+  inlineStrike: {
+    textDecorationLine: 'line-through',
   },
   exampleZh: {
     marginTop: spacing.s,
