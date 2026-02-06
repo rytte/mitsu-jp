@@ -1,6 +1,7 @@
 ﻿import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GrammarCard from '../components/GrammarCard';
 import WordCard from '../components/WordCard';
 import PrimaryButton from '../components/PrimaryButton';
@@ -16,6 +17,7 @@ type MistakeGrammar = GrammarPoint & { wrong_times: number };
 type Mode = 'word' | 'grammar';
 
 export default function MistakesScreen() {
+  const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<Mode>('word');
   const [wordMistakes, setWordMistakes] = useState<MistakeWord[]>([]);
   const [grammarMistakes, setGrammarMistakes] = useState<MistakeGrammar[]>([]);
@@ -95,7 +97,7 @@ export default function MistakesScreen() {
   const listEmpty = showingWord ? wordMistakes.length === 0 : grammarMistakes.length === 0;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + spacing.m }]}>
       <View style={styles.header}>
         <Text style={styles.title}>错题本</Text>
         <View style={styles.headerActions}>

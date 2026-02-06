@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PrimaryButton from '../components/PrimaryButton';
 import { updateSettings } from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
@@ -13,6 +14,7 @@ const FONT_OPTIONS = [
 ] as const;
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const settings = useAppStore((state) => state.settings);
   const setSettings = useAppStore((state) => state.setSettings);
   const [mcqJaToMeaningEnabled, setMcqJaToMeaningEnabled] = useState(settings.mcq_modes.ja_to_meaning);
@@ -108,7 +110,10 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.m }]}
+    >
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>发音速度</Text>
         <View style={styles.rateRow}>
