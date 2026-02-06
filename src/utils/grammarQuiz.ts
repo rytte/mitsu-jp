@@ -11,13 +11,6 @@ export type GrammarQuizItem = {
   answer: string;
 };
 
-function stripMarkup(text: string) {
-  return text
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/?b>/gi, '')
-    .trim();
-}
-
 function getMeaning(grammar: GrammarPoint) {
   const direct = (grammar.meaning_cn ?? '').trim();
   if (direct) return direct;
@@ -36,7 +29,7 @@ function getExample(grammar: GrammarPoint) {
     const zh = (example?.zh ?? '').trim();
     if (ja || zh) {
       return {
-        ja: ja ? stripMarkup(ja) : '',
+        ja: ja || '',
         zh,
       };
     }

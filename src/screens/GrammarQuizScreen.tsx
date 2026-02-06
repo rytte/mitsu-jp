@@ -1,6 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextStyle, View } from 'react-native';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
 import { getGrammarByLevel } from '../data/grammars';
@@ -12,6 +12,63 @@ import { GrammarQuizItem, generateGrammarQuizItems } from '../utils/grammarQuiz'
 type Props = NativeStackScreenProps<GrammarStackParamList, 'GrammarQuiz'>;
 
 const DEFAULT_COUNT = 10;
+
+function renderInlineMarkup(
+  text: string,
+  boldStyle: TextStyle,
+  underlineStyle: TextStyle,
+  strikeStyle: TextStyle
+) {
+  if (!text || !/<\/?(b|u|s)>|<br\s*\/?>/i.test(text)) return text;
+  const parts = text.split(/(<\/?b>|<\/?u>|<\/?s>|<br\s*\/?>)/gi);
+  let bold = false;
+  let underline = false;
+  let strike = false;
+  let key = 0;
+  const nodes: ReactNode[] = [];
+  for (const part of parts) {
+    if (!part) continue;
+    const lower = part.toLowerCase();
+    if (lower === '<b>') {
+      bold = true;
+      continue;
+    }
+    if (lower === '</b>') {
+      bold = false;
+      continue;
+    }
+    if (lower === '<u>') {
+      underline = true;
+      continue;
+    }
+    if (lower === '</u>') {
+      underline = false;
+      continue;
+    }
+    if (lower === '<s>') {
+      strike = true;
+      continue;
+    }
+    if (lower === '</s>') {
+      strike = false;
+      continue;
+    }
+    if (lower.startsWith('<br')) {
+      nodes.push('\n');
+      continue;
+    }
+    const inlineStyles = [bold ? boldStyle : null, underline ? underlineStyle : null, strike ? strikeStyle : null].filter(
+      Boolean
+    );
+    nodes.push(
+      <Text key={`m-${key}`} style={inlineStyles.length ? inlineStyles : undefined}>
+        {part}
+      </Text>
+    );
+    key += 1;
+  }
+  return nodes.length ? nodes : text;
+}
 
 export default function GrammarQuizScreen({ navigation, route }: Props) {
   const { level } = route.params;
@@ -105,11 +162,17 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.prompt}>{currentItem.prompt}</Text>
+        <Text style={styles.prompt}>
+          {renderInlineMarkup(currentItem.prompt, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+        </Text>
         <Text style={styles.subPrompt}>
           {currentItem.type === 'example_to_pattern' ? '根据例句选择正确文法' : '根据释义选择正确文法'}
         </Text>
-        {currentItem.promptZh ? <Text style={styles.subPromptAlt}>{currentItem.promptZh}</Text> : null}
+        {currentItem.promptZh ? (
+          <Text style={styles.subPromptAlt}>
+            {renderInlineMarkup(currentItem.promptZh, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+          </Text>
+        ) : null}
         {currentItem.options.map((option) => (
           <OptionButton
             key={option}
@@ -124,7 +187,14 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
       {showResult && !finished && (
         <View style={styles.resultBox}>
           <Text style={[styles.resultText, isCorrect ? styles.correct : styles.wrong]}>
-            {isCorrect ? '回答正确！' : `回答错误，正确答案：${currentItem.answer}`}
+            {isCorrect ? (
+              '回答正确！'
+            ) : (
+              <>
+                回答错误，正确答案：
+                {renderInlineMarkup(currentItem.answer, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+              </>
+            )}
           </Text>
           <PrimaryButton title="下一题" onPress={handleNext} />
         </View>
@@ -228,5 +298,14 @@ const styles = StyleSheet.create({
   },
   summaryButton: {
     marginBottom: spacing.s,
+  },
+  inlineBold: {
+    fontWeight: '700',
+  },
+  inlineUnderline: {
+    textDecorationLine: 'underline',
+  },
+  inlineStrike: {
+    textDecorationLine: 'line-through',
   },
 });
