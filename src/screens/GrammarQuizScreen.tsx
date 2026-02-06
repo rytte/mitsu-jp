@@ -1,6 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
 import { getGrammarByLevel } from '../data/grammars';
@@ -96,7 +96,7 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
     items.length === 0 ? 0 : Math.round((correctCount / Math.max(1, correctCount + wrongCount)) * 100);
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{level} 文法练习</Text>
         <Text style={styles.headerSubtitle}>{progressText}</Text>
@@ -138,7 +138,7 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
           <PrimaryButton title="返回列表" onPress={() => navigation.goBack()} />
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -156,9 +156,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.m,
   },
   container: {
-    flex: 1,
     backgroundColor: colors.background,
     padding: spacing.m,
+    paddingBottom: spacing.l,
   },
   header: {
     marginBottom: spacing.m,
