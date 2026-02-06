@@ -7,6 +7,11 @@ function toWordList(data: unknown): Word[] {
   return data as Word[];
 }
 
+function serializeExamples(word: Word) {
+  if (!word.examples || word.examples.length === 0) return null;
+  return JSON.stringify(word.examples);
+}
+
 let initPromise: Promise<void> | null = null;
 
 async function ensureColumn(table: string, column: string, definition: string) {
@@ -16,6 +21,7 @@ async function ensureColumn(table: string, column: string, definition: string) {
 }
 
 async function runInit() {
+  const lexiconList = toWordList(getAllWords());
   await run(
     `CREATE TABLE IF NOT EXISTS words (
       id TEXT PRIMARY KEY NOT NULL,
@@ -25,8 +31,7 @@ async function runInit() {
       meaning_cn TEXT NOT NULL,
       meaning_en TEXT NOT NULL,
       pos TEXT,
-      example TEXT,
-      example_cn TEXT,
+      examples TEXT,
       tags TEXT
     );`
   );
@@ -76,6 +81,8 @@ async function runInit() {
   );
 
   await ensureColumn('words', 'meaning_en', 'TEXT');
+  await ensureColumn('words', 'examples', 'TEXT');
+  await migrateWordsTable();
   await ensureColumn('settings', 'meaning_language', 'TEXT');
   await ensureColumn('settings', 'mcq_modes', 'TEXT');
   await ensureColumn('settings', 'compact_mode', 'INTEGER');
@@ -90,8 +97,17 @@ async function runInit() {
     await seedWords();
     await seedStages();
   } else {
+    const shouldReseed = await needsReseedWords(lexiconList);
+    if (shouldReseed) {
+      await reseedWordsAndStages(lexiconList);
+    } else {
+      await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
+      await seedMissingLexicons();
+    }
+  }
+
+  if (count === 0) {
     await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
-    await seedMissingLexicons();
   }
 
   await ensureDefaultSettings();
@@ -142,11 +158,89 @@ async function seedMissingLexicons() {
   }
 }
 
+async function migrateWordsTable() {
+  const columns = await getAll<{ name: string }>('PRAGMA table_info(words);');
+  const hasLegacyExample = columns.some((item) => item.name === 'example' || item.name === 'example_cn');
+  if (!hasLegacyExample) return;
+  const hasExamples = columns.some((item) => item.name === 'examples');
+  const rows = await getAll<Record<string, unknown>>('SELECT * FROM words');
+  await run(
+    `CREATE TABLE IF NOT EXISTS words_new (
+      id TEXT PRIMARY KEY NOT NULL,
+      level TEXT NOT NULL,
+      kana TEXT NOT NULL,
+      kanji TEXT,
+      meaning_cn TEXT NOT NULL,
+      meaning_en TEXT NOT NULL,
+      pos TEXT,
+      examples TEXT,
+      tags TEXT
+    );`
+  );
+
+  for (const row of rows) {
+    const example = row.example ? String(row.example) : '';
+    const exampleCn = row.example_cn ? String(row.example_cn) : '';
+    let examples = hasExamples ? (row.examples as string | null) : null;
+    if ((!examples || examples === '') && (example || exampleCn)) {
+      examples = JSON.stringify([
+        {
+          ja_furigana: example || null,
+          zh_cn: exampleCn || null,
+        },
+      ]);
+    }
+    await run(
+      `INSERT OR REPLACE INTO words_new (id, level, kana, kanji, meaning_cn, meaning_en, pos, examples, tags)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        row.id,
+        row.level,
+        row.kana,
+        row.kanji ?? null,
+        row.meaning_cn,
+        row.meaning_en,
+        row.pos ?? null,
+        examples ?? null,
+        row.tags ?? null,
+      ]
+    );
+  }
+
+  await run('DROP TABLE words;');
+  await run('ALTER TABLE words_new RENAME TO words;');
+}
+
+async function needsReseedWords(list: Word[]) {
+  if (list.length === 0) return false;
+  const sample = list.slice(0, 10);
+  const placeholders = sample.map(() => '?').join(',');
+  const row = await getFirst<{ count: number }>(
+    `SELECT COUNT(*) as count FROM words WHERE id IN (${placeholders})`,
+    sample.map((item) => item.id)
+  );
+  return (row?.count ?? 0) === 0;
+}
+
+async function reseedWordsAndStages(list: Word[]) {
+  await run('DELETE FROM words;');
+  await run('DELETE FROM stages;');
+  await run('DELETE FROM mistakes;');
+  await insertWords(list);
+  const levels = getLexiconIds();
+  for (const level of levels) {
+    const levelWords = list.filter((word) => word.level === level);
+    await insertStages(level, levelWords);
+  }
+  await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
+}
+
 async function insertWords(list: Word[]) {
   for (const word of list) {
+    const examplesJson = serializeExamples(word);
     await run(
-      `INSERT OR REPLACE INTO words (id, level, kana, kanji, meaning_cn, meaning_en, pos, example, example_cn, tags)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      `INSERT OR REPLACE INTO words (id, level, kana, kanji, meaning_cn, meaning_en, pos, examples, tags)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         word.id,
         word.level,
@@ -155,8 +249,7 @@ async function insertWords(list: Word[]) {
         word.meaning_cn,
         word.meaning_en,
         word.pos ?? null,
-        word.example ?? null,
-        word.example_cn ?? null,
+        examplesJson,
         word.tags ? JSON.stringify(word.tags) : null,
       ]
     );

@@ -3,6 +3,16 @@ import { isLexiconId } from '../data/lexicons';
 import { DEFAULT_SETTINGS } from './constants';
 import { getAll, getFirst, run } from './db';
 
+function safeParseJson<T>(value: unknown): T | null {
+  if (value == null || value === '') return null;
+  if (typeof value === 'object') return value as T;
+  try {
+    return JSON.parse(String(value)) as T;
+  } catch {
+    return null;
+  }
+}
+
 function normalizeMeaningLanguage(value?: string): MeaningLanguage {
   return value === 'en' ? 'en' : 'zh';
 }
@@ -118,6 +128,7 @@ export async function getMistakeWords(): Promise<(Word & { wrong_times: number }
   return rows.map((row) => ({
     ...row,
     tags: row.tags ? JSON.parse(row.tags as unknown as string) : null,
+    examples: safeParseJson(row.examples) ?? null,
   }));
 }
 
@@ -138,6 +149,7 @@ export async function getWordsByIds(ids: string[]): Promise<Word[]> {
   return rows.map((row) => ({
     ...row,
     tags: row.tags ? JSON.parse(row.tags as unknown as string) : null,
+    examples: safeParseJson(row.examples) ?? null,
   }));
 }
 
@@ -146,6 +158,7 @@ export async function getAllWordsByLevel(level: Level): Promise<Word[]> {
   return rows.map((row) => ({
     ...row,
     tags: row.tags ? JSON.parse(row.tags as unknown as string) : null,
+    examples: safeParseJson(row.examples) ?? null,
   }));
 }
 

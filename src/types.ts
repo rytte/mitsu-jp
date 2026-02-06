@@ -14,9 +14,16 @@ export type Word = {
   meaning_cn: string;
   meaning_en: string;
   pos?: string | null;
-  example?: string | null;
-  example_cn?: string | null;
+  examples?: WordExample[] | null;
   tags?: string[] | null;
+};
+
+export type WordExample = {
+  type?: string | null;
+  ja?: string | null;
+  ja_furigana?: string | null;
+  zh_cn?: string | null;
+  audio?: string | null;
 };
 
 export type Stage = {

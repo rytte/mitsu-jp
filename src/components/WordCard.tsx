@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextStyle, View } from 'react-native';
 import { colors, radius, spacing } from '../theme';
 import { Word } from '../types';
 
@@ -21,6 +21,33 @@ type Props = {
   footer?: ReactNode;
 };
 
+function renderBoldMarkup(text: string, boldStyle: TextStyle) {
+  if (!text || !/<\/?b>/i.test(text)) return text;
+  const parts = text.split(/(<\/?b>)/gi);
+  let bold = false;
+  let key = 0;
+  const nodes: ReactNode[] = [];
+  for (const part of parts) {
+    if (!part) continue;
+    const lower = part.toLowerCase();
+    if (lower === '<b>') {
+      bold = true;
+      continue;
+    }
+    if (lower === '</b>') {
+      bold = false;
+      continue;
+    }
+    nodes.push(
+      <Text key={`b-${key}`} style={bold ? boldStyle : undefined}>
+        {part}
+      </Text>
+    );
+    key += 1;
+  }
+  return nodes.length ? nodes : text;
+}
+
 export default function WordCard({
   word,
   meaning,
@@ -34,6 +61,10 @@ export default function WordCard({
 }: Props) {
   const showDetails = !compact || expanded;
   const cardStyles = [styles.card, compact ? styles.cardCompact : null, shadow ? styles.cardShadow : null];
+  const example = word.examples?.[0];
+  const exampleJa = (example?.ja_furigana ?? example?.ja ?? '').trim();
+  const exampleCn = (example?.zh_cn ?? '').trim();
+  const showExample = Boolean(exampleJa || exampleCn);
 
   const content = (
     <>
@@ -46,6 +77,14 @@ export default function WordCard({
           <Text style={[styles.meaning, { fontSize: fontSizes.meaning }, compact ? styles.meaningCompact : null]}>
             {meaning}
           </Text>
+          {showExample && (
+            <View style={[styles.example, compact ? styles.exampleCompact : null]}>
+              {exampleJa ? (
+                <Text style={styles.exampleJa}>{renderBoldMarkup(exampleJa, styles.exampleBold)}</Text>
+              ) : null}
+              {exampleCn ? <Text style={styles.exampleCn}>{exampleCn}</Text> : null}
+            </View>
+          )}
         </>
       )}
       {footer}
@@ -108,5 +147,21 @@ const styles = StyleSheet.create({
   },
   meaningCompact: {
     marginTop: spacing.xs,
+  },
+  example: {
+    marginTop: spacing.s,
+  },
+  exampleCompact: {
+    marginTop: spacing.xs,
+  },
+  exampleJa: {
+    color: colors.text,
+  },
+  exampleBold: {
+    fontWeight: '700',
+  },
+  exampleCn: {
+    marginTop: spacing.xs,
+    color: colors.muted,
   },
 });
