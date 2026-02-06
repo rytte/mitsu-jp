@@ -1,11 +1,14 @@
+import { getAllGrammars } from '../data/grammars';
 import { getAllWords, getLexiconIds, isLexiconId } from '../data/lexicons';
-import { FontScale, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import { FontScale, GrammarPoint, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
 import { DEFAULT_SETTINGS, STAGE_SIZE } from './constants';
 import {
   ensureWebStorage,
+  loadGrammarMistakeMap,
   loadMistakeMap,
   loadProgressMap,
   loadSettings,
+  saveGrammarMistakeMap,
   saveMistakeMap,
   saveProgressMap,
   saveSettings,
@@ -41,6 +44,7 @@ function normalizeMcqModes(value: unknown): McqModes {
 }
 
 const wordList = toWordList(getAllWords());
+const grammarList = getAllGrammars();
 let stageCache: Record<Level, Stage[]> | null = null;
 
 function buildStages(): Record<Level, Stage[]> {
@@ -123,6 +127,25 @@ export async function clearAllMistakes() {
   saveMistakeMap({});
 }
 
+export async function recordGrammarMistake(grammarId: string) {
+  const map = loadGrammarMistakeMap() as Record<string, { grammar_id: string; wrong_times: number; last_wrong_at: number }>;
+  const existing = map[grammarId];
+  if (!existing) {
+    map[grammarId] = { grammar_id: grammarId, wrong_times: 1, last_wrong_at: Date.now() };
+  } else {
+    map[grammarId] = {
+      ...existing,
+      wrong_times: existing.wrong_times + 1,
+      last_wrong_at: Date.now(),
+    };
+  }
+  saveGrammarMistakeMap(map);
+}
+
+export async function clearAllGrammarMistakes() {
+  saveGrammarMistakeMap({});
+}
+
 export async function getMistakeWords(): Promise<(Word & { wrong_times: number })[]> {
   const map = loadMistakeMap() as Record<string, { word_id: string; wrong_times: number; last_wrong_at: number }>;
   const list = Object.values(map)
@@ -133,6 +156,19 @@ export async function getMistakeWords(): Promise<(Word & { wrong_times: number }
       return { ...word, wrong_times: item.wrong_times };
     })
     .filter(Boolean) as (Word & { wrong_times: number })[];
+  return list;
+}
+
+export async function getGrammarMistakes(): Promise<(GrammarPoint & { wrong_times: number })[]> {
+  const map = loadGrammarMistakeMap() as Record<string, { grammar_id: string; wrong_times: number; last_wrong_at: number }>;
+  const list = Object.values(map)
+    .sort((a, b) => b.wrong_times - a.wrong_times || b.last_wrong_at - a.last_wrong_at)
+    .map((item) => {
+      const grammar = grammarList.find((g) => g.id === item.grammar_id);
+      if (!grammar) return null;
+      return { ...grammar, wrong_times: item.wrong_times };
+    })
+    .filter(Boolean) as (GrammarPoint & { wrong_times: number })[];
   return list;
 }
 

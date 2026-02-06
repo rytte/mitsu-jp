@@ -1,4 +1,5 @@
-import { FontScale, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import { FontScale, GrammarPoint, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import { getAllGrammars } from '../data/grammars';
 import { isLexiconId } from '../data/lexicons';
 import { DEFAULT_SETTINGS } from './constants';
 import { getAll, getFirst, run } from './db';
@@ -119,6 +120,29 @@ export async function clearAllMistakes() {
   await run('DELETE FROM mistakes');
 }
 
+export async function recordGrammarMistake(grammarId: string) {
+  const existing = await getFirst<{ id: string; wrong_times: number }>(
+    'SELECT id, wrong_times FROM grammar_mistakes WHERE grammar_id = ? LIMIT 1',
+    [grammarId]
+  );
+  const now = Date.now();
+  if (!existing) {
+    await run(
+      'INSERT INTO grammar_mistakes (id, grammar_id, wrong_times, last_wrong_at) VALUES (?, ?, ?, ?);',
+      [`grammar-mistake-${grammarId}`, grammarId, 1, now]
+    );
+  } else {
+    await run(
+      'UPDATE grammar_mistakes SET wrong_times = ?, last_wrong_at = ? WHERE id = ?;',
+      [existing.wrong_times + 1, now, existing.id]
+    );
+  }
+}
+
+export async function clearAllGrammarMistakes() {
+  await run('DELETE FROM grammar_mistakes');
+}
+
 export async function getMistakeWords(): Promise<(Word & { wrong_times: number })[]> {
   const rows = await getAll<Word & { wrong_times: number }>(
     `SELECT w.*, m.wrong_times FROM mistakes m
@@ -130,6 +154,22 @@ export async function getMistakeWords(): Promise<(Word & { wrong_times: number }
     tags: row.tags ? JSON.parse(row.tags as unknown as string) : null,
     examples: safeParseJson(row.examples) ?? null,
   }));
+}
+
+export async function getGrammarMistakes(): Promise<(GrammarPoint & { wrong_times: number })[]> {
+  const rows = await getAll<{ grammar_id: string; wrong_times: number }>(
+    `SELECT grammar_id, wrong_times FROM grammar_mistakes
+     ORDER BY wrong_times DESC, last_wrong_at DESC`
+  );
+  const grammars = getAllGrammars();
+  const map = new Map(grammars.map((item) => [item.id, item]));
+  return rows
+    .map((row) => {
+      const grammar = map.get(row.grammar_id);
+      if (!grammar) return null;
+      return { ...grammar, wrong_times: row.wrong_times };
+    })
+    .filter(Boolean) as (GrammarPoint & { wrong_times: number })[];
 }
 
 export async function getMistakeWordIdsByLevel(level: Level): Promise<string[]> {

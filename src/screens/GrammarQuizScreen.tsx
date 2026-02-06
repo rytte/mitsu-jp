@@ -4,13 +4,14 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
 import { getGrammarByLevel } from '../data/grammars';
+import { recordGrammarMistake } from '../db/queries';
 import { GrammarStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { GrammarQuizItem, generateGrammarQuizItems } from '../utils/grammarQuiz';
 
 type Props = NativeStackScreenProps<GrammarStackParamList, 'GrammarQuiz'>;
 
-const DEFAULT_COUNT = 20;
+const DEFAULT_COUNT = 10;
 
 export default function GrammarQuizScreen({ navigation, route }: Props) {
   const { level } = route.params;
@@ -50,7 +51,7 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
     setLoading(false);
   }, [level]);
 
-  const handleAnswer = (answer: string) => {
+  const handleAnswer = async (answer: string) => {
     if (!currentItem || showResult) return;
     const correct = answer.trim() === currentItem.answer.trim();
     setSelected(answer);
@@ -60,6 +61,7 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
       setCorrectCount((prev) => prev + 1);
     } else {
       setWrongCount((prev) => prev + 1);
+      await recordGrammarMistake(currentItem.grammarId);
     }
   };
 

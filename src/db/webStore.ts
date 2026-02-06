@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS } from './constants';
 const SETTINGS_KEY = 'jp_vocab_settings';
 const PROGRESS_KEY = 'jp_vocab_progress';
 const MISTAKES_KEY = 'jp_vocab_mistakes';
+const GRAMMAR_MISTAKES_KEY = 'jp_grammar_mistakes';
 
 function safeGet(key: string): string | null {
   try {
@@ -29,6 +30,9 @@ export function ensureWebStorage() {
   }
   if (!safeGet(MISTAKES_KEY)) {
     safeSet(MISTAKES_KEY, JSON.stringify({}));
+  }
+  if (!safeGet(GRAMMAR_MISTAKES_KEY)) {
+    safeSet(GRAMMAR_MISTAKES_KEY, JSON.stringify({}));
   }
 }
 
@@ -72,4 +76,18 @@ export function loadMistakeMap() {
 
 export function saveMistakeMap(map: Record<string, unknown>) {
   safeSet(MISTAKES_KEY, JSON.stringify(map));
+}
+
+export function loadGrammarMistakeMap() {
+  const raw = safeGet(GRAMMAR_MISTAKES_KEY);
+  if (!raw) return {} as Record<string, unknown>;
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    return {} as Record<string, unknown>;
+  }
+}
+
+export function saveGrammarMistakeMap(map: Record<string, unknown>) {
+  safeSet(GRAMMAR_MISTAKES_KEY, JSON.stringify(map));
 }

@@ -21,3 +21,7 @@ export function getGrammarByLevel(level: Level): GrammarPoint[] {
   const found = GRAMMARS.find((item) => item.id === level);
   return (found?.items ?? []) as GrammarPoint[];
 }
+
+export function getAllGrammars(): GrammarPoint[] {
+  return GRAMMARS.flatMap((item) => item.items as GrammarPoint[]);
+}

@@ -67,6 +67,15 @@ async function runInit() {
   );
 
   await run(
+    `CREATE TABLE IF NOT EXISTS grammar_mistakes (
+      id TEXT PRIMARY KEY NOT NULL,
+      grammar_id TEXT NOT NULL,
+      wrong_times INTEGER NOT NULL,
+      last_wrong_at INTEGER NOT NULL
+    );`
+  );
+
+  await run(
     `CREATE TABLE IF NOT EXISTS settings (
       id TEXT PRIMARY KEY NOT NULL,
       tts_rate REAL NOT NULL,
