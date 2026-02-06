@@ -27,6 +27,29 @@ export type WordExample = {
   audio?: string | null;
 };
 
+export type GrammarExample = {
+  ja?: string | null;
+  zh?: string | null;
+  audio?: string | null;
+};
+
+export type GrammarPoint = {
+  id: string;
+  level?: Level;
+  pattern: string;
+  formation?: string[] | null;
+  meaning_cn?: string | null;
+  usage?: string[] | null;
+  notes?: string[] | null;
+  examples?: GrammarExample[] | null;
+  tags?: string[] | null;
+  sentenceTags?: string[] | null;
+  subOrder?: string | null;
+  totalOrder?: string | null;
+  honorific?: string | null;
+  gakkoConnectives?: string[] | null;
+};
+
 export type Stage = {
   id: string;
   level: Level;

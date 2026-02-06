@@ -17,3 +17,12 @@ export function getWordFontSizes(scale: FontScale) {
     meaning: Math.round(12 * ratio),
   };
 }
+
+export function getGrammarFontSizes(scale: FontScale) {
+  const ratio = SCALE_MAP[scale] ?? 1;
+  return {
+    pattern: Math.round(16 * ratio),
+    meaning: Math.round(12 * ratio),
+    detail: Math.round(12 * ratio),
+  };
+}

@@ -23,8 +23,15 @@ export type LearnStackParamList = {
   };
 };
 
+export type GrammarStackParamList = {
+  GrammarLevel: undefined;
+  GrammarList: { level: Level };
+  GrammarDetail: { level: Level; id: string };
+};
+
 export type RootTabParamList = {
   Learn: undefined;
+  Grammar: undefined;
   Mistakes: undefined;
   Settings: undefined;
 };

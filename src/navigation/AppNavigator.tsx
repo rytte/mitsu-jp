@@ -9,12 +9,16 @@ import StageWordsScreen from '../screens/StageWordsScreen';
 import ZoneWordsScreen from '../screens/ZoneWordsScreen';
 import QuizScreen from '../screens/QuizScreen';
 import ResultScreen from '../screens/ResultScreen';
+import GrammarLevelScreen from '../screens/GrammarLevelScreen';
+import GrammarListScreen from '../screens/GrammarListScreen';
+import GrammarDetailScreen from '../screens/GrammarDetailScreen';
 import MistakesScreen from '../screens/MistakesScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import { LearnStackParamList, RootTabParamList } from './types';
+import { GrammarStackParamList, LearnStackParamList, RootTabParamList } from './types';
 import { colors } from '../theme';
 
 const LearnStack = createNativeStackNavigator<LearnStackParamList>();
+const GrammarStack = createNativeStackNavigator<GrammarStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 function LearnStackScreen() {
@@ -40,6 +44,21 @@ function LearnStackScreen() {
   );
 }
 
+function GrammarStackScreen() {
+  return (
+    <GrammarStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.background },
+        headerTitleStyle: { color: colors.text },
+      }}
+    >
+      <GrammarStack.Screen name="GrammarLevel" component={GrammarLevelScreen} options={{ title: '文法等级' }} />
+      <GrammarStack.Screen name="GrammarList" component={GrammarListScreen} options={{ title: '文法列表' }} />
+      <GrammarStack.Screen name="GrammarDetail" component={GrammarDetailScreen} options={{ title: '文法详情' }} />
+    </GrammarStack.Navigator>
+  );
+}
+
 export default function AppNavigator() {
   return (
     <NavigationContainer>
@@ -52,6 +71,8 @@ export default function AppNavigator() {
             let iconName: keyof typeof Ionicons.glyphMap;
             if (route.name === 'Learn') {
               iconName = focused ? 'book' : 'book-outline';
+            } else if (route.name === 'Grammar') {
+              iconName = focused ? 'reader' : 'reader-outline';
             } else if (route.name === 'Mistakes') {
               iconName = focused ? 'alert-circle' : 'alert-circle-outline';
             } else {
@@ -62,6 +83,7 @@ export default function AppNavigator() {
         })}
       >
         <Tab.Screen name="Learn" component={LearnStackScreen} options={{ title: '学习' }} />
+        <Tab.Screen name="Grammar" component={GrammarStackScreen} options={{ title: '文法' }} />
         <Tab.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题' }} />
         <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: '设置' }} />
       </Tab.Navigator>
