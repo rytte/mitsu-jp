@@ -65,24 +65,68 @@ export default function WordCard({
   const exampleJa = (example?.ja_furigana ?? example?.ja ?? '').trim();
   const exampleCn = (example?.zh_cn ?? '').trim();
   const showExample = Boolean(exampleJa || exampleCn);
+  const posText = (word.pos ?? '').trim();
+  const pitchText = (word.pitch ?? '').trim();
+  const metaItems: Array<{ label: string; value: string }> = [];
+
+  if (posText) metaItems.push({ label: '词性', value: posText });
+  if (pitchText) metaItems.push({ label: '音调', value: pitchText });
 
   const content = (
     <>
-      <Text style={[styles.word, { fontSize: fontSizes.word }]}>{word.kanji ?? word.kana}</Text>
+      <View style={styles.headRow}>
+        <View style={styles.headText}>
+          <Text style={[styles.word, { fontSize: fontSizes.word }]}>{word.kanji ?? word.kana}</Text>
+          {showDetails && (
+            <Text style={[styles.reading, { fontSize: fontSizes.reading }, compact ? styles.readingCompact : null]}>
+              {word.kana}
+            </Text>
+          )}
+        </View>
+        {showDetails && metaItems.length > 0 ? (
+          <View style={[styles.metaRow, compact ? styles.metaRowCompact : null]}>
+            {metaItems.map((item, index) => (
+              <View
+                key={`${item.label}-${index}`}
+                style={[styles.metaChip, index > 0 ? styles.metaChipGap : null, compact ? styles.metaChipCompact : null]}
+              >
+                <Text style={styles.metaLabel}>{item.label}</Text>
+                <Text style={styles.metaValue}>{item.value}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+      </View>
       {showDetails && (
         <>
-          <Text style={[styles.reading, { fontSize: fontSizes.reading }, compact ? styles.readingCompact : null]}>
-            {word.kana}
-          </Text>
           <Text style={[styles.meaning, { fontSize: fontSizes.meaning }, compact ? styles.meaningCompact : null]}>
             {meaning}
           </Text>
           {showExample && (
             <View style={[styles.example, compact ? styles.exampleCompact : null]}>
+              <View style={styles.exampleHeader}>
+                <Text style={styles.exampleTag}>例句</Text>
+              </View>
               {exampleJa ? (
-                <Text style={styles.exampleJa}>{renderBoldMarkup(exampleJa, styles.exampleBold)}</Text>
+                <Text
+                  style={[
+                    styles.exampleJa,
+                    { fontSize: fontSizes.meaning, lineHeight: Math.round(fontSizes.meaning * 1.5) },
+                  ]}
+                >
+                  {renderBoldMarkup(exampleJa, styles.exampleBold)}
+                </Text>
               ) : null}
-              {exampleCn ? <Text style={styles.exampleCn}>{exampleCn}</Text> : null}
+              {exampleCn ? (
+                <Text
+                  style={[
+                    styles.exampleCn,
+                    { fontSize: fontSizes.meaning, lineHeight: Math.round(fontSizes.meaning * 1.5) },
+                  ]}
+                >
+                  {exampleCn}
+                </Text>
+              ) : null}
             </View>
           )}
         </>
@@ -130,6 +174,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
+  headRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  headText: {
+    flex: 1,
+    paddingRight: spacing.s,
+  },
   word: {
     fontWeight: '700',
     color: colors.text,
@@ -140,6 +193,42 @@ const styles = StyleSheet.create({
   },
   readingCompact: {
     marginTop: spacing.xs,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    maxWidth: '45%',
+  },
+  metaRowCompact: {
+    maxWidth: '50%',
+  },
+  metaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.s,
+    paddingVertical: 2,
+    borderRadius: radius.s,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  metaChipCompact: {
+    paddingHorizontal: spacing.xs,
+  },
+  metaChipGap: {
+    marginLeft: spacing.xs,
+  },
+  metaLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    fontWeight: '600',
+  },
+  metaValue: {
+    marginLeft: 4,
+    fontSize: 11,
+    color: colors.text,
+    fontWeight: '600',
   },
   meaning: {
     marginTop: spacing.s,
@@ -153,6 +242,21 @@ const styles = StyleSheet.create({
   },
   exampleCompact: {
     marginTop: spacing.xs,
+  },
+  exampleHeader: {
+    marginBottom: spacing.xs,
+  },
+  exampleTag: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderRadius: radius.s,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    color: colors.muted,
+    fontSize: 10,
+    fontWeight: '600',
   },
   exampleJa: {
     color: colors.text,

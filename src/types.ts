@@ -14,6 +14,7 @@ export type Word = {
   meaning_cn: string;
   meaning_en: string;
   pos?: string | null;
+  pitch?: string | null;
   examples?: WordExample[] | null;
   tags?: string[] | null;
 };

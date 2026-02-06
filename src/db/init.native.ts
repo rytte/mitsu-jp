@@ -31,6 +31,7 @@ async function runInit() {
       meaning_cn TEXT NOT NULL,
       meaning_en TEXT NOT NULL,
       pos TEXT,
+      pitch TEXT,
       examples TEXT,
       tags TEXT
     );`
@@ -82,6 +83,7 @@ async function runInit() {
 
   await ensureColumn('words', 'meaning_en', 'TEXT');
   await ensureColumn('words', 'examples', 'TEXT');
+  await ensureColumn('words', 'pitch', 'TEXT');
   await migrateWordsTable();
   await ensureColumn('settings', 'meaning_language', 'TEXT');
   await ensureColumn('settings', 'mcq_modes', 'TEXT');
@@ -103,6 +105,7 @@ async function runInit() {
     } else {
       await run('UPDATE words SET meaning_en = meaning_cn WHERE meaning_en IS NULL OR meaning_en = "";');
       await seedMissingLexicons();
+      await backfillPitch(lexiconList);
     }
   }
 
@@ -173,6 +176,7 @@ async function migrateWordsTable() {
       meaning_cn TEXT NOT NULL,
       meaning_en TEXT NOT NULL,
       pos TEXT,
+      pitch TEXT,
       examples TEXT,
       tags TEXT
     );`
@@ -191,8 +195,8 @@ async function migrateWordsTable() {
       ]);
     }
     await run(
-      `INSERT OR REPLACE INTO words_new (id, level, kana, kanji, meaning_cn, meaning_en, pos, examples, tags)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      `INSERT OR REPLACE INTO words_new (id, level, kana, kanji, meaning_cn, meaning_en, pos, pitch, examples, tags)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         row.id,
         row.level,
@@ -201,6 +205,7 @@ async function migrateWordsTable() {
         row.meaning_cn,
         row.meaning_en,
         row.pos ?? null,
+        row.pitch ?? null,
         examples ?? null,
         row.tags ?? null,
       ]
@@ -209,6 +214,17 @@ async function migrateWordsTable() {
 
   await run('DROP TABLE words;');
   await run('ALTER TABLE words_new RENAME TO words;');
+}
+
+async function backfillPitch(list: Word[]) {
+  const candidates = list.filter((word) => word.pitch != null && String(word.pitch).trim() !== '');
+  if (candidates.length === 0) return;
+  for (const word of candidates) {
+    await run('UPDATE words SET pitch = ? WHERE id = ? AND (pitch IS NULL OR pitch = "")', [
+      word.pitch,
+      word.id,
+    ]);
+  }
 }
 
 async function needsReseedWords(list: Word[]) {
@@ -239,8 +255,8 @@ async function insertWords(list: Word[]) {
   for (const word of list) {
     const examplesJson = serializeExamples(word);
     await run(
-      `INSERT OR REPLACE INTO words (id, level, kana, kanji, meaning_cn, meaning_en, pos, examples, tags)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      `INSERT OR REPLACE INTO words (id, level, kana, kanji, meaning_cn, meaning_en, pos, pitch, examples, tags)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         word.id,
         word.level,
@@ -249,6 +265,7 @@ async function insertWords(list: Word[]) {
         word.meaning_cn,
         word.meaning_en,
         word.pos ?? null,
+        word.pitch ?? null,
         examplesJson,
         word.tags ? JSON.stringify(word.tags) : null,
       ]
