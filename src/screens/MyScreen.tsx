@@ -90,6 +90,14 @@ export default function MyScreen({ navigation }: Props) {
         <Ionicons name="chevron-forward" size={20} color={colors.muted} />
       </Pressable>
 
+      <Pressable style={styles.entryCard} onPress={() => navigation.navigate('KeigoChart')}>
+        <View>
+          <Text style={styles.entryTitle}>敬语表</Text>
+          <Text style={styles.entrySubtitle}>尊敬语 / 谦让语 / 丁宁语</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+      </Pressable>
+
       <Pressable style={styles.entryCard} onPress={() => navigation.navigate('Settings')}>
         <View>
           <Text style={styles.entryTitle}>设置</Text>

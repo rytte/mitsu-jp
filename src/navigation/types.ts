@@ -42,6 +42,7 @@ export type MyStackParamList = {
   MyHome: undefined;
   KanaChart: undefined;
   VerbConjugation: undefined;
+  KeigoChart: undefined;
   Settings: undefined;
 };
 
