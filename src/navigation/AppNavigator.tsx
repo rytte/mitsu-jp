@@ -15,13 +15,16 @@ import GrammarDetailScreen from '../screens/GrammarDetailScreen';
 import GrammarQuizScreen from '../screens/GrammarQuizScreen';
 import MistakesScreen from '../screens/MistakesScreen';
 import SearchScreen from '../screens/SearchScreen';
+import MyScreen from '../screens/MyScreen';
+import KanaChartScreen from '../screens/KanaChartScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import { GrammarStackParamList, LearnStackParamList, RootTabParamList } from './types';
+import { GrammarStackParamList, LearnStackParamList, MyStackParamList, RootTabParamList } from './types';
 import { colors } from '../theme';
 import { useAppStore } from '../store/useAppStore';
 
 const LearnStack = createNativeStackNavigator<LearnStackParamList>();
 const GrammarStack = createNativeStackNavigator<GrammarStackParamList>();
+const MyStack = createNativeStackNavigator<MyStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 function LearnStackScreen() {
@@ -68,6 +71,21 @@ function GrammarStackScreen() {
   );
 }
 
+function MyStackScreen() {
+  return (
+    <MyStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.background },
+        headerTitleStyle: { color: colors.text },
+      }}
+    >
+      <MyStack.Screen name="MyHome" component={MyScreen} options={{ title: '我的' }} />
+      <MyStack.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音图' }} />
+      <MyStack.Screen name="Settings" component={SettingsScreen} options={{ title: '设置' }} />
+    </MyStack.Navigator>
+  );
+}
+
 export default function AppNavigator() {
   return (
     <NavigationContainer>
@@ -78,17 +96,17 @@ export default function AppNavigator() {
           tabBarStyle: { backgroundColor: '#fff' },
           tabBarIcon: ({ color, size, focused }) => {
             let iconName: keyof typeof Ionicons.glyphMap;
-          if (route.name === 'Learn') {
-            iconName = focused ? 'book' : 'book-outline';
-          } else if (route.name === 'Grammar') {
-            iconName = focused ? 'reader' : 'reader-outline';
-          } else if (route.name === 'Search') {
-            iconName = focused ? 'search' : 'search-outline';
-          } else if (route.name === 'Mistakes') {
-            iconName = focused ? 'alert-circle' : 'alert-circle-outline';
-          } else {
-            iconName = focused ? 'settings' : 'settings-outline';
-          }
+            if (route.name === 'Learn') {
+              iconName = focused ? 'book' : 'book-outline';
+            } else if (route.name === 'Grammar') {
+              iconName = focused ? 'reader' : 'reader-outline';
+            } else if (route.name === 'Search') {
+              iconName = focused ? 'search' : 'search-outline';
+            } else if (route.name === 'Mistakes') {
+              iconName = focused ? 'alert-circle' : 'alert-circle-outline';
+            } else {
+              iconName = focused ? 'person' : 'person-outline';
+            }
             return <Ionicons name={iconName} size={size} color={color} />;
           },
         })}
@@ -97,7 +115,7 @@ export default function AppNavigator() {
         <Tab.Screen name="Grammar" component={GrammarStackScreen} options={{ title: '文法' }} />
         <Tab.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} />
         <Tab.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题' }} />
-        <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: '设置' }} />
+        <Tab.Screen name="My" component={MyStackScreen} options={{ title: '我的' }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

@@ -275,3 +275,21 @@ export async function getStats() {
     wrong: totalsRow?.wrong ?? 0,
   };
 }
+
+export async function getTodayStats() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const startTs = start.getTime();
+  const stageRow = await getFirst<{ count: number }>(
+    'SELECT COUNT(*) as count FROM progress WHERE last_played_at >= ?',
+    [startTs]
+  );
+  const lastRow = await getFirst<{ last: number | null }>(
+    'SELECT MAX(last_played_at) as last FROM progress WHERE last_played_at >= ?',
+    [startTs]
+  );
+  return {
+    stages: stageRow?.count ?? 0,
+    last_played_at: lastRow?.last ?? null,
+  };
+}

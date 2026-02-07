@@ -88,12 +88,38 @@ export default function LevelSelectScreen({ navigation, route }: Props) {
       : Math.round((stats.correct / (stats.correct + stats.wrong)) * 100)
     : 0;
 
+  const progressPercent = stats && stats.stageCount > 0 ? Math.round((stats.completed / stats.stageCount) * 100) : 0;
+  const totalAnswers = stats ? stats.correct + stats.wrong : 0;
+
   return (
     <View style={styles.container}>
       <View style={styles.headerCard}>
-        <Text style={styles.headerTitle}>今日学习概览</Text>
-        <Text style={styles.headerText}>完成关卡：{stats ? `${stats.completed}/${stats.stageCount}` : '--'}</Text>
-        <Text style={styles.headerText}>答题准确率：{stats ? `${accuracy}%` : '--'}</Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerTitle}>学习速览</Text>
+            <Text style={styles.headerSub}>
+              {stats ? `已完成 ${stats.completed}/${stats.stageCount} 关` : '数据加载中'}
+            </Text>
+          </View>
+          <View style={styles.headerBadge}>
+            <Text style={styles.headerBadgeText}>{stats ? `${progressPercent}%` : '--'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.statRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{stats ? totalAnswers : '--'}</Text>
+            <Text style={styles.statLabel}>累计答题</Text>
+          </View>
+          <View style={[styles.statCard, styles.statCardLast]}>
+            <Text style={styles.statValue}>{stats ? `${accuracy}%` : '--'}</Text>
+            <Text style={styles.statLabel}>正确率</Text>
+          </View>
+        </View>
+
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+        </View>
       </View>
 
       <FlatList
@@ -140,15 +166,69 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: spacing.s,
   },
-  headerText: {
+  headerSub: {
     color: colors.muted,
-    marginBottom: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  headerBadge: {
+    backgroundColor: '#e0f2fe',
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+  },
+  headerBadgeText: {
+    color: '#0369a1',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  statRow: {
+    flexDirection: 'row',
+    marginTop: spacing.m,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderRadius: radius.m,
+    padding: spacing.s,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: spacing.s,
+  },
+  statCardLast: {
+    marginRight: 0,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  statLabel: {
+    color: colors.muted,
+    marginTop: spacing.xs,
+    fontSize: 12,
+  },
+  progressTrack: {
+    marginTop: spacing.m,
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: colors.border,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
   },
   list: {
     paddingBottom: spacing.l,

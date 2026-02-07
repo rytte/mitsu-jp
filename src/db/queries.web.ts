@@ -217,3 +217,16 @@ export async function getStats() {
   const wrong = Object.values(progressMap).reduce((sum, item) => sum + item.wrong_count, 0);
   return { stageCount, completed, correct, wrong };
 }
+
+export async function getTodayStats() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const startTs = start.getTime();
+  const progressMap = loadProgressMap() as Record<string, Progress>;
+  const todayItems = Object.values(progressMap).filter((item) => item.last_played_at >= startTs);
+  const lastPlayed = todayItems.reduce((max, item) => (item.last_played_at > max ? item.last_played_at : max), 0);
+  return {
+    stages: todayItems.length,
+    last_played_at: todayItems.length > 0 ? lastPlayed : null,
+  };
+}
