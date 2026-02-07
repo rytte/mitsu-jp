@@ -8,10 +8,12 @@ import {
   loadMistakeMap,
   loadProgressMap,
   loadSettings,
+  loadVocabBookMap,
   saveGrammarMistakeMap,
   saveMistakeMap,
   saveProgressMap,
   saveSettings,
+  saveVocabBookMap,
 } from './webStore';
 
 const LEVELS: Level[] = getLexiconIds();
@@ -176,6 +178,37 @@ export async function getMistakeWordIdsByLevel(level: Level): Promise<string[]> 
   const map = loadMistakeMap() as Record<string, { word_id: string }>; 
   const ids = Object.keys(map);
   return wordList.filter((word) => word.level === level && ids.includes(word.id)).map((word) => word.id);
+}
+
+export async function addToVocabBook(ids: string[]) {
+  if (ids.length === 0) return;
+  const map = loadVocabBookMap() as Record<string, { added_at: number }>;
+  const now = Date.now();
+  for (const id of ids) {
+    if (!map[id]) {
+      map[id] = { added_at: now };
+    }
+  }
+  saveVocabBookMap(map);
+}
+
+export async function removeFromVocabBook(ids: string[]) {
+  if (ids.length === 0) return;
+  const map = loadVocabBookMap() as Record<string, { added_at: number }>;
+  for (const id of ids) {
+    delete map[id];
+  }
+  saveVocabBookMap(map);
+}
+
+export async function getVocabBookWords(): Promise<Word[]> {
+  const map = loadVocabBookMap() as Record<string, { added_at: number }>;
+  const entries = Object.entries(map);
+  if (entries.length === 0) return [];
+  const order = new Map(entries.map(([id, value]) => [id, value.added_at]));
+  return wordList
+    .filter((word) => order.has(word.id))
+    .sort((a, b) => (order.get(b.id) ?? 0) - (order.get(a.id) ?? 0));
 }
 
 export async function getWordsByIds(ids: string[]): Promise<Word[]> {

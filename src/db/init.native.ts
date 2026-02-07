@@ -75,6 +75,13 @@ async function runInit() {
   );
 
   await run(
+    `CREATE TABLE IF NOT EXISTS vocab_book (
+      word_id TEXT PRIMARY KEY NOT NULL,
+      added_at INTEGER NOT NULL
+    );`
+  );
+
+  await run(
     `CREATE TABLE IF NOT EXISTS settings (
       id TEXT PRIMARY KEY NOT NULL,
       tts_rate REAL NOT NULL,

@@ -182,6 +182,33 @@ export async function getMistakeWordIdsByLevel(level: Level): Promise<string[]> 
   return rows.map((row) => row.id);
 }
 
+export async function addToVocabBook(ids: string[]) {
+  if (ids.length === 0) return;
+  const now = Date.now();
+  for (const id of ids) {
+    await run('INSERT OR REPLACE INTO vocab_book (word_id, added_at) VALUES (?, ?);', [id, now]);
+  }
+}
+
+export async function removeFromVocabBook(ids: string[]) {
+  if (ids.length === 0) return;
+  const placeholders = ids.map(() => '?').join(',');
+  await run(`DELETE FROM vocab_book WHERE word_id IN (${placeholders});`, ids);
+}
+
+export async function getVocabBookWords(): Promise<Word[]> {
+  const rows = await getAll<Word>(
+    `SELECT w.* FROM vocab_book v
+     JOIN words w ON w.id = v.word_id
+     ORDER BY v.added_at DESC`
+  );
+  return rows.map((row) => ({
+    ...row,
+    tags: row.tags ? JSON.parse(row.tags as unknown as string) : null,
+    examples: safeParseJson(row.examples) ?? null,
+  }));
+}
+
 export async function getWordsByIds(ids: string[]): Promise<Word[]> {
   if (ids.length === 0) return [];
   const placeholders = ids.map(() => '?').join(',');

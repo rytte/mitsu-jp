@@ -43,6 +43,7 @@ export type MyStackParamList = {
   KanaChart: undefined;
   VerbConjugation: undefined;
   KeigoChart: undefined;
+  VocabBook: undefined;
   Settings: undefined;
 };
 

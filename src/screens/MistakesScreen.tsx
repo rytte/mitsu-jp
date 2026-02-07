@@ -1,4 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
 import { TabView } from 'react-native-tab-view';
@@ -6,7 +7,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GrammarCard from '../components/GrammarCard';
 import WordCard from '../components/WordCard';
 import PrimaryButton from '../components/PrimaryButton';
-import { clearAllGrammarMistakes, clearAllMistakes, getGrammarMistakes, getMistakeWords, updateSettings } from '../db/queries';
+import {
+  addToVocabBook,
+  clearAllGrammarMistakes,
+  clearAllMistakes,
+  getGrammarMistakes,
+  getMistakeWords,
+  updateSettings,
+} from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
 import { colors, spacing } from '../theme';
 import { GrammarPoint, Settings, Word } from '../types';
@@ -23,6 +31,8 @@ export default function MistakesScreen() {
   const [wordMistakes, setWordMistakes] = useState<MistakeWord[]>([]);
   const [grammarMistakes, setGrammarMistakes] = useState<MistakeGrammar[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [wordSelecting, setWordSelecting] = useState(false);
+  const [selectedWordIds, setSelectedWordIds] = useState<Set<string>>(new Set());
   const layout = useWindowDimensions();
   const settings = useAppStore((state) => state.settings);
   const setSettings = useAppStore((state) => state.setSettings);
@@ -68,6 +78,19 @@ export default function MistakesScreen() {
     setExpandedIds(lastExpanded ? new Set([lastExpanded]) : new Set());
   }, [compactMode, compactSingleExpand, expandedIds]);
 
+  useEffect(() => {
+    if (tabIndex !== 0 && wordSelecting) {
+      setWordSelecting(false);
+      setSelectedWordIds(new Set());
+    }
+  }, [tabIndex, wordSelecting]);
+
+  useEffect(() => {
+    if (!wordSelecting) return;
+    setWordSelecting(false);
+    setSelectedWordIds(new Set());
+  }, [wordMistakes.length]);
+
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -81,6 +104,35 @@ export default function MistakesScreen() {
       }
       return next;
     });
+  };
+
+  const toggleWordSelected = (id: string) => {
+    setSelectedWordIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const enterWordSelection = (id: string) => {
+    setWordSelecting(true);
+    setSelectedWordIds(new Set([id]));
+  };
+
+  const exitWordSelection = () => {
+    setWordSelecting(false);
+    setSelectedWordIds(new Set());
+  };
+
+  const handleAddSelected = async () => {
+    const ids = Array.from(selectedWordIds);
+    if (ids.length === 0) return;
+    await addToVocabBook(ids);
+    exitWordSelection();
   };
 
   const persistSettings = async (next: Settings) => {
@@ -107,52 +159,99 @@ export default function MistakesScreen() {
   const showingWord = mode === 'word';
   const listEmpty = showingWord ? wordMistakes.length === 0 : grammarMistakes.length === 0;
 
-  const renderScene = useCallback(
-    ({ route }: { route: { key: string } }) => {
-      const isWord = route.key === 'word';
-      const data = isWord ? wordMistakes : grammarMistakes;
-      if (data.length === 0) {
-        return (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>暂无错题，继续加油！</Text>
-          </View>
-        );
-      }
-
+  const renderScene = ({ route }: { route: { key: string } }) => {
+    const isWord = route.key === 'word';
+    const data = isWord ? wordMistakes : grammarMistakes;
+    if (data.length === 0) {
       return (
-        <FlatList
-          data={data}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) =>
-            isWord ? (
-              <WordCard
-                word={item as MistakeWord}
-                meaning={getMeaning(item as MistakeWord, meaningLanguage)}
-                fontSizes={wordFontSizes}
-                compact={compactMode}
-                expanded={expandedIds.has((item as MistakeWord).id)}
-                disabled={!compactMode}
-                onPress={() => toggleExpanded((item as MistakeWord).id)}
-                footer={<Text style={styles.times}>错误次数：{(item as MistakeWord).wrong_times}</Text>}
-              />
-            ) : (
-              <GrammarCard
-                grammar={item as MistakeGrammar}
-                compact={compactMode}
-                fontSizes={grammarFontSizes}
-                expanded={expandedIds.has((item as MistakeGrammar).id)}
-                disabled={!compactMode}
-                onPress={() => toggleExpanded((item as MistakeGrammar).id)}
-                footer={<Text style={styles.times}>错误次数：{(item as MistakeGrammar).wrong_times}</Text>}
-              />
-            )
-          }
-        />
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>暂无错题，继续加油！</Text>
+        </View>
       );
-    },
-    [compactMode, expandedIds, grammarFontSizes, grammarMistakes, meaningLanguage, wordFontSizes, wordMistakes]
-  );
+    }
+
+    return (
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        ListHeaderComponent={
+          isWord && wordSelecting ? (
+            <View style={styles.selectBar}>
+              <Text style={styles.selectText}>已选 {selectedWordIds.size} 个</Text>
+              <View style={styles.selectActions}>
+                <Pressable onPress={exitWordSelection} style={styles.selectCancel}>
+                  <Text style={styles.selectCancelText}>取消</Text>
+                </Pressable>
+                <PrimaryButton
+                  title="加入生词本"
+                  onPress={handleAddSelected}
+                  disabled={selectedWordIds.size === 0}
+                  style={styles.selectBtn}
+                />
+              </View>
+            </View>
+          ) : null
+        }
+        renderItem={({ item }) =>
+          isWord ? (() => {
+            const word = item as MistakeWord;
+            const isSelected = selectedWordIds.has(word.id);
+            const handlePress = () => {
+              if (wordSelecting) {
+                toggleWordSelected(word.id);
+                return;
+              }
+              if (compactMode) {
+                toggleExpanded(word.id);
+              }
+            };
+            const handleLongPress = () => {
+              if (wordSelecting) {
+                toggleWordSelected(word.id);
+                return;
+              }
+              enterWordSelection(word.id);
+            };
+            return (
+              <View style={styles.selectableCard}>
+                <WordCard
+                  word={word}
+                  meaning={getMeaning(word, meaningLanguage)}
+                  fontSizes={wordFontSizes}
+                  compact={compactMode}
+                  expanded={expandedIds.has(word.id)}
+                  disabled={false}
+                  onPress={handlePress}
+                  onLongPress={handleLongPress}
+                  footer={<Text style={styles.times}>错误次数：{word.wrong_times}</Text>}
+                />
+                {wordSelecting && (
+                  <View style={[styles.selectionBadge, isSelected ? styles.selectionBadgeActive : null]}>
+                    <Ionicons
+                      name={isSelected ? 'checkmark' : 'ellipse-outline'}
+                      size={14}
+                      color={isSelected ? '#fff' : colors.muted}
+                    />
+                  </View>
+                )}
+              </View>
+            );
+          })() : (
+            <GrammarCard
+              grammar={item as MistakeGrammar}
+              compact={compactMode}
+              fontSizes={grammarFontSizes}
+              expanded={expandedIds.has((item as MistakeGrammar).id)}
+              disabled={!compactMode}
+              onPress={() => toggleExpanded((item as MistakeGrammar).id)}
+              footer={<Text style={styles.times}>错误次数：{(item as MistakeGrammar).wrong_times}</Text>}
+            />
+          )
+        }
+      />
+    );
+  };
 
   const renderTabBar = useCallback(() => {
     const isWord = tabIndex === 0;
@@ -266,6 +365,56 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: spacing.l,
+  },
+  selectBar: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: spacing.s,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.m,
+  },
+  selectText: {
+    color: colors.text,
+    fontWeight: '600',
+  },
+  selectActions: {
+    marginTop: spacing.s,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  selectCancel: {
+    marginRight: spacing.s,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+  },
+  selectCancelText: {
+    color: colors.muted,
+    fontWeight: '600',
+  },
+  selectBtn: {
+    paddingHorizontal: spacing.m,
+  },
+  selectableCard: {
+    position: 'relative',
+  },
+  selectionBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectionBadgeActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   times: {
     marginTop: spacing.s,

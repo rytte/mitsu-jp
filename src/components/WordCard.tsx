@@ -16,6 +16,7 @@ type Props = {
   expanded?: boolean;
   disabled?: boolean;
   onPress?: () => void;
+  onLongPress?: () => void;
   fontSizes: FontSizes;
   shadow?: boolean;
   footer?: ReactNode;
@@ -55,6 +56,7 @@ export default function WordCard({
   expanded = false,
   disabled = false,
   onPress,
+  onLongPress,
   fontSizes,
   shadow = false,
   footer,
@@ -135,6 +137,7 @@ export default function WordCard({
     <Pressable
       disabled={disabled}
       onPress={onPress}
+      onLongPress={onLongPress}
       style={({ pressed }) => [...cardStyles, pressed && !disabled ? styles.cardPressed : null]}
     >
       {content}

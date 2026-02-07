@@ -19,6 +19,7 @@ import MyScreen from '../screens/MyScreen';
 import KanaChartScreen from '../screens/KanaChartScreen';
 import VerbConjugationScreen from '../screens/VerbConjugationScreen';
 import KeigoChartScreen from '../screens/KeigoChartScreen';
+import VocabBookScreen from '../screens/VocabBookScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { GrammarStackParamList, LearnStackParamList, MyStackParamList, RootTabParamList } from './types';
 import { colors } from '../theme';
@@ -85,6 +86,7 @@ function MyStackScreen() {
       <MyStack.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音图' }} />
       <MyStack.Screen name="VerbConjugation" component={VerbConjugationScreen} options={{ title: '动词变形表' }} />
       <MyStack.Screen name="KeigoChart" component={KeigoChartScreen} options={{ title: '敬语表' }} />
+      <MyStack.Screen name="VocabBook" component={VocabBookScreen} options={{ title: '生词本' }} />
       <MyStack.Screen name="Settings" component={SettingsScreen} options={{ title: '设置' }} />
     </MyStack.Navigator>
   );

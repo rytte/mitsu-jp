@@ -4,6 +4,7 @@ const SETTINGS_KEY = 'jp_vocab_settings';
 const PROGRESS_KEY = 'jp_vocab_progress';
 const MISTAKES_KEY = 'jp_vocab_mistakes';
 const GRAMMAR_MISTAKES_KEY = 'jp_grammar_mistakes';
+const VOCAB_BOOK_KEY = 'jp_vocab_book';
 
 function safeGet(key: string): string | null {
   try {
@@ -33,6 +34,9 @@ export function ensureWebStorage() {
   }
   if (!safeGet(GRAMMAR_MISTAKES_KEY)) {
     safeSet(GRAMMAR_MISTAKES_KEY, JSON.stringify({}));
+  }
+  if (!safeGet(VOCAB_BOOK_KEY)) {
+    safeSet(VOCAB_BOOK_KEY, JSON.stringify({}));
   }
 }
 
@@ -90,4 +94,18 @@ export function loadGrammarMistakeMap() {
 
 export function saveGrammarMistakeMap(map: Record<string, unknown>) {
   safeSet(GRAMMAR_MISTAKES_KEY, JSON.stringify(map));
+}
+
+export function loadVocabBookMap() {
+  const raw = safeGet(VOCAB_BOOK_KEY);
+  if (!raw) return {} as Record<string, unknown>;
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    return {} as Record<string, unknown>;
+  }
+}
+
+export function saveVocabBookMap(map: Record<string, unknown>) {
+  safeSet(VOCAB_BOOK_KEY, JSON.stringify(map));
 }

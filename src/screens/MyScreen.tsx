@@ -74,6 +74,14 @@ export default function MyScreen({ navigation }: Props) {
         ) : null}
       </View>
 
+      <Pressable style={styles.entryCard} onPress={() => navigation.navigate('VocabBook')}>
+        <View>
+          <Text style={styles.entryTitle}>生词本</Text>
+          <Text style={styles.entrySubtitle}>收藏并集中复习</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+      </Pressable>
+
       <Pressable style={styles.entryCard} onPress={() => navigation.navigate('KanaChart')}>
         <View>
           <Text style={styles.entryTitle}>五十音图</Text>

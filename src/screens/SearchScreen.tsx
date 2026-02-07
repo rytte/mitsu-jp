@@ -15,9 +15,10 @@ import { TabView } from 'react-native-tab-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GrammarCard from '../components/GrammarCard';
 import WordCard from '../components/WordCard';
+import PrimaryButton from '../components/PrimaryButton';
 import { getAllGrammars } from '../data/grammars';
 import { LEXICONS } from '../data/lexicons';
-import { getAllWords, updateSettings } from '../db/queries';
+import { addToVocabBook, getAllWords, updateSettings } from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { GrammarPoint, Level, Settings, Word } from '../types';
@@ -148,6 +149,8 @@ export default function SearchScreen() {
   const [grammars, setGrammars] = useState<GrammarPoint[]>([]);
   const [expandedWordIds, setExpandedWordIds] = useState<Set<string>>(new Set());
   const [expandedGrammarIds, setExpandedGrammarIds] = useState<Set<string>>(new Set());
+  const [wordSelecting, setWordSelecting] = useState(false);
+  const [selectedWordIds, setSelectedWordIds] = useState<Set<string>>(new Set());
   const layout = useWindowDimensions();
   const routes = useMemo(
     () => [
@@ -199,6 +202,19 @@ export default function SearchScreen() {
     setExpandedGrammarIds(lastExpanded ? new Set([lastExpanded]) : new Set());
   }, [compactMode, compactSingleExpand, expandedGrammarIds]);
 
+  useEffect(() => {
+    if (tabIndex !== 0 && wordSelecting) {
+      setWordSelecting(false);
+      setSelectedWordIds(new Set());
+    }
+  }, [tabIndex, wordSelecting]);
+
+  useEffect(() => {
+    if (!wordSelecting) return;
+    setWordSelecting(false);
+    setSelectedWordIds(new Set());
+  }, [levelFilter, query]);
+
   const persistSettings = async (next: Settings) => {
     setSettings(next);
     await updateSettings(next);
@@ -229,21 +245,21 @@ export default function SearchScreen() {
     return getGrammarFontSizes(effective);
   }, [compactMode, fontScale]);
 
-  const toggleExpanded = (id: string) => {
-    if (mode === 'word') {
-      setExpandedWordIds((prev) => {
-        const next = new Set(prev);
-        if (next.has(id)) {
-          next.delete(id);
-        } else if (compactMode && compactSingleExpand) {
-          return new Set([id]);
-        } else {
-          next.add(id);
-        }
-        return next;
-      });
-      return;
-    }
+  const toggleWordExpanded = (id: string) => {
+    setExpandedWordIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (compactMode && compactSingleExpand) {
+        return new Set([id]);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleGrammarExpanded = (id: string) => {
     setExpandedGrammarIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -255,6 +271,35 @@ export default function SearchScreen() {
       }
       return next;
     });
+  };
+
+  const toggleWordSelected = (id: string) => {
+    setSelectedWordIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const enterWordSelection = (id: string) => {
+    setWordSelecting(true);
+    setSelectedWordIds(new Set([id]));
+  };
+
+  const exitWordSelection = () => {
+    setWordSelecting(false);
+    setSelectedWordIds(new Set());
+  };
+
+  const handleAddSelectedWords = async () => {
+    const ids = Array.from(selectedWordIds);
+    if (ids.length === 0) return;
+    await addToVocabBook(ids);
+    exitWordSelection();
   };
 
   const renderEmpty = () => {
@@ -298,24 +343,56 @@ export default function SearchScreen() {
         contentContainerStyle={styles.list}
         keyboardShouldPersistTaps="handled"
         renderItem={({ item }) =>
-          isWord ? (
-            <WordCard
-              word={item as Word}
-              meaning={getMeaning(item as Word, meaningLanguage)}
-              compact={compactMode}
-              expanded={expandedWordIds.has((item as Word).id)}
-              disabled={!compactMode}
-              onPress={() => toggleExpanded((item as Word).id)}
-              fontSizes={wordFontSizes}
-              footer={<Text style={styles.levelTag}>JLPT {item.level}</Text>}
-            />
-          ) : (
+          isWord ? (() => {
+            const word = item as Word;
+            const isSelected = selectedWordIds.has(word.id);
+            const handlePress = () => {
+              if (wordSelecting) {
+                toggleWordSelected(word.id);
+                return;
+              }
+              if (compactMode) {
+                toggleWordExpanded(word.id);
+              }
+            };
+            const handleLongPress = () => {
+              if (wordSelecting) {
+                toggleWordSelected(word.id);
+                return;
+              }
+              enterWordSelection(word.id);
+            };
+            return (
+              <View style={styles.selectableCard}>
+                <WordCard
+                  word={word}
+                  meaning={getMeaning(word, meaningLanguage)}
+                  compact={compactMode}
+                  expanded={expandedWordIds.has(word.id)}
+                  disabled={false}
+                  onPress={handlePress}
+                  onLongPress={handleLongPress}
+                  fontSizes={wordFontSizes}
+                  footer={<Text style={styles.levelTag}>JLPT {item.level}</Text>}
+                />
+                {wordSelecting && (
+                  <View style={[styles.selectionBadge, isSelected ? styles.selectionBadgeActive : null]}>
+                    <Ionicons
+                      name={isSelected ? 'checkmark' : 'ellipse-outline'}
+                      size={14}
+                      color={isSelected ? '#fff' : colors.muted}
+                    />
+                  </View>
+                )}
+              </View>
+            );
+          })() : (
             <GrammarCard
               grammar={item as GrammarPoint}
               compact={compactMode}
               expanded={expandedGrammarIds.has((item as GrammarPoint).id)}
               disabled={!compactMode}
-              onPress={() => toggleExpanded((item as GrammarPoint).id)}
+              onPress={() => toggleGrammarExpanded((item as GrammarPoint).id)}
               fontSizes={grammarFontSizes}
               footer={
                 item.level ? (
@@ -394,6 +471,23 @@ export default function SearchScreen() {
             );
           })}
         </View>
+
+        {tabIndex === 0 && wordSelecting ? (
+          <View style={styles.selectBar}>
+            <Text style={styles.selectText}>已选 {selectedWordIds.size} 个</Text>
+            <View style={styles.selectActions}>
+              <Pressable onPress={exitWordSelection} style={styles.selectCancel}>
+                <Text style={styles.selectCancelText}>取消</Text>
+              </Pressable>
+              <PrimaryButton
+                title="加入生词本"
+                onPress={handleAddSelectedWords}
+                disabled={selectedWordIds.size === 0}
+                style={styles.selectBtn}
+              />
+            </View>
+          </View>
+        ) : null}
 
         {tokens.length > 0 ? (
           <Text style={styles.resultText}>
@@ -523,6 +617,56 @@ const styles = StyleSheet.create({
   resultText: {
     color: colors.muted,
     fontSize: 12,
+  },
+  selectBar: {
+    backgroundColor: colors.card,
+    borderRadius: radius.m,
+    padding: spacing.s,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.s,
+  },
+  selectText: {
+    color: colors.text,
+    fontWeight: '600',
+  },
+  selectActions: {
+    marginTop: spacing.s,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  selectCancel: {
+    marginRight: spacing.s,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+  },
+  selectCancelText: {
+    color: colors.muted,
+    fontWeight: '600',
+  },
+  selectBtn: {
+    paddingHorizontal: spacing.m,
+  },
+  selectableCard: {
+    position: 'relative',
+  },
+  selectionBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectionBadgeActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   tabView: {
     flex: 1,
