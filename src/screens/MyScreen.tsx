@@ -169,11 +169,6 @@ export default function MyScreen({ navigation }: Props) {
         ) : null}
       </View>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>快捷入口</Text>
-        <Text style={styles.sectionHint}>已加入导航栏的入口会自动隐藏</Text>
-      </View>
-
       {visibleEntries.length === 0 ? (
         <View style={styles.emptyCard}>
           <Ionicons name="sparkles" size={20} color={colors.primaryDark} />
