@@ -153,34 +153,32 @@ export default function StageWordsScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      {selecting ? (
+        <View style={styles.selectBar}>
+          <Text style={styles.selectText}>已选 {selectedIds.size} 个</Text>
+          <View style={styles.selectActions}>
+            <Pressable onPress={exitSelection} style={styles.selectCancel}>
+              <Text style={styles.selectCancelText}>取消</Text>
+            </Pressable>
+            <PrimaryButton
+              title="加入生词本"
+              onPress={handleAddSelected}
+              disabled={selectedIds.size === 0}
+              style={styles.selectBtn}
+            />
+          </View>
+        </View>
+      ) : null}
       <FlatList
         data={words}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <View>
-            {selecting ? (
-              <View style={styles.selectBar}>
-                <Text style={styles.selectText}>已选 {selectedIds.size} 个</Text>
-                <View style={styles.selectActions}>
-                  <Pressable onPress={exitSelection} style={styles.selectCancel}>
-                    <Text style={styles.selectCancelText}>取消</Text>
-                  </Pressable>
-                  <PrimaryButton
-                    title="加入生词本"
-                    onPress={handleAddSelected}
-                    disabled={selectedIds.size === 0}
-                    style={styles.selectBtn}
-                  />
-                </View>
-              </View>
-            ) : null}
-            <View style={styles.header}>
-              <View>
-                <Text style={styles.title}>第 {stageIndex} 关词汇</Text>
-                <Text style={styles.subtitle}>共 {words.length} 个</Text>
-                {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
-              </View>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.title}>第 {stageIndex} 关词汇</Text>
+              <Text style={styles.subtitle}>共 {words.length} 个</Text>
+              {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
             </View>
           </View>
         }

@@ -168,40 +168,38 @@ export default function ZoneWordsScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      {selecting ? (
+        <View style={styles.selectBar}>
+          <Text style={styles.selectText}>已选 {selectedIds.size} 个</Text>
+          <View style={styles.selectActions}>
+            <Pressable onPress={exitSelection} style={styles.selectCancel}>
+              <Text style={styles.selectCancelText}>取消</Text>
+            </Pressable>
+            <PrimaryButton
+              title="加入生词本"
+              onPress={handleAddSelected}
+              disabled={selectedIds.size === 0}
+              style={styles.selectBtn}
+            />
+          </View>
+        </View>
+      ) : null}
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <View>
-            {selecting ? (
-              <View style={styles.selectBar}>
-                <Text style={styles.selectText}>已选 {selectedIds.size} 个</Text>
-                <View style={styles.selectActions}>
-                  <Pressable onPress={exitSelection} style={styles.selectCancel}>
-                    <Text style={styles.selectCancelText}>取消</Text>
-                  </Pressable>
-                  <PrimaryButton
-                    title="加入生词本"
-                    onPress={handleAddSelected}
-                    disabled={selectedIds.size === 0}
-                    style={styles.selectBtn}
-                  />
-                </View>
+          <View style={styles.header}>
+            <View>
+              <View style={styles.headerBadgeRow}>
+                <Text style={styles.headerBadge}>ZONE</Text>
+                <Text style={styles.headerBadgeLevel}>{zoneIndex}</Text>
               </View>
-            ) : null}
-            <View style={styles.header}>
-              <View>
-                <View style={styles.headerBadgeRow}>
-                  <Text style={styles.headerBadge}>ZONE</Text>
-                  <Text style={styles.headerBadgeLevel}>{zoneIndex}</Text>
-                </View>
-                <Text style={styles.title}>第 {zoneIndex} 区词汇</Text>
-                <Text style={styles.subtitle}>
-                  第 {startIndex}-{endIndex} 关
-                </Text>
-                {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
-              </View>
+              <Text style={styles.title}>第 {zoneIndex} 区词汇</Text>
+              <Text style={styles.subtitle}>
+                第 {startIndex}-{endIndex} 关
+              </Text>
+              {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
             </View>
           </View>
         }

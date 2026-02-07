@@ -117,6 +117,22 @@ export default function VocabBookScreen() {
 
   return (
     <View style={styles.container}>
+      {selecting ? (
+        <View style={styles.selectBar}>
+          <Text style={styles.selectText}>已选 {selectedIds.size} 个</Text>
+          <View style={styles.selectActions}>
+            <Pressable onPress={exitSelection} style={styles.selectCancel}>
+              <Text style={styles.selectCancelText}>取消</Text>
+            </Pressable>
+            <PrimaryButton
+              title="移除"
+              onPress={handleRemove}
+              disabled={selectedIds.size === 0}
+              style={styles.selectBtn}
+            />
+          </View>
+        </View>
+      ) : null}
       <FlatList
         data={words}
         keyExtractor={(item) => item.id}
@@ -125,22 +141,6 @@ export default function VocabBookScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>生词本</Text>
             <Text style={styles.subtitle}>共 {words.length} 条</Text>
-            {selecting ? (
-              <View style={styles.selectBar}>
-                <Text style={styles.selectText}>已选 {selectedIds.size} 个</Text>
-                <View style={styles.selectActions}>
-                  <Pressable onPress={exitSelection} style={styles.selectCancel}>
-                    <Text style={styles.selectCancelText}>取消</Text>
-                  </Pressable>
-                  <PrimaryButton
-                    title="移除"
-                    onPress={handleRemove}
-                    disabled={selectedIds.size === 0}
-                    style={styles.selectBtn}
-                  />
-                </View>
-              </View>
-            ) : null}
           </View>
         }
         ListEmptyComponent={

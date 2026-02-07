@@ -175,24 +175,6 @@ export default function MistakesScreen() {
         data={data}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={
-          isWord && wordSelecting ? (
-            <View style={styles.selectBar}>
-              <Text style={styles.selectText}>已选 {selectedWordIds.size} 个</Text>
-              <View style={styles.selectActions}>
-                <Pressable onPress={exitWordSelection} style={styles.selectCancel}>
-                  <Text style={styles.selectCancelText}>取消</Text>
-                </Pressable>
-                <PrimaryButton
-                  title="加入生词本"
-                  onPress={handleAddSelected}
-                  disabled={selectedWordIds.size === 0}
-                  style={styles.selectBtn}
-                />
-              </View>
-            </View>
-          ) : null
-        }
         renderItem={({ item }) =>
           isWord ? (() => {
             const word = item as MistakeWord;
@@ -283,6 +265,22 @@ export default function MistakesScreen() {
           <PrimaryButton title="清空错题" onPress={handleClear} disabled={listEmpty} style={styles.clearBtn} />
         </View>
       </View>
+      {tabIndex === 0 && wordSelecting ? (
+        <View style={styles.selectBar}>
+          <Text style={styles.selectText}>已选 {selectedWordIds.size} 个</Text>
+          <View style={styles.selectActions}>
+            <Pressable onPress={exitWordSelection} style={styles.selectCancel}>
+              <Text style={styles.selectCancelText}>取消</Text>
+            </Pressable>
+            <PrimaryButton
+              title="加入生词本"
+              onPress={handleAddSelected}
+              disabled={selectedWordIds.size === 0}
+              style={styles.selectBtn}
+            />
+          </View>
+        </View>
+      ) : null}
       <TabView
         navigationState={{ index: tabIndex, routes }}
         onIndexChange={setTabIndex}
