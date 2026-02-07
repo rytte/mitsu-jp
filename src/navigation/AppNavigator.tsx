@@ -29,6 +29,21 @@ const LearnStack = createNativeStackNavigator<LearnStackParamList>();
 const GrammarStack = createNativeStackNavigator<GrammarStackParamList>();
 const MyStack = createNativeStackNavigator<MyStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const TAB_ICON_MAP: Record<
+  keyof RootTabParamList,
+  { focused: keyof typeof Ionicons.glyphMap; unfocused: keyof typeof Ionicons.glyphMap }
+> = {
+  Learn: { focused: 'book', unfocused: 'book-outline' },
+  Grammar: { focused: 'reader', unfocused: 'reader-outline' },
+  Search: { focused: 'search', unfocused: 'search-outline' },
+  Mistakes: { focused: 'alert-circle', unfocused: 'alert-circle-outline' },
+  VocabBook: { focused: 'bookmark', unfocused: 'bookmark-outline' },
+  KanaChart: { focused: 'grid', unfocused: 'grid-outline' },
+  VerbConjugation: { focused: 'swap-horizontal', unfocused: 'swap-horizontal-outline' },
+  KeigoChart: { focused: 'chatbubbles', unfocused: 'chatbubbles-outline' },
+  Settings: { focused: 'settings', unfocused: 'settings-outline' },
+  My: { focused: 'person', unfocused: 'person-outline' },
+};
 
 function LearnStackScreen() {
   const lexiconLevel = useAppStore((state) => state.settings.lexicon_level);
@@ -83,6 +98,8 @@ function MyStackScreen() {
       }}
     >
       <MyStack.Screen name="MyHome" component={MyScreen} options={{ title: '我的' }} />
+      <MyStack.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} />
+      <MyStack.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题本' }} />
       <MyStack.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音图' }} />
       <MyStack.Screen name="VerbConjugation" component={VerbConjugationScreen} options={{ title: '动词变形表' }} />
       <MyStack.Screen name="KeigoChart" component={KeigoChartScreen} options={{ title: '敬语表' }} />
@@ -93,6 +110,24 @@ function MyStackScreen() {
 }
 
 export default function AppNavigator() {
+  const navSearch = useAppStore((state) => state.settings.nav_show_search);
+  const navMistakes = useAppStore((state) => state.settings.nav_show_mistakes);
+  const navVocabBook = useAppStore((state) => state.settings.nav_show_vocab_book);
+  const navKana = useAppStore((state) => state.settings.nav_show_kana);
+  const navVerb = useAppStore((state) => state.settings.nav_show_verb_conjugation);
+  const navKeigo = useAppStore((state) => state.settings.nav_show_keigo);
+  const navSettings = useAppStore((state) => state.settings.nav_show_settings);
+
+  const extraTabs = [
+    { name: 'Search' as const, component: SearchScreen, title: '搜索', enabled: navSearch },
+    { name: 'Mistakes' as const, component: MistakesScreen, title: '错题', enabled: navMistakes },
+    { name: 'VocabBook' as const, component: VocabBookScreen, title: '生词本', enabled: navVocabBook },
+    { name: 'KanaChart' as const, component: KanaChartScreen, title: '五十音', enabled: navKana },
+    { name: 'VerbConjugation' as const, component: VerbConjugationScreen, title: '动词变形', enabled: navVerb },
+    { name: 'KeigoChart' as const, component: KeigoChartScreen, title: '敬语表', enabled: navKeigo },
+    { name: 'Settings' as const, component: SettingsScreen, title: '设置', enabled: navSettings },
+  ].filter((item) => item.enabled);
+
   return (
     <NavigationContainer>
       <Tab.Navigator
@@ -101,26 +136,17 @@ export default function AppNavigator() {
           tabBarActiveTintColor: colors.primary,
           tabBarStyle: { backgroundColor: '#fff' },
           tabBarIcon: ({ color, size, focused }) => {
-            let iconName: keyof typeof Ionicons.glyphMap;
-            if (route.name === 'Learn') {
-              iconName = focused ? 'book' : 'book-outline';
-            } else if (route.name === 'Grammar') {
-              iconName = focused ? 'reader' : 'reader-outline';
-            } else if (route.name === 'Search') {
-              iconName = focused ? 'search' : 'search-outline';
-            } else if (route.name === 'Mistakes') {
-              iconName = focused ? 'alert-circle' : 'alert-circle-outline';
-            } else {
-              iconName = focused ? 'person' : 'person-outline';
-            }
+            const icons = TAB_ICON_MAP[route.name];
+            const iconName = focused ? icons.focused : icons.unfocused;
             return <Ionicons name={iconName} size={size} color={color} />;
           },
         })}
       >
         <Tab.Screen name="Learn" component={LearnStackScreen} options={{ title: '学习' }} />
         <Tab.Screen name="Grammar" component={GrammarStackScreen} options={{ title: '文法' }} />
-        <Tab.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} />
-        <Tab.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题' }} />
+        {extraTabs.map((item) => (
+          <Tab.Screen key={item.name} name={item.name} component={item.component} options={{ title: item.title }} />
+        ))}
         <Tab.Screen name="My" component={MyStackScreen} options={{ title: '我的' }} />
       </Tab.Navigator>
     </NavigationContainer>

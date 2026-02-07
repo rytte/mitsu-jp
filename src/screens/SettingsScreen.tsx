@@ -5,13 +5,38 @@ import PrimaryButton from '../components/PrimaryButton';
 import { updateSettings } from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
+import { Settings } from '../types';
 
 const RATE_OPTIONS = [0.8, 1.0, 1.2];
+const MAX_NAV_ITEMS = 2;
 const FONT_OPTIONS = [
   { label: '小', value: 's' },
   { label: '中', value: 'm' },
   { label: '大', value: 'l' },
 ] as const;
+const NAV_ITEMS = [
+  { key: 'nav_show_search', label: '搜索' },
+  { key: 'nav_show_mistakes', label: '错题' },
+  { key: 'nav_show_vocab_book', label: '生词本' },
+  { key: 'nav_show_kana', label: '五十音图' },
+  { key: 'nav_show_verb_conjugation', label: '动词变形表' },
+  { key: 'nav_show_keigo', label: '敬语表' },
+  { key: 'nav_show_settings', label: '设置' },
+] as const;
+
+type NavItemKey = (typeof NAV_ITEMS)[number]['key'];
+
+function buildNavState(source: Settings): Record<NavItemKey, boolean> {
+  return {
+    nav_show_search: source.nav_show_search,
+    nav_show_mistakes: source.nav_show_mistakes,
+    nav_show_vocab_book: source.nav_show_vocab_book,
+    nav_show_kana: source.nav_show_kana,
+    nav_show_verb_conjugation: source.nav_show_verb_conjugation,
+    nav_show_keigo: source.nav_show_keigo,
+    nav_show_settings: source.nav_show_settings,
+  };
+}
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -23,6 +48,7 @@ export default function SettingsScreen() {
   const [listeningEnabled, setListeningEnabled] = useState(settings.quiz_mix.listening > 0);
   const [meaningEnglish, setMeaningEnglish] = useState(settings.meaning_language === 'en');
   const compactSingleExpand = settings.compact_single_expand;
+  const [navItems, setNavItems] = useState<Record<NavItemKey, boolean>>(buildNavState(settings));
 
   useEffect(() => {
     setMcqJaToMeaningEnabled(settings.mcq_modes.ja_to_meaning);
@@ -30,12 +56,20 @@ export default function SettingsScreen() {
     setSpellingEnabled(settings.quiz_mix.spelling > 0);
     setListeningEnabled(settings.quiz_mix.listening > 0);
     setMeaningEnglish(settings.meaning_language === 'en');
+    setNavItems(buildNavState(settings));
   }, [
     settings.mcq_modes.ja_to_meaning,
     settings.mcq_modes.meaning_to_ja,
     settings.meaning_language,
     settings.quiz_mix.listening,
     settings.quiz_mix.spelling,
+    settings.nav_show_search,
+    settings.nav_show_mistakes,
+    settings.nav_show_vocab_book,
+    settings.nav_show_kana,
+    settings.nav_show_verb_conjugation,
+    settings.nav_show_keigo,
+    settings.nav_show_settings,
   ]);
 
   const persist = async (next: typeof settings) => {
@@ -109,6 +143,14 @@ export default function SettingsScreen() {
     await persist({ ...settings, compact_single_expand: value });
   };
 
+  const updateNavItems = async (key: NavItemKey, value: boolean) => {
+    const next = { ...navItems, [key]: value };
+    const enabledCount = NAV_ITEMS.filter((item) => next[item.key]).length;
+    if (enabledCount > MAX_NAV_ITEMS) return;
+    setNavItems(next);
+    await persist({ ...settings, ...next });
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -133,20 +175,6 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>释义语言</Text>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>中文</Text>
-          <Switch
-            value={meaningEnglish}
-            onValueChange={handleMeaningLanguage}
-            trackColor={{ false: colors.primary, true: colors.primary }}
-          />
-          <Text style={styles.toggleText}>英文</Text>
-        </View>
-        <Text style={styles.tip}>当中文释义缺失时，自动回退为英文</Text>
-      </View>
-
-      <View style={styles.section}>
         <Text style={styles.sectionTitle}>词汇字号</Text>
         <View style={styles.rateRow}>
           {FONT_OPTIONS.map((option, index) => (
@@ -163,6 +191,20 @@ export default function SettingsScreen() {
           ))}
         </View>
         <Text style={styles.tip}>词条与释义使用统一字号</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>释义语言</Text>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>中文</Text>
+          <Switch
+            value={meaningEnglish}
+            onValueChange={handleMeaningLanguage}
+            trackColor={{ false: colors.primary, true: colors.primary }}
+          />
+          <Text style={styles.toggleText}>英文</Text>
+        </View>
+        <Text style={styles.tip}>当中文释义缺失时，自动回退为英文</Text>
       </View>
 
       <View style={styles.section}>
@@ -213,6 +255,21 @@ export default function SettingsScreen() {
           />
         </View>
         <Text style={styles.tip}>至少开启一种题型；关闭后不再出该题型，多选题型等概率出题</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>导航栏入口</Text>
+        {NAV_ITEMS.map((item) => (
+          <View key={item.key} style={styles.toggleRow}>
+            <Text style={styles.toggleText}>{item.label}</Text>
+            <Switch
+              value={navItems[item.key]}
+              onValueChange={(value) => updateNavItems(item.key, value)}
+              trackColor={{ false: colors.border, true: colors.primary }}
+            />
+          </View>
+        ))}
+        <Text style={styles.tip}>最多显示两个入口，搜索和错题默认开启</Text>
       </View>
 
       <View style={styles.section}>

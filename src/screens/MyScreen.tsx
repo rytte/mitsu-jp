@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { getTodayStats } from '../db/queries';
 import { MyStackParamList } from '../navigation/types';
+import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 
 type Props = NativeStackScreenProps<MyStackParamList, 'MyHome'>;
@@ -13,6 +14,7 @@ type Props = NativeStackScreenProps<MyStackParamList, 'MyHome'>;
 export default function MyScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [todayStats, setTodayStats] = useState<{ stages: number; last_played_at: number | null } | null>(null);
+  const navSettings = useAppStore((state) => state.settings);
 
   const loadTodayStats = useCallback(() => {
     let active = true;
@@ -26,8 +28,8 @@ export default function MyScreen({ navigation }: Props) {
 
   useFocusEffect(loadTodayStats);
 
-  const goToTab = (tab: 'Learn' | 'Mistakes') => {
-    navigation.getParent()?.navigate(tab as never);
+  const goToLearn = () => {
+    navigation.getParent()?.navigate('Learn' as never);
   };
 
   const hasStudyToday = Boolean(todayStats && todayStats.stages > 0);
@@ -68,51 +70,81 @@ export default function MyScreen({ navigation }: Props) {
           </View>
         </View>
         {!hasStudyToday ? (
-          <Pressable style={styles.heroCta} onPress={() => goToTab('Learn')}>
+          <Pressable style={styles.heroCta} onPress={goToLearn}>
             <Text style={styles.heroCtaText}>开始学习</Text>
           </Pressable>
         ) : null}
       </View>
 
-      <Pressable style={styles.entryCard} onPress={() => navigation.navigate('VocabBook')}>
-        <View>
-          <Text style={styles.entryTitle}>生词本</Text>
-          <Text style={styles.entrySubtitle}>收藏并集中复习</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
-      </Pressable>
+      {!navSettings.nav_show_search ? (
+        <Pressable style={styles.entryCard} onPress={() => navigation.navigate('Search')}>
+          <View>
+            <Text style={styles.entryTitle}>搜索</Text>
+            <Text style={styles.entrySubtitle}>查词 / 文法</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+        </Pressable>
+      ) : null}
 
-      <Pressable style={styles.entryCard} onPress={() => navigation.navigate('KanaChart')}>
-        <View>
-          <Text style={styles.entryTitle}>五十音图</Text>
-          <Text style={styles.entrySubtitle}>平假名 / 片假名速查</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
-      </Pressable>
+      {!navSettings.nav_show_mistakes ? (
+        <Pressable style={styles.entryCard} onPress={() => navigation.navigate('Mistakes')}>
+          <View>
+            <Text style={styles.entryTitle}>错题本</Text>
+            <Text style={styles.entrySubtitle}>复习薄弱点</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+        </Pressable>
+      ) : null}
 
-      <Pressable style={styles.entryCard} onPress={() => navigation.navigate('VerbConjugation')}>
-        <View>
-          <Text style={styles.entryTitle}>动词变形表</Text>
-          <Text style={styles.entrySubtitle}>一段 / 五段 / 不规则</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
-      </Pressable>
+      {!navSettings.nav_show_vocab_book ? (
+        <Pressable style={styles.entryCard} onPress={() => navigation.navigate('VocabBook')}>
+          <View>
+            <Text style={styles.entryTitle}>生词本</Text>
+            <Text style={styles.entrySubtitle}>收藏并集中复习</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+        </Pressable>
+      ) : null}
 
-      <Pressable style={styles.entryCard} onPress={() => navigation.navigate('KeigoChart')}>
-        <View>
-          <Text style={styles.entryTitle}>敬语表</Text>
-          <Text style={styles.entrySubtitle}>尊敬语 / 谦让语 / 丁宁语</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
-      </Pressable>
+      {!navSettings.nav_show_kana ? (
+        <Pressable style={styles.entryCard} onPress={() => navigation.navigate('KanaChart')}>
+          <View>
+            <Text style={styles.entryTitle}>五十音图</Text>
+            <Text style={styles.entrySubtitle}>平假名 / 片假名速查</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+        </Pressable>
+      ) : null}
 
-      <Pressable style={styles.entryCard} onPress={() => navigation.navigate('Settings')}>
-        <View>
-          <Text style={styles.entryTitle}>设置</Text>
-          <Text style={styles.entrySubtitle}>发音、释义语言、题型偏好等</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
-      </Pressable>
+      {!navSettings.nav_show_verb_conjugation ? (
+        <Pressable style={styles.entryCard} onPress={() => navigation.navigate('VerbConjugation')}>
+          <View>
+            <Text style={styles.entryTitle}>动词变形表</Text>
+            <Text style={styles.entrySubtitle}>一段 / 五段 / 不规则</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+        </Pressable>
+      ) : null}
+
+      {!navSettings.nav_show_keigo ? (
+        <Pressable style={styles.entryCard} onPress={() => navigation.navigate('KeigoChart')}>
+          <View>
+            <Text style={styles.entryTitle}>敬语表</Text>
+            <Text style={styles.entrySubtitle}>尊敬语 / 谦让语 / 丁宁语</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+        </Pressable>
+      ) : null}
+
+      {!navSettings.nav_show_settings ? (
+        <Pressable style={styles.entryCard} onPress={() => navigation.navigate('Settings')}>
+          <View>
+            <Text style={styles.entryTitle}>设置</Text>
+            <Text style={styles.entrySubtitle}>发音、释义语言、题型偏好等</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+        </Pressable>
+      ) : null}
     </ScrollView>
   );
 }

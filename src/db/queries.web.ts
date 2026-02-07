@@ -234,6 +234,15 @@ export async function getSettings(): Promise<Settings> {
     compact_single_expand: Boolean(settings.compact_single_expand),
     lexicon_level: normalizeLexiconLevel(settings.lexicon_level),
     font_scale: normalizeFontScale(settings.font_scale),
+    nav_show_search: Boolean(settings.nav_show_search ?? DEFAULT_SETTINGS.nav_show_search),
+    nav_show_mistakes: Boolean(settings.nav_show_mistakes ?? DEFAULT_SETTINGS.nav_show_mistakes),
+    nav_show_vocab_book: Boolean(settings.nav_show_vocab_book ?? DEFAULT_SETTINGS.nav_show_vocab_book),
+    nav_show_kana: Boolean(settings.nav_show_kana ?? DEFAULT_SETTINGS.nav_show_kana),
+    nav_show_verb_conjugation: Boolean(
+      settings.nav_show_verb_conjugation ?? DEFAULT_SETTINGS.nav_show_verb_conjugation
+    ),
+    nav_show_keigo: Boolean(settings.nav_show_keigo ?? DEFAULT_SETTINGS.nav_show_keigo),
+    nav_show_settings: Boolean(settings.nav_show_settings ?? DEFAULT_SETTINGS.nav_show_settings),
   };
 }
 

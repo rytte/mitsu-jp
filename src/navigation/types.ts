@@ -35,11 +35,18 @@ export type RootTabParamList = {
   Grammar: undefined;
   Search: undefined;
   Mistakes: undefined;
+  VocabBook: undefined;
+  KanaChart: undefined;
+  VerbConjugation: undefined;
+  KeigoChart: undefined;
+  Settings: undefined;
   My: undefined;
 };
 
 export type MyStackParamList = {
   MyHome: undefined;
+  Search: undefined;
+  Mistakes: undefined;
   KanaChart: undefined;
   VerbConjugation: undefined;
   KeigoChart: undefined;

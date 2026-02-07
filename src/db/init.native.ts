@@ -93,7 +93,14 @@ async function runInit() {
       compact_single_expand INTEGER,
       lexicon_level TEXT,
       font_scale TEXT,
-      lexicon_version TEXT
+      lexicon_version TEXT,
+      nav_show_search INTEGER,
+      nav_show_mistakes INTEGER,
+      nav_show_vocab_book INTEGER,
+      nav_show_kana INTEGER,
+      nav_show_verb_conjugation INTEGER,
+      nav_show_keigo INTEGER,
+      nav_show_settings INTEGER
     );`
   );
 
@@ -108,6 +115,13 @@ async function runInit() {
   await ensureColumn('settings', 'lexicon_level', 'TEXT');
   await ensureColumn('settings', 'font_scale', 'TEXT');
   await ensureColumn('settings', 'lexicon_version', 'TEXT');
+  await ensureColumn('settings', 'nav_show_search', 'INTEGER');
+  await ensureColumn('settings', 'nav_show_mistakes', 'INTEGER');
+  await ensureColumn('settings', 'nav_show_vocab_book', 'INTEGER');
+  await ensureColumn('settings', 'nav_show_kana', 'INTEGER');
+  await ensureColumn('settings', 'nav_show_verb_conjugation', 'INTEGER');
+  await ensureColumn('settings', 'nav_show_keigo', 'INTEGER');
+  await ensureColumn('settings', 'nav_show_settings', 'INTEGER');
 
   const countRow = await getFirst<{ count: number }>('SELECT COUNT(*) as count FROM words');
   const count = countRow?.count ?? 0;
@@ -358,13 +372,24 @@ async function updateMistakeWordIds(mapping: Map<string, string>) {
 }
 
 async function ensureDefaultSettings() {
-  const existing = await getFirst<{ id: string; meaning_language?: string; lexicon_version?: string | null }>(
-    'SELECT id, meaning_language, lexicon_version FROM settings WHERE id = ?',
+  const existing = await getFirst<{
+    id: string;
+    meaning_language?: string;
+    lexicon_version?: string | null;
+    nav_show_search?: number | null;
+    nav_show_mistakes?: number | null;
+    nav_show_vocab_book?: number | null;
+    nav_show_kana?: number | null;
+    nav_show_verb_conjugation?: number | null;
+    nav_show_keigo?: number | null;
+    nav_show_settings?: number | null;
+  }>(
+    'SELECT id, meaning_language, lexicon_version, nav_show_search, nav_show_mistakes, nav_show_vocab_book, nav_show_kana, nav_show_verb_conjugation, nav_show_keigo, nav_show_settings FROM settings WHERE id = ?',
     ['default']
   );
   if (!existing) {
     await run(
-      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, mcq_modes, meaning_language, compact_mode, compact_single_expand, lexicon_level, font_scale, lexicon_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, mcq_modes, meaning_language, compact_mode, compact_single_expand, lexicon_level, font_scale, lexicon_version, nav_show_search, nav_show_mistakes, nav_show_vocab_book, nav_show_kana, nav_show_verb_conjugation, nav_show_keigo, nav_show_settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
       [
         'default',
         DEFAULT_SETTINGS.tts_rate,
@@ -377,6 +402,13 @@ async function ensureDefaultSettings() {
         DEFAULT_SETTINGS.lexicon_level,
         DEFAULT_SETTINGS.font_scale,
         LEXICON_VERSION,
+        DEFAULT_SETTINGS.nav_show_search ? 1 : 0,
+        DEFAULT_SETTINGS.nav_show_mistakes ? 1 : 0,
+        DEFAULT_SETTINGS.nav_show_vocab_book ? 1 : 0,
+        DEFAULT_SETTINGS.nav_show_kana ? 1 : 0,
+        DEFAULT_SETTINGS.nav_show_verb_conjugation ? 1 : 0,
+        DEFAULT_SETTINGS.nav_show_keigo ? 1 : 0,
+        DEFAULT_SETTINGS.nav_show_settings ? 1 : 0,
       ]
     );
   } else {
@@ -433,6 +465,76 @@ async function ensureDefaultSettings() {
     if (!fontScale?.font_scale) {
       await run('UPDATE settings SET font_scale = ? WHERE id = ?;', [
         DEFAULT_SETTINGS.font_scale,
+        'default',
+      ]);
+    }
+    const navSearch = await getFirst<{ nav_show_search?: number | null }>(
+      'SELECT nav_show_search FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (navSearch?.nav_show_search == null) {
+      await run('UPDATE settings SET nav_show_search = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.nav_show_search ? 1 : 0,
+        'default',
+      ]);
+    }
+    const navMistakes = await getFirst<{ nav_show_mistakes?: number | null }>(
+      'SELECT nav_show_mistakes FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (navMistakes?.nav_show_mistakes == null) {
+      await run('UPDATE settings SET nav_show_mistakes = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.nav_show_mistakes ? 1 : 0,
+        'default',
+      ]);
+    }
+    const navVocabBook = await getFirst<{ nav_show_vocab_book?: number | null }>(
+      'SELECT nav_show_vocab_book FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (navVocabBook?.nav_show_vocab_book == null) {
+      await run('UPDATE settings SET nav_show_vocab_book = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.nav_show_vocab_book ? 1 : 0,
+        'default',
+      ]);
+    }
+    const navKana = await getFirst<{ nav_show_kana?: number | null }>(
+      'SELECT nav_show_kana FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (navKana?.nav_show_kana == null) {
+      await run('UPDATE settings SET nav_show_kana = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.nav_show_kana ? 1 : 0,
+        'default',
+      ]);
+    }
+    const navVerb = await getFirst<{ nav_show_verb_conjugation?: number | null }>(
+      'SELECT nav_show_verb_conjugation FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (navVerb?.nav_show_verb_conjugation == null) {
+      await run('UPDATE settings SET nav_show_verb_conjugation = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.nav_show_verb_conjugation ? 1 : 0,
+        'default',
+      ]);
+    }
+    const navKeigo = await getFirst<{ nav_show_keigo?: number | null }>(
+      'SELECT nav_show_keigo FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (navKeigo?.nav_show_keigo == null) {
+      await run('UPDATE settings SET nav_show_keigo = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.nav_show_keigo ? 1 : 0,
+        'default',
+      ]);
+    }
+    const navSettings = await getFirst<{ nav_show_settings?: number | null }>(
+      'SELECT nav_show_settings FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (navSettings?.nav_show_settings == null) {
+      await run('UPDATE settings SET nav_show_settings = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.nav_show_settings ? 1 : 0,
         'default',
       ]);
     }

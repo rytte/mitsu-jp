@@ -14,4 +14,11 @@ export const DEFAULT_SETTINGS: Settings = {
   compact_single_expand: true,
   lexicon_level: LEXICONS[0].id,
   font_scale: 'm',
+  nav_show_search: true,
+  nav_show_mistakes: true,
+  nav_show_vocab_book: false,
+  nav_show_kana: false,
+  nav_show_verb_conjugation: false,
+  nav_show_keigo: false,
+  nav_show_settings: false,
 };

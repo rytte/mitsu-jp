@@ -87,6 +87,13 @@ export type Settings = {
   compact_single_expand: boolean;
   lexicon_level: Level;
   font_scale: FontScale;
+  nav_show_search: boolean;
+  nav_show_mistakes: boolean;
+  nav_show_vocab_book: boolean;
+  nav_show_kana: boolean;
+  nav_show_verb_conjugation: boolean;
+  nav_show_keigo: boolean;
+  nav_show_settings: boolean;
 };
 
 export type QuizItem =
