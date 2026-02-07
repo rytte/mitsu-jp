@@ -193,6 +193,15 @@ export async function getWordsByIds(ids: string[]): Promise<Word[]> {
   }));
 }
 
+export async function getAllWords(): Promise<Word[]> {
+  const rows = await getAll<Word>('SELECT * FROM words');
+  return rows.map((row) => ({
+    ...row,
+    tags: row.tags ? JSON.parse(row.tags as unknown as string) : null,
+    examples: safeParseJson(row.examples) ?? null,
+  }));
+}
+
 export async function getAllWordsByLevel(level: Level): Promise<Word[]> {
   const rows = await getAll<Word>('SELECT * FROM words WHERE level = ?', [level]);
   return rows.map((row) => ({

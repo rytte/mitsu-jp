@@ -33,6 +33,7 @@ export type GrammarStackParamList = {
 export type RootTabParamList = {
   Learn: undefined;
   Grammar: undefined;
+  Search: undefined;
   Mistakes: undefined;
   Settings: undefined;
 };

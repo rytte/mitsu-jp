@@ -1,5 +1,5 @@
 import { getAllGrammars } from '../data/grammars';
-import { getAllWords, getLexiconIds, isLexiconId } from '../data/lexicons';
+import { getAllWords as getAllWordsData, getLexiconIds, isLexiconId } from '../data/lexicons';
 import { FontScale, GrammarPoint, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
 import { DEFAULT_SETTINGS, STAGE_SIZE } from './constants';
 import {
@@ -43,7 +43,7 @@ function normalizeMcqModes(value: unknown): McqModes {
   };
 }
 
-const wordList = toWordList(getAllWords());
+const wordList = toWordList(getAllWordsData());
 const grammarList = getAllGrammars();
 let stageCache: Record<Level, Stage[]> | null = null;
 
@@ -181,6 +181,10 @@ export async function getMistakeWordIdsByLevel(level: Level): Promise<string[]> 
 export async function getWordsByIds(ids: string[]): Promise<Word[]> {
   const idSet = new Set(ids);
   return wordList.filter((word) => idSet.has(word.id));
+}
+
+export async function getAllWords(): Promise<Word[]> {
+  return wordList;
 }
 
 export async function getAllWordsByLevel(level: Level): Promise<Word[]> {

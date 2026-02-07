@@ -14,6 +14,7 @@ import GrammarListScreen from '../screens/GrammarListScreen';
 import GrammarDetailScreen from '../screens/GrammarDetailScreen';
 import GrammarQuizScreen from '../screens/GrammarQuizScreen';
 import MistakesScreen from '../screens/MistakesScreen';
+import SearchScreen from '../screens/SearchScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { GrammarStackParamList, LearnStackParamList, RootTabParamList } from './types';
 import { colors } from '../theme';
@@ -77,21 +78,24 @@ export default function AppNavigator() {
           tabBarStyle: { backgroundColor: '#fff' },
           tabBarIcon: ({ color, size, focused }) => {
             let iconName: keyof typeof Ionicons.glyphMap;
-            if (route.name === 'Learn') {
-              iconName = focused ? 'book' : 'book-outline';
-            } else if (route.name === 'Grammar') {
-              iconName = focused ? 'reader' : 'reader-outline';
-            } else if (route.name === 'Mistakes') {
-              iconName = focused ? 'alert-circle' : 'alert-circle-outline';
-            } else {
-              iconName = focused ? 'settings' : 'settings-outline';
-            }
+          if (route.name === 'Learn') {
+            iconName = focused ? 'book' : 'book-outline';
+          } else if (route.name === 'Grammar') {
+            iconName = focused ? 'reader' : 'reader-outline';
+          } else if (route.name === 'Search') {
+            iconName = focused ? 'search' : 'search-outline';
+          } else if (route.name === 'Mistakes') {
+            iconName = focused ? 'alert-circle' : 'alert-circle-outline';
+          } else {
+            iconName = focused ? 'settings' : 'settings-outline';
+          }
             return <Ionicons name={iconName} size={size} color={color} />;
           },
         })}
       >
         <Tab.Screen name="Learn" component={LearnStackScreen} options={{ title: '学习' }} />
         <Tab.Screen name="Grammar" component={GrammarStackScreen} options={{ title: '文法' }} />
+        <Tab.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} />
         <Tab.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题' }} />
         <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: '设置' }} />
       </Tab.Navigator>
