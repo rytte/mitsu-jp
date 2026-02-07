@@ -41,6 +41,7 @@ export type RootTabParamList = {
 export type MyStackParamList = {
   MyHome: undefined;
   KanaChart: undefined;
+  VerbConjugation: undefined;
   Settings: undefined;
 };
 

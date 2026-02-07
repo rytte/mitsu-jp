@@ -17,6 +17,7 @@ import MistakesScreen from '../screens/MistakesScreen';
 import SearchScreen from '../screens/SearchScreen';
 import MyScreen from '../screens/MyScreen';
 import KanaChartScreen from '../screens/KanaChartScreen';
+import VerbConjugationScreen from '../screens/VerbConjugationScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { GrammarStackParamList, LearnStackParamList, MyStackParamList, RootTabParamList } from './types';
 import { colors } from '../theme';
@@ -81,6 +82,7 @@ function MyStackScreen() {
     >
       <MyStack.Screen name="MyHome" component={MyScreen} options={{ title: '我的' }} />
       <MyStack.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音图' }} />
+      <MyStack.Screen name="VerbConjugation" component={VerbConjugationScreen} options={{ title: '动词变形表' }} />
       <MyStack.Screen name="Settings" component={SettingsScreen} options={{ title: '设置' }} />
     </MyStack.Navigator>
   );

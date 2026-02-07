@@ -82,6 +82,14 @@ export default function MyScreen({ navigation }: Props) {
         <Ionicons name="chevron-forward" size={20} color={colors.muted} />
       </Pressable>
 
+      <Pressable style={styles.entryCard} onPress={() => navigation.navigate('VerbConjugation')}>
+        <View>
+          <Text style={styles.entryTitle}>动词变形表</Text>
+          <Text style={styles.entrySubtitle}>一段 / 五段 / 不规则</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+      </Pressable>
+
       <Pressable style={styles.entryCard} onPress={() => navigation.navigate('Settings')}>
         <View>
           <Text style={styles.entryTitle}>设置</Text>
