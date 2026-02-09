@@ -1,6 +1,17 @@
 import { getAllGrammars } from '../data/grammars';
 import { getAllWords as getAllWordsData, getLexiconIds, isLexiconId } from '../data/lexicons';
-import { FontScale, GrammarPoint, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import {
+  FontScale,
+  GrammarPoint,
+  GrammarQuizModes,
+  Level,
+  McqModes,
+  MeaningLanguage,
+  Progress,
+  Settings,
+  Stage,
+  Word,
+} from '../types';
 import { DEFAULT_SETTINGS, STAGE_SIZE } from './constants';
 import {
   ensureWebStorage,
@@ -42,6 +53,16 @@ function normalizeMcqModes(value: unknown): McqModes {
   return {
     ja_to_meaning: Boolean(raw.ja_to_meaning),
     meaning_to_ja: Boolean(raw.meaning_to_ja),
+  };
+}
+
+function normalizeGrammarQuizModes(value: unknown): GrammarQuizModes {
+  if (!value || typeof value !== 'object') return DEFAULT_SETTINGS.grammar_quiz_modes;
+  const raw = value as Partial<GrammarQuizModes>;
+  return {
+    example_to_pattern: Boolean(raw.example_to_pattern),
+    meaning_to_pattern: Boolean(raw.meaning_to_pattern),
+    pattern_to_meaning: Boolean(raw.pattern_to_meaning),
   };
 }
 
@@ -229,6 +250,7 @@ export async function getSettings(): Promise<Settings> {
   return {
     ...settings,
     mcq_modes: normalizeMcqModes(settings.mcq_modes),
+    grammar_quiz_modes: normalizeGrammarQuizModes(settings.grammar_quiz_modes),
     meaning_language: normalizeMeaningLanguage(settings.meaning_language),
     compact_mode: Boolean(settings.compact_mode),
     compact_single_expand: Boolean(settings.compact_single_expand),

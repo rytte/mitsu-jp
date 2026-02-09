@@ -77,11 +77,18 @@ export type McqModes = {
   meaning_to_ja: boolean;
 };
 
+export type GrammarQuizModes = {
+  example_to_pattern: boolean;
+  meaning_to_pattern: boolean;
+  pattern_to_meaning: boolean;
+};
+
 export type Settings = {
   tts_rate: number;
   tts_voice: string | null;
   quiz_mix: QuizMix;
   mcq_modes: McqModes;
+  grammar_quiz_modes: GrammarQuizModes;
   meaning_language: MeaningLanguage;
   compact_mode: boolean;
   compact_single_expand: boolean;

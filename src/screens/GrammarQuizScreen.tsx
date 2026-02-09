@@ -6,6 +6,7 @@ import PrimaryButton from '../components/PrimaryButton';
 import { getGrammarByLevel } from '../data/grammars';
 import { recordGrammarMistake } from '../db/queries';
 import { GrammarStackParamList } from '../navigation/types';
+import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { GrammarQuizItem, generateGrammarQuizItems } from '../utils/grammarQuiz';
 
@@ -72,6 +73,7 @@ function renderInlineMarkup(
 
 export default function GrammarQuizScreen({ navigation, route }: Props) {
   const { level } = route.params;
+  const settings = useAppStore((state) => state.settings);
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<GrammarQuizItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -92,6 +94,7 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
     const list = generateGrammarQuizItems({
       grammars: getGrammarByLevel(level),
       count: DEFAULT_COUNT,
+      modes: settings.grammar_quiz_modes,
     });
     setItems(list);
     setCurrentIndex(0);
@@ -106,7 +109,12 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
     setLoading(true);
     resetQuiz();
     setLoading(false);
-  }, [level]);
+  }, [
+    level,
+    settings.grammar_quiz_modes.example_to_pattern,
+    settings.grammar_quiz_modes.meaning_to_pattern,
+    settings.grammar_quiz_modes.pattern_to_meaning,
+  ]);
 
   const handleAnswer = async (answer: string) => {
     if (!currentItem || showResult) return;
@@ -166,7 +174,11 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
           {renderInlineMarkup(currentItem.prompt, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
         </Text>
         <Text style={styles.subPrompt}>
-          {currentItem.type === 'example_to_pattern' ? '根据例句选择正确文法' : '根据释义选择正确文法'}
+          {currentItem.type === 'example_to_pattern'
+            ? '根据例句选择正确文法'
+            : currentItem.type === 'meaning_to_pattern'
+            ? '根据释义选择正确文法'
+            : '根据文法选择正确释义'}
         </Text>
         {currentItem.promptZh ? (
           <Text style={styles.subPromptAlt}>

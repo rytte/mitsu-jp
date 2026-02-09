@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: Settings = {
   tts_voice: null,
   quiz_mix: { mcq: 1 / 3, spelling: 1 / 3, listening: 1 / 3 },
   mcq_modes: { ja_to_meaning: true, meaning_to_ja: true },
+  grammar_quiz_modes: { example_to_pattern: true, meaning_to_pattern: true, pattern_to_meaning: true },
   meaning_language: 'zh',
   compact_mode: false,
   compact_single_expand: true,

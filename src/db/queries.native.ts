@@ -1,4 +1,15 @@
-import { FontScale, GrammarPoint, Level, McqModes, MeaningLanguage, Progress, Settings, Stage, Word } from '../types';
+import {
+  FontScale,
+  GrammarPoint,
+  GrammarQuizModes,
+  Level,
+  McqModes,
+  MeaningLanguage,
+  Progress,
+  Settings,
+  Stage,
+  Word,
+} from '../types';
 import { getAllGrammars } from '../data/grammars';
 import { isLexiconId } from '../data/lexicons';
 import { DEFAULT_SETTINGS } from './constants';
@@ -42,6 +53,16 @@ function normalizeMcqModes(value: unknown): McqModes {
   return {
     ja_to_meaning: Boolean(raw.ja_to_meaning),
     meaning_to_ja: Boolean(raw.meaning_to_ja),
+  };
+}
+
+function normalizeGrammarQuizModes(value: unknown): GrammarQuizModes {
+  if (!value || typeof value !== 'object') return DEFAULT_SETTINGS.grammar_quiz_modes;
+  const raw = value as Partial<GrammarQuizModes>;
+  return {
+    example_to_pattern: Boolean(raw.example_to_pattern),
+    meaning_to_pattern: Boolean(raw.meaning_to_pattern),
+    pattern_to_meaning: Boolean(raw.pattern_to_meaning),
   };
 }
 
@@ -244,6 +265,7 @@ export async function getSettings(): Promise<Settings> {
     tts_voice: string | null;
     quiz_mix: string;
     mcq_modes?: string | null;
+    grammar_quiz_modes?: string | null;
     meaning_language?: string;
     compact_mode?: number | null;
     compact_single_expand?: number | null;
@@ -267,6 +289,11 @@ export async function getSettings(): Promise<Settings> {
     quiz_mix: row.quiz_mix ? JSON.parse(row.quiz_mix) : DEFAULT_SETTINGS.quiz_mix,
     mcq_modes: normalizeMcqModes(
       row.mcq_modes ? (JSON.parse(row.mcq_modes) as McqModes) : DEFAULT_SETTINGS.mcq_modes
+    ),
+    grammar_quiz_modes: normalizeGrammarQuizModes(
+      row.grammar_quiz_modes
+        ? (JSON.parse(row.grammar_quiz_modes) as GrammarQuizModes)
+        : DEFAULT_SETTINGS.grammar_quiz_modes
     ),
     meaning_language: normalizeMeaningLanguage(row.meaning_language ?? DEFAULT_SETTINGS.meaning_language),
     compact_mode: normalizeCompactMode(row.compact_mode ?? (DEFAULT_SETTINGS.compact_mode ? 1 : 0)),
@@ -301,12 +328,13 @@ export async function getSettings(): Promise<Settings> {
 
 export async function updateSettings(settings: Settings) {
   await run(
-    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, meaning_language = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_settings = ? WHERE id = ?;',
+    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, grammar_quiz_modes = ?, meaning_language = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_settings = ? WHERE id = ?;',
     [
       settings.tts_rate,
       settings.tts_voice,
       JSON.stringify(settings.quiz_mix),
       JSON.stringify(settings.mcq_modes),
+      JSON.stringify(settings.grammar_quiz_modes),
       settings.meaning_language,
       settings.compact_mode ? 1 : 0,
       settings.compact_single_expand ? 1 : 0,

@@ -1,14 +1,20 @@
-import { GrammarPoint } from '../types';
+import { GrammarPoint, GrammarQuizModes } from '../types';
 import { sample, shuffle } from './random';
 
 export type GrammarQuizItem = {
   id: string;
   grammarId: string;
-  type: 'meaning_to_pattern' | 'example_to_pattern';
+  type: 'meaning_to_pattern' | 'example_to_pattern' | 'pattern_to_meaning';
   prompt: string;
   promptZh?: string;
   options: string[];
   answer: string;
+};
+
+const DEFAULT_MODES: GrammarQuizModes = {
+  example_to_pattern: true,
+  meaning_to_pattern: true,
+  pattern_to_meaning: true,
 };
 
 function getMeaning(grammar: GrammarPoint) {
@@ -38,46 +44,67 @@ function getExample(grammar: GrammarPoint) {
 }
 
 function buildOptions(answer: string, candidates: string[], count = 4) {
-  const filtered = candidates.filter((item) => item !== answer);
+  const filtered = Array.from(new Set(candidates.filter((item) => item !== answer)));
   const picked = sample(filtered, Math.max(0, count - 1));
   return shuffle([answer, ...picked]).slice(0, count);
 }
 
-export function generateGrammarQuizItems(params: { grammars: GrammarPoint[]; count?: number }): GrammarQuizItem[] {
-  const { grammars, count = 20 } = params;
+export function generateGrammarQuizItems(params: {
+  grammars: GrammarPoint[];
+  count?: number;
+  modes?: GrammarQuizModes;
+}): GrammarQuizItem[] {
+  const { grammars, count = 20, modes } = params;
+  const resolvedModes = { ...DEFAULT_MODES, ...(modes ?? {}) };
   const candidates = grammars.filter((item) => {
     const meaning = getMeaning(item);
     const example = getExample(item);
-    return Boolean(item.pattern && (meaning || example));
+    const hasPattern = Boolean(item.pattern);
+    const available =
+      (resolvedModes.example_to_pattern && hasPattern && example) ||
+      (resolvedModes.meaning_to_pattern && hasPattern && meaning) ||
+      (resolvedModes.pattern_to_meaning && hasPattern && meaning);
+    return Boolean(available);
   });
   if (!candidates.length) return [];
 
   const maxCount = Math.min(count, candidates.length);
   const picked = shuffle([...candidates]).slice(0, maxCount);
-  const patterns = candidates.map((item) => item.pattern).filter(Boolean);
+  const patterns = Array.from(new Set(candidates.map((item) => item.pattern).filter(Boolean)));
+  const meanings = Array.from(new Set(candidates.map((item) => getMeaning(item)).filter(Boolean)));
   const items: GrammarQuizItem[] = [];
 
   for (let i = 0; i < picked.length; i += 1) {
     const grammar = picked[i];
     const meaning = getMeaning(grammar);
     const example = getExample(grammar);
-    let type: GrammarQuizItem['type'] = 'meaning_to_pattern';
+    const availableTypes: GrammarQuizItem['type'][] = [];
+    if (resolvedModes.example_to_pattern && example) {
+      availableTypes.push('example_to_pattern');
+    }
+    if (resolvedModes.meaning_to_pattern && meaning) {
+      availableTypes.push('meaning_to_pattern');
+    }
+    if (resolvedModes.pattern_to_meaning && meaning) {
+      availableTypes.push('pattern_to_meaning');
+    }
+    if (availableTypes.length === 0) continue;
+    const type = sample(availableTypes, 1)[0] ?? availableTypes[0];
     let prompt = meaning;
     let promptZh = '';
-
-    if (example && meaning) {
-      type = Math.random() < 0.5 ? 'meaning_to_pattern' : 'example_to_pattern';
-    } else if (example && !meaning) {
-      type = 'example_to_pattern';
-    }
+    let answer = grammar.pattern;
+    let options = buildOptions(answer, patterns);
 
     if (type === 'example_to_pattern' && example) {
       prompt = example.ja || example.zh || meaning;
       promptZh = example.zh || '';
     }
 
-    const answer = grammar.pattern;
-    const options = buildOptions(answer, patterns);
+    if (type === 'pattern_to_meaning') {
+      prompt = grammar.pattern;
+      answer = meaning;
+      options = buildOptions(answer, meanings);
+    }
 
     items.push({
       id: `${grammar.id}-gq-${i}`,

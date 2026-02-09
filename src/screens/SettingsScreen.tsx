@@ -44,6 +44,15 @@ export default function SettingsScreen() {
   const setSettings = useAppStore((state) => state.setSettings);
   const [mcqJaToMeaningEnabled, setMcqJaToMeaningEnabled] = useState(settings.mcq_modes.ja_to_meaning);
   const [mcqMeaningToJaEnabled, setMcqMeaningToJaEnabled] = useState(settings.mcq_modes.meaning_to_ja);
+  const [grammarExampleToPatternEnabled, setGrammarExampleToPatternEnabled] = useState(
+    settings.grammar_quiz_modes.example_to_pattern
+  );
+  const [grammarMeaningToPatternEnabled, setGrammarMeaningToPatternEnabled] = useState(
+    settings.grammar_quiz_modes.meaning_to_pattern
+  );
+  const [grammarPatternToMeaningEnabled, setGrammarPatternToMeaningEnabled] = useState(
+    settings.grammar_quiz_modes.pattern_to_meaning
+  );
   const [spellingEnabled, setSpellingEnabled] = useState(settings.quiz_mix.spelling > 0);
   const [listeningEnabled, setListeningEnabled] = useState(settings.quiz_mix.listening > 0);
   const [meaningEnglish, setMeaningEnglish] = useState(settings.meaning_language === 'en');
@@ -53,6 +62,9 @@ export default function SettingsScreen() {
   useEffect(() => {
     setMcqJaToMeaningEnabled(settings.mcq_modes.ja_to_meaning);
     setMcqMeaningToJaEnabled(settings.mcq_modes.meaning_to_ja);
+    setGrammarExampleToPatternEnabled(settings.grammar_quiz_modes.example_to_pattern);
+    setGrammarMeaningToPatternEnabled(settings.grammar_quiz_modes.meaning_to_pattern);
+    setGrammarPatternToMeaningEnabled(settings.grammar_quiz_modes.pattern_to_meaning);
     setSpellingEnabled(settings.quiz_mix.spelling > 0);
     setListeningEnabled(settings.quiz_mix.listening > 0);
     setMeaningEnglish(settings.meaning_language === 'en');
@@ -60,6 +72,9 @@ export default function SettingsScreen() {
   }, [
     settings.mcq_modes.ja_to_meaning,
     settings.mcq_modes.meaning_to_ja,
+    settings.grammar_quiz_modes.example_to_pattern,
+    settings.grammar_quiz_modes.meaning_to_pattern,
+    settings.grammar_quiz_modes.pattern_to_meaning,
     settings.meaning_language,
     settings.quiz_mix.listening,
     settings.quiz_mix.spelling,
@@ -106,6 +121,21 @@ export default function SettingsScreen() {
     }
     const nextMix = buildMix(nextMcqEnabled, spellingEnabled, listeningEnabled);
     await persist({ ...settings, mcq_modes: nextModes, quiz_mix: nextMix });
+  };
+
+  const handleGrammarModeToggle = async (mode: keyof Settings['grammar_quiz_modes'], value: boolean) => {
+    const nextModes = { ...settings.grammar_quiz_modes, [mode]: value };
+    const enabledCount = Object.values(nextModes).filter(Boolean).length;
+    if (enabledCount <= 0) {
+      if (mode === 'example_to_pattern') setGrammarExampleToPatternEnabled(true);
+      if (mode === 'meaning_to_pattern') setGrammarMeaningToPatternEnabled(true);
+      if (mode === 'pattern_to_meaning') setGrammarPatternToMeaningEnabled(true);
+      return;
+    }
+    setGrammarExampleToPatternEnabled(nextModes.example_to_pattern);
+    setGrammarMeaningToPatternEnabled(nextModes.meaning_to_pattern);
+    setGrammarPatternToMeaningEnabled(nextModes.pattern_to_meaning);
+    await persist({ ...settings, grammar_quiz_modes: nextModes });
   };
 
   const handleToggle = async (type: 'spelling' | 'listening', value: boolean) => {
@@ -221,7 +251,7 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>题型设置</Text>
+        <Text style={styles.sectionTitle}>词汇题型设置</Text>
         <View style={styles.toggleRow}>
           <Text style={styles.toggleText}>日语选释义</Text>
           <Switch
@@ -251,6 +281,35 @@ export default function SettingsScreen() {
           <Switch
             value={listeningEnabled}
             onValueChange={(value) => handleToggle('listening', value)}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+        <Text style={styles.tip}>至少开启一种题型；关闭后不再出该题型，多选题型等概率出题</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>文法题型设置</Text>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>例句选文法</Text>
+          <Switch
+            value={grammarExampleToPatternEnabled}
+            onValueChange={(value) => handleGrammarModeToggle('example_to_pattern', value)}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>释义选文法</Text>
+          <Switch
+            value={grammarMeaningToPatternEnabled}
+            onValueChange={(value) => handleGrammarModeToggle('meaning_to_pattern', value)}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>文法选释义</Text>
+          <Switch
+            value={grammarPatternToMeaningEnabled}
+            onValueChange={(value) => handleGrammarModeToggle('pattern_to_meaning', value)}
             trackColor={{ false: colors.border, true: colors.primary }}
           />
         </View>
