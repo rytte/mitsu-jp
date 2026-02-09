@@ -1,6 +1,6 @@
-﻿{
+{
   "expo": {
-    "name": "app",
+    "name": "蜂蜜日语",
     "slug": "app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,15 +17,20 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.rytte.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5c64797f-fcea-4b5c-ab6d-d336b3809eab"
+      }
     }
   }
 }
-
