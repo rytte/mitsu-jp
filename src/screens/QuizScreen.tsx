@@ -483,9 +483,9 @@ export default function QuizScreen({ navigation, route }: Props) {
       <View style={styles.actions}>
         {isOptionQuiz && !showResult && (
           <View style={styles.optionList}>
-            {currentItem.options.map((option) => (
+            {currentItem.options.map((option, index) => (
               <OptionButton
-                key={option}
+                key={`${option}-${index}`}
                 title={option}
                 selected={selected === option}
                 correct={showResult ? option === currentItem.answer : null}
@@ -503,7 +503,6 @@ export default function QuizScreen({ navigation, route }: Props) {
                 disabled={!displayInputValue}
                 style={({ pressed }) => [
                   styles.keyboardTopPreview,
-                  displayInputValue ? styles.keyboardTopPreviewFilled : null,
                   pressed ? styles.keyboardTopPreviewPressed : null,
                   !displayInputValue ? styles.keyboardTopPreviewDisabled : null,
                 ]}
@@ -583,7 +582,7 @@ export default function QuizScreen({ navigation, route }: Props) {
           </>
         )}
 
-        {showResult && isOptionQuiz && answerWord ? (
+        {showResult && answerWord ? (
           <View style={styles.answerCard}>
             <Text style={styles.answerLabel}>正确答案</Text>
             <View style={styles.answerHeader}>
@@ -625,7 +624,7 @@ export default function QuizScreen({ navigation, route }: Props) {
           </View>
         ) : null}
 
-        {showResult && isOptionQuiz && !answerWord ? (
+        {showResult && !answerWord ? (
           <View style={styles.answerFallback}>
             <Text style={styles.answerLabel}>正确答案</Text>
             <Text style={styles.answerText}>{currentItem.answer}</Text>
@@ -860,12 +859,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
     borderRadius: radius.l,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#f9fafb',
-  },
-  keyboardTopPreviewFilled: {
     borderColor: '#cbd5e1',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#f8fafc',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   keyboardTopPreviewPressed: {
     borderColor: colors.primary,
