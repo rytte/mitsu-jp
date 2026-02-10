@@ -503,6 +503,7 @@ export default function QuizScreen({ navigation, route }: Props) {
                 disabled={!displayInputValue}
                 style={({ pressed }) => [
                   styles.keyboardTopPreview,
+                  displayInputValue ? styles.keyboardTopPreviewFilled : null,
                   pressed ? styles.keyboardTopPreviewPressed : null,
                   !displayInputValue ? styles.keyboardTopPreviewDisabled : null,
                 ]}
@@ -534,12 +535,16 @@ export default function QuizScreen({ navigation, route }: Props) {
                       );
                     }
 
+                    const isLongVowel = letter === '—';
+                    const isBackspace = letter === '⌫';
+                    const isFunctionKey = isLongVowel || isBackspace;
+
                     const handlePress = () => {
-                      if (letter === '—') {
+                      if (isLongVowel) {
                         handleLongVowel();
                         return;
                       }
-                      if (letter === '⌫') {
+                      if (isBackspace) {
                         handleBackspace();
                         return;
                       }
@@ -550,16 +555,25 @@ export default function QuizScreen({ navigation, route }: Props) {
                       <Pressable
                         key={`${letter}-${rowIndex}-${index}`}
                         onPress={handlePress}
-                        onLongPress={letter === '⌫' ? handleClearSpelling : undefined}
+                        onLongPress={isBackspace ? handleClearSpelling : undefined}
+                        delayLongPress={isBackspace ? 400 : undefined}
                         style={({ pressed }) => [
                           styles.romajiKey,
-                          letter === '⌫' ? styles.romajiKeyWide : null,
-                          letter === '—' ? styles.romajiKeyWide : null,
+                          isFunctionKey ? styles.romajiKeyFunction : styles.romajiKeyLetter,
+                          isBackspace ? styles.romajiKeyWide : null,
+                          isLongVowel ? styles.romajiKeyWide : null,
                           !isLast ? styles.romajiKeyGap : null,
                           pressed ? styles.romajiKeyPressed : null,
                         ]}
                       >
-                        <Text style={styles.romajiKeyText}>{letter}</Text>
+                        <Text
+                          style={[
+                            styles.romajiKeyText,
+                            isFunctionKey ? styles.romajiKeyTextFunction : styles.romajiKeyTextLetter,
+                          ]}
+                        >
+                          {letter}
+                        </Text>
                       </Pressable>
                     );
                   })}
@@ -841,24 +855,31 @@ const styles = StyleSheet.create({
   },
   keyboardTopPreview: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: 'center',
-    paddingHorizontal: spacing.s,
-    borderRadius: radius.m,
+    paddingHorizontal: spacing.m,
+    borderRadius: radius.l,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f9fafb',
+  },
+  keyboardTopPreviewFilled: {
+    borderColor: '#cbd5e1',
+    backgroundColor: '#f1f5f9',
   },
   keyboardTopPreviewPressed: {
     borderColor: colors.primary,
+    backgroundColor: '#eef2f7',
   },
   keyboardTopPreviewDisabled: {
-    borderColor: colors.border,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f1f5f9',
     opacity: 0.6,
   },
   keyboardTopPreviewText: {
-    color: colors.text,
+    color: '#1f2937',
     fontSize: 15,
+    fontWeight: '600',
   },
   keyboardTopSpacer: {
     flex: 0.4,
@@ -897,22 +918,34 @@ const styles = StyleSheet.create({
   },
   romajiKey: {
     flex: 1,
-    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: radius.m,
     minHeight: 54,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 2,
   },
+  romajiKeyLetter: {
+    backgroundColor: '#ffffff',
+    borderColor: '#dfe3ea',
+  },
+  romajiKeyFunction: {
+    backgroundColor: '#f1f5f9',
+    borderColor: '#cbd5e1',
+  },
   romajiKeyPressed: {
     borderColor: colors.primary,
   },
   romajiKeyText: {
     fontSize: 17,
+  },
+  romajiKeyTextLetter: {
     color: colors.text,
     fontWeight: '600',
+  },
+  romajiKeyTextFunction: {
+    color: '#0f172a',
+    fontWeight: '700',
   },
   romajiKeyGap: {
     marginRight: Math.max(3, Math.floor(spacing.xs / 2)),
