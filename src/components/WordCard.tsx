@@ -1,5 +1,7 @@
 import { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, TextStyle, View } from 'react-native';
+import * as Speech from 'expo-speech';
+import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { Word } from '../types';
 
@@ -49,6 +51,133 @@ function renderBoldMarkup(text: string, boldStyle: TextStyle) {
   return nodes.length ? nodes : text;
 }
 
+function stripBoldTags(text: string) {
+  if (!text) return '';
+  return text.replace(/<\/?b>/gi, '');
+}
+
+type BoldToken = {
+  text: string;
+  bold: boolean;
+};
+
+type FuriganaPiece =
+  | { type: 'text'; text: string }
+  | { type: 'ruby'; base: string; ruby: string };
+
+function parseBoldTokens(text: string): BoldToken[] {
+  if (!text) return [];
+  const parts = text.split(/(<\/?b>)/gi);
+  const tokens: BoldToken[] = [];
+  let bold = false;
+  for (const part of parts) {
+    if (!part) continue;
+    const lower = part.toLowerCase();
+    if (lower === '<b>') {
+      bold = true;
+      continue;
+    }
+    if (lower === '</b>') {
+      bold = false;
+      continue;
+    }
+    tokens.push({ text: part, bold });
+  }
+  return tokens;
+}
+
+function isKanji(char: string) {
+  return /[\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFF々]/.test(char);
+}
+
+function splitFurigana(text: string): FuriganaPiece[] {
+  if (!text) return [];
+  const pieces: FuriganaPiece[] = [];
+  let index = 0;
+  while (index < text.length) {
+    const open = text.indexOf('[', index);
+    if (open === -1) {
+      const remaining = text.slice(index);
+      if (remaining) pieces.push({ type: 'text', text: remaining });
+      break;
+    }
+    const close = text.indexOf(']', open + 1);
+    if (close === -1) {
+      const remaining = text.slice(index);
+      if (remaining) pieces.push({ type: 'text', text: remaining });
+      break;
+    }
+
+    let baseStart = open;
+    while (baseStart - 1 >= index && isKanji(text[baseStart - 1])) {
+      baseStart -= 1;
+    }
+
+    if (baseStart === open) {
+      pieces.push({ type: 'text', text: text.slice(index, open + 1) });
+      index = open + 1;
+      continue;
+    }
+
+    if (baseStart > index) {
+      pieces.push({ type: 'text', text: text.slice(index, baseStart) });
+    }
+    pieces.push({ type: 'ruby', base: text.slice(baseStart, open), ruby: text.slice(open + 1, close) });
+    index = close + 1;
+  }
+  return pieces;
+}
+
+function stripFurigana(text: string) {
+  return splitFurigana(text)
+    .map((piece) => (piece.type === 'text' ? piece.text : piece.base))
+    .join('');
+}
+
+function renderFuriganaText(text: string, fontSize: number) {
+  const tokens = parseBoldTokens(text);
+  const readingSize = Math.max(10, Math.round(fontSize * 0.6));
+  const nodes: ReactNode[] = [];
+  let key = 0;
+
+  const buildBaseStyle = (bold: boolean) => [
+    styles.exampleJa,
+    { fontSize, lineHeight: Math.round(fontSize * 1.5) },
+    bold ? styles.exampleBold : null,
+  ];
+  const buildReadingStyle = (bold: boolean) => [
+    styles.furiganaReading,
+    { fontSize: readingSize, lineHeight: Math.round(readingSize * 1.1) },
+    bold ? styles.exampleBold : null,
+  ];
+
+  for (const token of tokens) {
+    const pieces = splitFurigana(token.text);
+    for (const piece of pieces) {
+      if (piece.type === 'text') {
+        for (const char of Array.from(piece.text)) {
+          nodes.push(
+            <Text key={`t-${key}`} style={buildBaseStyle(token.bold)}>
+              {char}
+            </Text>
+          );
+          key += 1;
+        }
+      } else {
+        nodes.push(
+          <View key={`r-${key}`} style={styles.furiganaUnit}>
+            <Text style={buildReadingStyle(token.bold)}>{piece.ruby}</Text>
+            <Text style={buildBaseStyle(token.bold)}>{piece.base}</Text>
+          </View>
+        );
+        key += 1;
+      }
+    }
+  }
+
+  return <View style={styles.furiganaLine}>{nodes}</View>;
+}
+
 export default function WordCard({
   word,
   meaning,
@@ -61,18 +190,34 @@ export default function WordCard({
   shadow = false,
   footer,
 }: Props) {
+  const settings = useAppStore((state) => state.settings);
   const showDetails = !compact || expanded;
   const cardStyles = [styles.card, shadow ? styles.cardShadow : null];
   const example = word.examples?.[0];
   const exampleJa = (example?.ja_furigana ?? example?.ja ?? '').trim();
   const exampleCn = (example?.zh_cn ?? '').trim();
   const showExample = Boolean(exampleJa || exampleCn);
+  const exampleSpeechText = stripFurigana(stripBoldTags(exampleJa)).trim();
   const posText = (word.pos ?? '').trim();
   const pitchText = (word.pitch ?? '').trim();
   const metaItems: string[] = [];
 
   if (posText) metaItems.push(posText);
   if (pitchText) metaItems.push(pitchText);
+
+  const ttsText = (word.kana ?? '').trim() || (word.kanji ?? '').trim();
+  const hasPressable = Boolean(onPress || onLongPress || ttsText);
+  const handleExamplePress = (event: { stopPropagation?: () => void }) => {
+    event.stopPropagation?.();
+    if (!disabled && exampleSpeechText) {
+      Speech.stop();
+      Speech.speak(exampleSpeechText, {
+        language: 'ja-JP',
+        rate: settings.tts_rate,
+        voice: settings.tts_voice ?? undefined,
+      });
+    }
+  };
 
   const content = (
     <>
@@ -97,20 +242,15 @@ export default function WordCard({
             {meaning}
           </Text>
           {showExample && (
-            <View style={styles.example}>
+            <Pressable
+              disabled={!exampleSpeechText}
+              onPress={handleExamplePress}
+              style={({ pressed }) => [styles.example, pressed && exampleSpeechText ? styles.examplePressed : null]}
+            >
               <View style={styles.exampleHeader}>
                 <Text style={styles.exampleTag}>例句</Text>
               </View>
-              {exampleJa ? (
-                <Text
-                  style={[
-                    styles.exampleJa,
-                    { fontSize: fontSizes.meaning, lineHeight: Math.round(fontSizes.meaning * 1.5) },
-                  ]}
-                >
-                  {renderBoldMarkup(exampleJa, styles.exampleBold)}
-                </Text>
-              ) : null}
+              {exampleJa ? renderFuriganaText(exampleJa, fontSizes.meaning) : null}
               {exampleCn ? (
                 <Text
                   style={[
@@ -121,7 +261,7 @@ export default function WordCard({
                   {exampleCn}
                 </Text>
               ) : null}
-            </View>
+            </Pressable>
           )}
         </>
       )}
@@ -129,14 +269,26 @@ export default function WordCard({
     </>
   );
 
-  if (!onPress) {
+  if (!hasPressable) {
     return <View style={cardStyles}>{content}</View>;
   }
+
+  const handlePress = () => {
+    if (!disabled && ttsText) {
+      Speech.stop();
+      Speech.speak(ttsText, {
+        language: 'ja-JP',
+        rate: settings.tts_rate,
+        voice: settings.tts_voice ?? undefined,
+      });
+    }
+    onPress?.();
+  };
 
   return (
     <Pressable
       disabled={disabled}
-      onPress={onPress}
+      onPress={handlePress}
       onLongPress={onLongPress}
       style={({ pressed }) => [...cardStyles, pressed && !disabled ? styles.cardPressed : null]}
     >
@@ -220,6 +372,9 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: '#c7d2fe',
   },
+  examplePressed: {
+    opacity: 0.7,
+  },
   exampleHeader: {
     marginBottom: spacing.s,
   },
@@ -235,6 +390,18 @@ const styles = StyleSheet.create({
   },
   exampleJa: {
     color: colors.text,
+  },
+  furiganaLine: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-end',
+  },
+  furiganaUnit: {
+    alignItems: 'center',
+  },
+  furiganaReading: {
+    color: colors.muted,
+    includeFontPadding: false,
   },
   exampleBold: {
     fontWeight: '700',

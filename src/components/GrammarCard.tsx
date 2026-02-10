@@ -1,5 +1,7 @@
 import { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, TextStyle, View } from 'react-native';
+import * as Speech from 'expo-speech';
+import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { GrammarPoint } from '../types';
 
@@ -77,6 +79,191 @@ function renderInlineMarkup(
   return nodes.length ? nodes : text;
 }
 
+function stripInlineMarkup(text: string) {
+  if (!text) return '';
+  return text.replace(/<br\s*\/?>/gi, ' ').replace(/<\/?(b|u|s)>/gi, '');
+}
+
+type InlineToken =
+  | {
+      type: 'text';
+      text: string;
+      bold: boolean;
+      underline: boolean;
+      strike: boolean;
+    }
+  | {
+      type: 'newline';
+    };
+
+type FuriganaPiece =
+  | { type: 'text'; text: string }
+  | { type: 'ruby'; base: string; ruby: string };
+
+function parseInlineTokens(text: string): InlineToken[] {
+  if (!text) return [];
+  const parts = text.split(/(<\/?b>|<\/?u>|<\/?s>|<br\s*\/?>)/gi);
+  const tokens: InlineToken[] = [];
+  let bold = false;
+  let underline = false;
+  let strike = false;
+  for (const part of parts) {
+    if (!part) continue;
+    const lower = part.toLowerCase();
+    if (lower === '<b>') {
+      bold = true;
+      continue;
+    }
+    if (lower === '</b>') {
+      bold = false;
+      continue;
+    }
+    if (lower === '<u>') {
+      underline = true;
+      continue;
+    }
+    if (lower === '</u>') {
+      underline = false;
+      continue;
+    }
+    if (lower === '<s>') {
+      strike = true;
+      continue;
+    }
+    if (lower === '</s>') {
+      strike = false;
+      continue;
+    }
+    if (lower.startsWith('<br')) {
+      tokens.push({ type: 'newline' });
+      continue;
+    }
+    tokens.push({ type: 'text', text: part, bold, underline, strike });
+  }
+  return tokens;
+}
+
+function isKanji(char: string) {
+  return /[\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFF々]/.test(char);
+}
+
+function splitFurigana(text: string): FuriganaPiece[] {
+  if (!text) return [];
+  const pieces: FuriganaPiece[] = [];
+  let index = 0;
+  while (index < text.length) {
+    const open = text.indexOf('[', index);
+    if (open === -1) {
+      const remaining = text.slice(index);
+      if (remaining) pieces.push({ type: 'text', text: remaining });
+      break;
+    }
+    const close = text.indexOf(']', open + 1);
+    if (close === -1) {
+      const remaining = text.slice(index);
+      if (remaining) pieces.push({ type: 'text', text: remaining });
+      break;
+    }
+
+    let baseStart = open;
+    while (baseStart - 1 >= index && isKanji(text[baseStart - 1])) {
+      baseStart -= 1;
+    }
+
+    if (baseStart === open) {
+      pieces.push({ type: 'text', text: text.slice(index, open + 1) });
+      index = open + 1;
+      continue;
+    }
+
+    if (baseStart > index) {
+      pieces.push({ type: 'text', text: text.slice(index, baseStart) });
+    }
+    pieces.push({ type: 'ruby', base: text.slice(baseStart, open), ruby: text.slice(open + 1, close) });
+    index = close + 1;
+  }
+  return pieces;
+}
+
+function stripFurigana(text: string) {
+  return splitFurigana(text)
+    .map((piece) => (piece.type === 'text' ? piece.text : piece.base))
+    .join('');
+}
+
+function renderFuriganaMarkup(text: string, fontSize: number, baseStyle?: TextStyle) {
+  const tokens = parseInlineTokens(text);
+  const readingSize = Math.max(10, Math.round(fontSize * 0.6));
+  const lines: ReactNode[] = [];
+  let lineNodes: ReactNode[] = [];
+  let key = 0;
+  const baseTextStyle = baseStyle ?? styles.exampleJa;
+
+  const buildBaseStyle = (token: InlineToken) => {
+    if (token.type !== 'text') return [];
+    return [
+      baseTextStyle,
+      { fontSize, lineHeight: Math.round(fontSize * 1.5) },
+      token.bold ? styles.inlineBold : null,
+      token.underline ? styles.inlineUnderline : null,
+      token.strike ? styles.inlineStrike : null,
+    ];
+  };
+  const buildReadingStyle = (token: InlineToken) => {
+    if (token.type !== 'text') return [];
+    return [
+      styles.furiganaReading,
+      { fontSize: readingSize, lineHeight: Math.round(readingSize * 1.1) },
+      token.bold ? styles.inlineBold : null,
+    ];
+  };
+
+  const pushLine = () => {
+    if (lineNodes.length === 0) {
+      lines.push(<View key={`line-${lines.length}`} style={styles.furiganaLine} />);
+    } else {
+      const lineStyle = [styles.furiganaLine, lines.length > 0 ? styles.furiganaLineGap : null];
+      lines.push(
+        <View key={`line-${lines.length}`} style={lineStyle}>
+          {lineNodes}
+        </View>
+      );
+    }
+    lineNodes = [];
+  };
+
+  for (const token of tokens) {
+    if (token.type === 'newline') {
+      pushLine();
+      continue;
+    }
+    const pieces = splitFurigana(token.text);
+    for (const piece of pieces) {
+      if (piece.type === 'text') {
+        for (const char of Array.from(piece.text)) {
+          lineNodes.push(
+            <Text key={`t-${key}`} style={buildBaseStyle(token)}>
+              {char}
+            </Text>
+          );
+          key += 1;
+        }
+      } else {
+        lineNodes.push(
+          <View key={`r-${key}`} style={styles.furiganaUnit}>
+            <Text style={buildReadingStyle(token)}>{piece.ruby}</Text>
+            <Text style={buildBaseStyle(token)}>{piece.base}</Text>
+          </View>
+        );
+        key += 1;
+      }
+    }
+  }
+
+  pushLine();
+  return <View style={styles.furiganaWrap}>{lines}</View>;
+}
+
 export default function GrammarCard({
   grammar,
   compact = false,
@@ -87,6 +274,7 @@ export default function GrammarCard({
   shadow = false,
   footer,
 }: Props) {
+  const settings = useAppStore((state) => state.settings);
   const showDetails = !compact || expanded;
   const cardStyles = [styles.card, shadow ? styles.cardShadow : null];
 
@@ -100,16 +288,29 @@ export default function GrammarCard({
   const exampleJa = (example?.ja ?? '').trim();
   const exampleZh = (example?.zh ?? '').trim();
   const showExample = Boolean(exampleJa || exampleZh);
+  const exampleSpeechText = stripFurigana(stripInlineMarkup(exampleJa)).trim();
 
   const metaItems: string[] = [];
   if (grammar.level) metaItems.push(grammar.level);
   if (grammar.subOrder) metaItems.push(`No. ${grammar.subOrder}`);
 
+  const handleExamplePress = (event: { stopPropagation?: () => void }) => {
+    event.stopPropagation?.();
+    if (!disabled && exampleSpeechText) {
+      Speech.stop();
+      Speech.speak(exampleSpeechText, {
+        language: 'ja-JP',
+        rate: settings.tts_rate,
+        voice: settings.tts_voice ?? undefined,
+      });
+    }
+  };
+
   const content = (
     <>
       <View style={styles.headRow}>
         <View style={styles.headText}>
-          <Text style={[styles.pattern, { fontSize: fontSizes.pattern }]}>{grammar.pattern}</Text>
+          {renderFuriganaMarkup(grammar.pattern, fontSizes.pattern, styles.pattern)}
           {showDetails && formationText ? (
             <Text style={[styles.formation, { fontSize: fontSizes.detail }]}>{formationText}</Text>
           ) : null}
@@ -164,21 +365,21 @@ export default function GrammarCard({
       ) : null}
 
       {showDetails && showExample ? (
-        <View style={styles.example}>
+        <Pressable
+          disabled={!exampleSpeechText}
+          onPress={handleExamplePress}
+          style={({ pressed }) => [styles.example, pressed && exampleSpeechText ? styles.examplePressed : null]}
+        >
           <View style={styles.exampleHeader}>
             <Text style={styles.exampleTag}>例句</Text>
           </View>
-          {exampleJa ? (
-            <Text style={[styles.exampleJa, { fontSize: fontSizes.detail, lineHeight: Math.round(fontSizes.detail * 1.5) }]}>
-              {renderInlineMarkup(exampleJa, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
-            </Text>
-          ) : null}
+          {exampleJa ? renderFuriganaMarkup(exampleJa, fontSizes.detail, styles.exampleJa) : null}
           {exampleZh ? (
             <Text style={[styles.exampleZh, { fontSize: fontSizes.detail, lineHeight: Math.round(fontSizes.detail * 1.5) }]}>
               {renderInlineMarkup(exampleZh, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
             </Text>
           ) : null}
-        </View>
+        </Pressable>
       ) : null}
 
       {footer}
@@ -319,6 +520,9 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: '#c7d2fe',
   },
+  examplePressed: {
+    opacity: 0.7,
+  },
   exampleHeader: {
     marginBottom: spacing.s,
   },
@@ -334,6 +538,24 @@ const styles = StyleSheet.create({
   },
   exampleJa: {
     color: colors.text,
+  },
+  furiganaWrap: {
+    flexDirection: 'column',
+  },
+  furiganaLine: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-end',
+  },
+  furiganaLineGap: {
+    marginTop: spacing.xs,
+  },
+  furiganaUnit: {
+    alignItems: 'center',
+  },
+  furiganaReading: {
+    color: colors.muted,
+    includeFontPadding: false,
   },
   inlineBold: {
     fontWeight: '700',
