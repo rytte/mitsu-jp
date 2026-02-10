@@ -350,6 +350,12 @@ export default function QuizScreen({ navigation, route }: Props) {
     });
   };
 
+  const handleClearSpelling = () => {
+    if (showResult) return;
+    setInputValue('');
+    setRomajiBuffer('');
+  };
+
   const handleSubmitSpelling = () => {
     const consumed = consumeRomaji(romajiBuffer);
     const finalValue = `${inputValue}${consumed.output}${consumed.buffer}`;
@@ -491,6 +497,29 @@ export default function QuizScreen({ navigation, route }: Props) {
 
         {currentItem.type === 'spelling' && !showResult && (
           <>
+            <View style={styles.keyboardTopRow}>
+              <Pressable
+                onPress={displayInputValue ? handleSubmitSpelling : undefined}
+                disabled={!displayInputValue}
+                style={({ pressed }) => [
+                  styles.keyboardTopPreview,
+                  pressed ? styles.keyboardTopPreviewPressed : null,
+                  !displayInputValue ? styles.keyboardTopPreviewDisabled : null,
+                ]}
+              >
+                <Text style={styles.keyboardTopPreviewText} numberOfLines={1}>
+                  {displayInputValue}
+                </Text>
+              </Pressable>
+              <View style={styles.keyboardTopSpacer} />
+              <Pressable
+                onPress={handleSubmitSpelling}
+                style={({ pressed }) => [styles.submitKey, pressed ? styles.submitKeyPressed : null]}
+              >
+                <Text style={styles.submitKeyText}>提交</Text>
+              </Pressable>
+            </View>
+
             <View style={styles.romajiGrid}>
               {ROMAJI_ROWS.map((row, rowIndex) => (
                 <View key={`row-${rowIndex}`} style={styles.romajiRow}>
@@ -521,6 +550,7 @@ export default function QuizScreen({ navigation, route }: Props) {
                       <Pressable
                         key={`${letter}-${rowIndex}-${index}`}
                         onPress={handlePress}
+                        onLongPress={letter === '⌫' ? handleClearSpelling : undefined}
                         style={({ pressed }) => [
                           styles.romajiKey,
                           letter === '⌫' ? styles.romajiKeyWide : null,
@@ -536,12 +566,6 @@ export default function QuizScreen({ navigation, route }: Props) {
                 </View>
               ))}
             </View>
-
-            <PrimaryButton
-              title="提交"
-              onPress={handleSubmitSpelling}
-              style={[styles.actionButton, styles.buttonSpacing]}
-            />
           </>
         )}
 
@@ -809,6 +833,60 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
+  },
+  keyboardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.m,
+  },
+  keyboardTopPreview: {
+    flex: 1,
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.s,
+    borderRadius: radius.m,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  keyboardTopPreviewPressed: {
+    borderColor: colors.primary,
+  },
+  keyboardTopPreviewDisabled: {
+    borderColor: colors.border,
+    opacity: 0.6,
+  },
+  keyboardTopPreviewText: {
+    color: colors.text,
+    fontSize: 15,
+  },
+  keyboardTopSpacer: {
+    flex: 0.4,
+  },
+  submitKey: {
+    paddingHorizontal: spacing.l,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: '#0f172a',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  submitKeyPressed: {
+    backgroundColor: '#0b1220',
+  },
+  submitKeyText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
+    letterSpacing: 1,
   },
   romajiGrid: {
     marginBottom: spacing.s,
