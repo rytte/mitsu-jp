@@ -19,7 +19,7 @@ import { generateQuizItems } from '../utils/quiz';
 type Props = NativeStackScreenProps<LearnStackParamList, 'Quiz'>;
 
 export default function QuizScreen({ navigation, route }: Props) {
-  const { stageId, level, stageIndex } = route.params;
+  const { stageId, level, stageIndex, zoneIndex } = route.params;
   const settings = useAppStore((state) => state.settings);
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<QuizItem[]>([]);
@@ -97,6 +97,7 @@ export default function QuizScreen({ navigation, route }: Props) {
         stageId,
         level,
         stageIndex,
+        zoneIndex,
         correct: correctCount,
         wrong: wrongCount,
       });

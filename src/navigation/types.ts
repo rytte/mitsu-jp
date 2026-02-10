@@ -13,11 +13,12 @@ export type LearnStackParamList = {
     wordIds: string[];
     wordStageMap: Record<string, number>;
   };
-  Quiz: { stageId: string; level: Level; stageIndex: number };
+  Quiz: { stageId: string; level: Level; stageIndex: number; zoneIndex: number };
   Result: {
     stageId: string;
     level: Level;
     stageIndex: number;
+    zoneIndex: number;
     correct: number;
     wrong: number;
   };

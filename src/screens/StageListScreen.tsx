@@ -166,6 +166,7 @@ export default function StageListScreen({ navigation, route }: Props) {
                     stageId: item.id,
                     level,
                     stageIndex: item.index,
+                    zoneIndex,
                   })
                 }
                 disabled={item.locked}

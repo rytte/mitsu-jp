@@ -11,10 +11,13 @@ import { calcStars } from '../utils/quiz';
 type Props = NativeStackScreenProps<LearnStackParamList, 'Result'>;
 
 export default function ResultScreen({ navigation, route }: Props) {
-  const { stageId, level, stageIndex, correct, wrong } = route.params;
+  const { stageId, level, stageIndex, zoneIndex, correct, wrong } = route.params;
   const [hasNext, setHasNext] = useState(false);
   const total = correct + wrong;
   const stars = calcStars(correct, total);
+  const canGoNext = hasNext && stars >= 2;
+  const nextStageIndex = stageIndex + 1;
+  const nextZoneIndex = Math.floor((nextStageIndex - 1) / 10) + 1;
 
   useEffect(() => {
     saveProgress(stageId, correct, wrong, stars);
@@ -44,23 +47,24 @@ export default function ResultScreen({ navigation, route }: Props) {
       <View style={styles.actions}>
         <PrimaryButton
           title="再来一次"
-          onPress={() => navigation.replace('Quiz', { stageId, level, stageIndex })}
+          onPress={() => navigation.replace('Quiz', { stageId, level, stageIndex, zoneIndex })}
           style={styles.buttonSpacing}
         />
-        {hasNext && (
+        {canGoNext && (
           <PrimaryButton
             title="下一关"
             onPress={() =>
               navigation.replace('Quiz', {
-                stageId: `${level}-${stageIndex + 1}`,
+                stageId: `${level}-${nextStageIndex}`,
                 level,
-                stageIndex: stageIndex + 1,
+                stageIndex: nextStageIndex,
+                zoneIndex: nextZoneIndex,
               })
             }
             style={styles.buttonSpacing}
           />
         )}
-        <PrimaryButton title="返回关卡" onPress={() => navigation.popToTop()} />
+        <PrimaryButton title="返回关卡" onPress={() => navigation.navigate('StageList', { level, zoneIndex })} />
       </View>
     </View>
   );
