@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { InteractionManager, Pressable, StyleSheet, Text, TextStyle, View } from 'react-native';
 import * as Speech from 'expo-speech';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
@@ -275,6 +275,7 @@ export default function GrammarCard({
   footer,
 }: Props) {
   const settings = useAppStore((state) => state.settings);
+  const showExampleFurigana = settings.show_example_furigana;
   const showDetails = !compact || expanded;
   const cardStyles = [styles.card, shadow ? styles.cardShadow : null];
 
@@ -294,15 +295,21 @@ export default function GrammarCard({
   if (grammar.level) metaItems.push(grammar.level);
   if (grammar.subOrder) metaItems.push(`No. ${grammar.subOrder}`);
 
-  const handleExamplePress = (event: { stopPropagation?: () => void }) => {
-    event.stopPropagation?.();
-    if (!disabled && exampleSpeechText) {
+  const scheduleSpeak = (text: string) => {
+    InteractionManager.runAfterInteractions(() => {
       Speech.stop();
-      Speech.speak(exampleSpeechText, {
+      Speech.speak(text, {
         language: 'ja-JP',
         rate: settings.tts_rate,
         voice: settings.tts_voice ?? undefined,
       });
+    });
+  };
+
+  const handleExamplePress = (event: { stopPropagation?: () => void }) => {
+    event.stopPropagation?.();
+    if (!disabled && exampleSpeechText) {
+      scheduleSpeak(exampleSpeechText);
     }
   };
 
@@ -373,7 +380,15 @@ export default function GrammarCard({
           <View style={styles.exampleHeader}>
             <Text style={styles.exampleTag}>例句</Text>
           </View>
-          {exampleJa ? renderFuriganaMarkup(exampleJa, fontSizes.detail, styles.exampleJa) : null}
+          {exampleJa ? (
+            showExampleFurigana ? (
+              renderFuriganaMarkup(exampleJa, fontSizes.detail, styles.exampleJa)
+            ) : (
+              <Text style={[styles.exampleJa, { fontSize: fontSizes.detail, lineHeight: Math.round(fontSizes.detail * 1.5) }]}>
+                {renderInlineMarkup(stripFurigana(exampleJa), styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+              </Text>
+            )
+          ) : null}
           {exampleZh ? (
             <Text style={[styles.exampleZh, { fontSize: fontSizes.detail, lineHeight: Math.round(fontSizes.detail * 1.5) }]}>
               {renderInlineMarkup(exampleZh, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}

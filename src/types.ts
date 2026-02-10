@@ -90,6 +90,7 @@ export type Settings = {
   mcq_modes: McqModes;
   grammar_quiz_modes: GrammarQuizModes;
   meaning_language: MeaningLanguage;
+  show_example_furigana: boolean;
   compact_mode: boolean;
   compact_single_expand: boolean;
   lexicon_level: Level;

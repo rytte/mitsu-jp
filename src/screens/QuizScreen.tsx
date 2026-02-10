@@ -188,6 +188,11 @@ function stripBoldTags(text: string) {
   return text.replace(/<\/?b>/gi, '');
 }
 
+function stripFuriganaBrackets(text: string) {
+  if (!text) return '';
+  return text.replace(/\[[^\]]*]/g, '');
+}
+
 function isConsonant(letter: string) {
   return letter >= 'a' && letter <= 'z' && !VOWELS.has(letter);
 }
@@ -611,7 +616,8 @@ export default function QuizScreen({ navigation, route }: Props) {
             <Text style={styles.answerMeaning}>{getMeaning(answerWord, settings.meaning_language)}</Text>
             {(() => {
               const example = answerWord.examples?.[0];
-              const exampleJa = stripBoldTags((example?.ja_furigana ?? example?.ja ?? '').trim());
+              const exampleRaw = stripBoldTags((example?.ja_furigana ?? example?.ja ?? '').trim());
+              const exampleJa = settings.show_example_furigana ? exampleRaw : stripFuriganaBrackets(exampleRaw);
               const exampleCn = (example?.zh_cn ?? '').trim();
               if (!exampleJa && !exampleCn) return null;
               return (

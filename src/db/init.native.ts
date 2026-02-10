@@ -90,6 +90,7 @@ async function runInit() {
       mcq_modes TEXT,
       grammar_quiz_modes TEXT,
       meaning_language TEXT,
+      show_example_furigana INTEGER,
       compact_mode INTEGER,
       compact_single_expand INTEGER,
       lexicon_level TEXT,
@@ -112,6 +113,7 @@ async function runInit() {
   await ensureColumn('settings', 'meaning_language', 'TEXT');
   await ensureColumn('settings', 'mcq_modes', 'TEXT');
   await ensureColumn('settings', 'grammar_quiz_modes', 'TEXT');
+  await ensureColumn('settings', 'show_example_furigana', 'INTEGER');
   await ensureColumn('settings', 'compact_mode', 'INTEGER');
   await ensureColumn('settings', 'compact_single_expand', 'INTEGER');
   await ensureColumn('settings', 'lexicon_level', 'TEXT');
@@ -391,7 +393,7 @@ async function ensureDefaultSettings() {
   );
   if (!existing) {
     await run(
-      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, mcq_modes, grammar_quiz_modes, meaning_language, compact_mode, compact_single_expand, lexicon_level, font_scale, lexicon_version, nav_show_search, nav_show_mistakes, nav_show_vocab_book, nav_show_kana, nav_show_verb_conjugation, nav_show_keigo, nav_show_settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, mcq_modes, grammar_quiz_modes, meaning_language, show_example_furigana, compact_mode, compact_single_expand, lexicon_level, font_scale, lexicon_version, nav_show_search, nav_show_mistakes, nav_show_vocab_book, nav_show_kana, nav_show_verb_conjugation, nav_show_keigo, nav_show_settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
       [
         'default',
         DEFAULT_SETTINGS.tts_rate,
@@ -400,6 +402,7 @@ async function ensureDefaultSettings() {
         JSON.stringify(DEFAULT_SETTINGS.mcq_modes),
         JSON.stringify(DEFAULT_SETTINGS.grammar_quiz_modes),
         DEFAULT_SETTINGS.meaning_language,
+        DEFAULT_SETTINGS.show_example_furigana ? 1 : 0,
         DEFAULT_SETTINGS.compact_mode ? 1 : 0,
         DEFAULT_SETTINGS.compact_single_expand ? 1 : 0,
         DEFAULT_SETTINGS.lexicon_level,
@@ -438,6 +441,16 @@ async function ensureDefaultSettings() {
     if (!grammarModes?.grammar_quiz_modes) {
       await run('UPDATE settings SET grammar_quiz_modes = ? WHERE id = ?;', [
         JSON.stringify(DEFAULT_SETTINGS.grammar_quiz_modes),
+        'default',
+      ]);
+    }
+    const exampleFurigana = await getFirst<{ show_example_furigana?: number | null }>(
+      'SELECT show_example_furigana FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (exampleFurigana?.show_example_furigana == null) {
+      await run('UPDATE settings SET show_example_furigana = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.show_example_furigana ? 1 : 0,
         'default',
       ]);
     }

@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS: Settings = {
   mcq_modes: { ja_to_meaning: true, meaning_to_ja: true },
   grammar_quiz_modes: { example_to_pattern: true, meaning_to_pattern: true, pattern_to_meaning: true },
   meaning_language: 'zh',
+  show_example_furigana: false,
   compact_mode: false,
   compact_single_expand: true,
   lexicon_level: LEXICONS[0].id,

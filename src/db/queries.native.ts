@@ -267,6 +267,7 @@ export async function getSettings(): Promise<Settings> {
     mcq_modes?: string | null;
     grammar_quiz_modes?: string | null;
     meaning_language?: string;
+    show_example_furigana?: number | null;
     compact_mode?: number | null;
     compact_single_expand?: number | null;
     lexicon_level?: string | null;
@@ -296,6 +297,9 @@ export async function getSettings(): Promise<Settings> {
         : DEFAULT_SETTINGS.grammar_quiz_modes
     ),
     meaning_language: normalizeMeaningLanguage(row.meaning_language ?? DEFAULT_SETTINGS.meaning_language),
+    show_example_furigana: normalizeCompactMode(
+      row.show_example_furigana ?? (DEFAULT_SETTINGS.show_example_furigana ? 1 : 0)
+    ),
     compact_mode: normalizeCompactMode(row.compact_mode ?? (DEFAULT_SETTINGS.compact_mode ? 1 : 0)),
     compact_single_expand: normalizeCompactSingleExpand(
       row.compact_single_expand ?? (DEFAULT_SETTINGS.compact_single_expand ? 1 : 0)
@@ -328,7 +332,7 @@ export async function getSettings(): Promise<Settings> {
 
 export async function updateSettings(settings: Settings) {
   await run(
-    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, grammar_quiz_modes = ?, meaning_language = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_settings = ? WHERE id = ?;',
+    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, grammar_quiz_modes = ?, meaning_language = ?, show_example_furigana = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_settings = ? WHERE id = ?;',
     [
       settings.tts_rate,
       settings.tts_voice,
@@ -336,6 +340,7 @@ export async function updateSettings(settings: Settings) {
       JSON.stringify(settings.mcq_modes),
       JSON.stringify(settings.grammar_quiz_modes),
       settings.meaning_language,
+      settings.show_example_furigana ? 1 : 0,
       settings.compact_mode ? 1 : 0,
       settings.compact_single_expand ? 1 : 0,
       settings.lexicon_level,

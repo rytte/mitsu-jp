@@ -56,6 +56,7 @@ export default function SettingsScreen() {
   const [spellingEnabled, setSpellingEnabled] = useState(settings.quiz_mix.spelling > 0);
   const [listeningEnabled, setListeningEnabled] = useState(settings.quiz_mix.listening > 0);
   const [meaningEnglish, setMeaningEnglish] = useState(settings.meaning_language === 'en');
+  const showExampleFurigana = settings.show_example_furigana;
   const compactSingleExpand = settings.compact_single_expand;
   const [navItems, setNavItems] = useState<Record<NavItemKey, boolean>>(buildNavState(settings));
 
@@ -165,6 +166,10 @@ export default function SettingsScreen() {
     await persist({ ...settings, meaning_language: useEnglish ? 'en' : 'zh' });
   };
 
+  const handleExampleFurigana = async (value: boolean) => {
+    await persist({ ...settings, show_example_furigana: value });
+  };
+
   const handleFontScale = async (value: (typeof FONT_OPTIONS)[number]['value']) => {
     await persist({ ...settings, font_scale: value });
   };
@@ -248,6 +253,19 @@ export default function SettingsScreen() {
           />
         </View>
         <Text style={styles.tip}>在紧凑模式下，展开新词条会自动收起上一个</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>例句注音</Text>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleText}>显示假名注音</Text>
+          <Switch
+            value={showExampleFurigana}
+            onValueChange={handleExampleFurigana}
+            trackColor={{ false: colors.border, true: colors.primary }}
+          />
+        </View>
+        <Text style={styles.tip}>关闭时例句中“汉字[假名]”不会显示注音</Text>
       </View>
 
       <View style={styles.section}>

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { InteractionManager, Pressable, StyleSheet, Text, TextStyle, View } from 'react-native';
 import * as Speech from 'expo-speech';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
@@ -191,6 +191,7 @@ export default function WordCard({
   footer,
 }: Props) {
   const settings = useAppStore((state) => state.settings);
+  const showExampleFurigana = settings.show_example_furigana;
   const showDetails = !compact || expanded;
   const cardStyles = [styles.card, shadow ? styles.cardShadow : null];
   const example = word.examples?.[0];
@@ -207,15 +208,20 @@ export default function WordCard({
 
   const ttsText = (word.kana ?? '').trim() || (word.kanji ?? '').trim();
   const hasPressable = Boolean(onPress || onLongPress || ttsText);
-  const handleExamplePress = (event: { stopPropagation?: () => void }) => {
-    event.stopPropagation?.();
-    if (!disabled && exampleSpeechText) {
+  const scheduleSpeak = (text: string) => {
+    InteractionManager.runAfterInteractions(() => {
       Speech.stop();
-      Speech.speak(exampleSpeechText, {
+      Speech.speak(text, {
         language: 'ja-JP',
         rate: settings.tts_rate,
         voice: settings.tts_voice ?? undefined,
       });
+    });
+  };
+  const handleExamplePress = (event: { stopPropagation?: () => void }) => {
+    event.stopPropagation?.();
+    if (!disabled && exampleSpeechText) {
+      scheduleSpeak(exampleSpeechText);
     }
   };
 
@@ -250,7 +256,20 @@ export default function WordCard({
               <View style={styles.exampleHeader}>
                 <Text style={styles.exampleTag}>例句</Text>
               </View>
-              {exampleJa ? renderFuriganaText(exampleJa, fontSizes.meaning) : null}
+              {exampleJa ? (
+                showExampleFurigana ? (
+                  renderFuriganaText(exampleJa, fontSizes.meaning)
+                ) : (
+                  <Text
+                    style={[
+                      styles.exampleJa,
+                      { fontSize: fontSizes.meaning, lineHeight: Math.round(fontSizes.meaning * 1.5) },
+                    ]}
+                  >
+                    {renderBoldMarkup(stripFurigana(exampleJa), styles.exampleBold)}
+                  </Text>
+                )
+              ) : null}
               {exampleCn ? (
                 <Text
                   style={[
@@ -274,15 +293,10 @@ export default function WordCard({
   }
 
   const handlePress = () => {
-    if (!disabled && ttsText) {
-      Speech.stop();
-      Speech.speak(ttsText, {
-        language: 'ja-JP',
-        rate: settings.tts_rate,
-        voice: settings.tts_voice ?? undefined,
-      });
-    }
     onPress?.();
+    if (!disabled && ttsText) {
+      scheduleSpeak(ttsText);
+    }
   };
 
   return (
