@@ -193,7 +193,7 @@ export default function QuizScreen({ navigation, route }: Props) {
               <Text style={styles.subPrompt}>请输入假名拼写</Text>
               <TextInput
                 style={styles.input}
-                placeholder="例如：さくら"
+                placeholder=""
                 value={inputValue}
                 onChangeText={setInputValue}
                 editable={!showResult}
@@ -484,10 +484,8 @@ const styles = StyleSheet.create({
     padding: spacing.s,
     borderRadius: radius.m,
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
     borderLeftWidth: 3,
-    borderLeftColor: '#bfdbfe',
+    borderLeftColor: colors.border,
   },
   answerExampleJa: {
     color: '#475569',
