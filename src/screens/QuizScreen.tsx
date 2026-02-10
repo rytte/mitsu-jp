@@ -12,11 +12,16 @@ import {
 import { LearnStackParamList } from '../navigation/types';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
-import { QuizItem } from '../types';
-import { getMeaningLabel } from '../utils/meaning';
+import { QuizItem, Word } from '../types';
+import { getMeaning, getMeaningLabel } from '../utils/meaning';
 import { generateQuizItems } from '../utils/quiz';
 
 type Props = NativeStackScreenProps<LearnStackParamList, 'Quiz'>;
+
+function stripBoldTags(text: string) {
+  if (!text) return '';
+  return text.replace(/<\/?b>/gi, '');
+}
 
 export default function QuizScreen({ navigation, route }: Props) {
   const { stageId, level, stageIndex, zoneIndex } = route.params;
@@ -30,6 +35,7 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
+  const [wordMap, setWordMap] = useState<Record<string, Word>>({});
 
   const currentItem = items[currentIndex];
   const meaningLabel = getMeaningLabel(settings.meaning_language);
@@ -49,6 +55,11 @@ export default function QuizScreen({ navigation, route }: Props) {
       });
       if (!active) return;
       setItems(list);
+      const nextMap: Record<string, Word> = {};
+      for (const word of stageWords) {
+        nextMap[word.id] = word;
+      }
+      setWordMap(nextMap);
       setLoading(false);
     };
 
@@ -69,6 +80,17 @@ export default function QuizScreen({ navigation, route }: Props) {
     if (!items.length) return '';
     return `${currentIndex + 1} / ${items.length}`;
   }, [currentIndex, items.length]);
+
+  const progressPercent = useMemo(() => {
+    if (!items.length) return 0;
+    return Math.round(((currentIndex + 1) / items.length) * 100);
+  }, [currentIndex, items.length]);
+
+  const isOptionQuiz =
+    currentItem?.type === 'mcq_ja_to_cn' ||
+    currentItem?.type === 'mcq_cn_to_ja' ||
+    currentItem?.type === 'listening';
+  const answerWord = currentItem ? wordMap[currentItem.wordId] : undefined;
 
   const speak = (text: string) => {
     Speech.speak(text, {
@@ -129,85 +151,146 @@ export default function QuizScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>第 {stageIndex} 关</Text>
-        <Text style={styles.headerSubtitle}>{progressText}</Text>
-      </View>
-
-      <View style={styles.card}>
-        {currentItem.type === 'mcq_ja_to_cn' && (
-          <>
-            <Text style={styles.prompt}>{currentItem.prompt}</Text>
-            <Text style={styles.subPrompt}>请选择正确的{meaningLabel}释义</Text>
-            {currentItem.options.map((option) => (
-              <OptionButton
-                key={option}
-                title={option}
-                selected={selected === option}
-                correct={showResult ? option === currentItem.answer : null}
-                onPress={() => handleAnswer(option)}
-              />
-            ))}
-          </>
-        )}
-
-        {currentItem.type === 'mcq_cn_to_ja' && (
-          <>
-            <Text style={styles.prompt}>{currentItem.prompt}</Text>
-            <Text style={styles.subPrompt}>请选择正确的日语单词</Text>
-            {currentItem.options.map((option) => (
-              <OptionButton
-                key={option}
-                title={option}
-                selected={selected === option}
-                correct={showResult ? option === currentItem.answer : null}
-                onPress={() => handleAnswer(option)}
-              />
-            ))}
-          </>
-        )}
-
-        {currentItem.type === 'listening' && (
-          <>
-            <Text style={styles.prompt}>听力选择</Text>
-            <Text style={styles.subPrompt}>点击播放后选择正确答案</Text>
-            <PrimaryButton title="播放发音" onPress={() => speak(currentItem.audioText)} style={styles.speakBtn} />
-            {currentItem.options.map((option) => (
-              <OptionButton
-                key={option}
-                title={option}
-                selected={selected === option}
-                correct={showResult ? option === currentItem.answer : null}
-                onPress={() => handleAnswer(option)}
-              />
-            ))}
-          </>
-        )}
-
-        {currentItem.type === 'spelling' && (
-          <>
-            <Text style={styles.prompt}>{currentItem.prompt}</Text>
-            <Text style={styles.subPrompt}>请输入假名拼写</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="例如：さくら"
-              value={inputValue}
-              onChangeText={setInputValue}
-              editable={!showResult}
-            />
-            <PrimaryButton title="提交" onPress={() => handleAnswer(inputValue)} disabled={showResult} />
-          </>
-        )}
-      </View>
-
-      {showResult && (
-        <View style={styles.resultBox}>
-          <Text style={[styles.resultText, isCorrect ? styles.correct : styles.wrong]}>
-            {isCorrect ? '回答正确！' : `回答错误，正确答案：${currentItem.answer}`}
-          </Text>
-          <PrimaryButton title={currentIndex + 1 >= items.length ? '查看结果' : '下一题'} onPress={handleNext} />
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitle}>第 {stageIndex} 关</Text>
+          </View>
+          <View style={styles.headerBadge}>
+            <Text style={styles.headerBadgeText}>{progressText}</Text>
+          </View>
         </View>
-      )}
+
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+        </View>
+
+        <View style={styles.card}>
+          {(currentItem.type === 'mcq_ja_to_cn' || currentItem.type === 'mcq_cn_to_ja') && (
+            <>
+              <Text style={styles.prompt}>{currentItem.prompt}</Text>
+              <Text style={styles.subPrompt}>
+                {currentItem.type === 'mcq_ja_to_cn' ? `请选择正确的${meaningLabel}释义` : '请选择正确的日语单词'}
+              </Text>
+            </>
+          )}
+
+          {currentItem.type === 'listening' && (
+            <>
+              <Text style={styles.prompt}>听力选择</Text>
+              <Text style={styles.subPrompt}>点击播放发音后在下方选择正确答案</Text>
+              <PrimaryButton
+                title="播放发音"
+                onPress={() => speak(currentItem.audioText)}
+                style={styles.speakButton}
+              />
+            </>
+          )}
+
+          {currentItem.type === 'spelling' && (
+            <>
+              <Text style={styles.prompt}>{currentItem.prompt}</Text>
+              <Text style={styles.subPrompt}>请输入假名拼写</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="例如：さくら"
+                value={inputValue}
+                onChangeText={setInputValue}
+                editable={!showResult}
+              />
+            </>
+          )}
+
+          {showResult && (
+            <View style={styles.resultInline}>
+              <Text style={[styles.resultText, isCorrect ? styles.correct : styles.wrong]}>
+                {isCorrect ? '回答正确！' : `回答错误，正确答案：${currentItem.answer}`}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      <View style={styles.actions}>
+        {isOptionQuiz && !showResult && (
+          <View style={styles.optionList}>
+            {currentItem.options.map((option) => (
+              <OptionButton
+                key={option}
+                title={option}
+                selected={selected === option}
+                correct={showResult ? option === currentItem.answer : null}
+                onPress={() => handleAnswer(option)}
+              />
+            ))}
+          </View>
+        )}
+
+        {currentItem.type === 'spelling' && !showResult && (
+          <PrimaryButton
+            title="提交"
+            onPress={() => handleAnswer(inputValue)}
+            style={[styles.actionButton, styles.buttonSpacing]}
+          />
+        )}
+
+        {showResult && isOptionQuiz && answerWord ? (
+          <View style={styles.answerCard}>
+            <Text style={styles.answerLabel}>正确答案</Text>
+            <View style={styles.answerHeader}>
+              <View style={styles.answerHeadText}>
+                <Text style={styles.answerWord}>{answerWord.kanji ?? answerWord.kana}</Text>
+                {answerWord.kanji ? <Text style={styles.answerReading}>{answerWord.kana}</Text> : null}
+              </View>
+              {(() => {
+                const metaItems: string[] = [];
+                const posText = (answerWord.pos ?? '').trim();
+                const pitchText = (answerWord.pitch ?? '').trim();
+                if (posText) metaItems.push(posText);
+                if (pitchText) metaItems.push(pitchText);
+                if (!metaItems.length) return null;
+                return (
+                  <View style={styles.answerMetaRow}>
+                    {metaItems.map((item, index) => (
+                      <View key={`${item}-${index}`} style={[styles.answerMetaChip, index > 0 ? styles.answerMetaGap : null]}>
+                        <Text style={styles.answerMetaText}>{item}</Text>
+                      </View>
+                    ))}
+                  </View>
+                );
+              })()}
+            </View>
+            <Text style={styles.answerMeaning}>{getMeaning(answerWord, settings.meaning_language)}</Text>
+            {(() => {
+              const example = answerWord.examples?.[0];
+              const exampleJa = stripBoldTags((example?.ja_furigana ?? example?.ja ?? '').trim());
+              const exampleCn = (example?.zh_cn ?? '').trim();
+              if (!exampleJa && !exampleCn) return null;
+              return (
+                <View style={styles.answerExample}>
+                  {exampleJa ? <Text style={styles.answerExampleJa}>{exampleJa}</Text> : null}
+                  {exampleCn ? <Text style={styles.answerExampleCn}>{exampleCn}</Text> : null}
+                </View>
+              );
+            })()}
+          </View>
+        ) : null}
+
+        {showResult && isOptionQuiz && !answerWord ? (
+          <View style={styles.answerFallback}>
+            <Text style={styles.answerLabel}>正确答案</Text>
+            <Text style={styles.answerText}>{currentItem.answer}</Text>
+          </View>
+        ) : null}
+
+        {showResult && (
+          <PrimaryButton
+            title={currentIndex + 1 >= items.length ? '查看结果' : '下一题'}
+            onPress={handleNext}
+            style={styles.actionButton}
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -228,6 +311,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     padding: spacing.m,
   },
+  content: {
+    flex: 1,
+  },
   header: {
     marginBottom: spacing.m,
     flexDirection: 'row',
@@ -241,6 +327,30 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     color: colors.muted,
+  },
+  headerBadge: {
+    backgroundColor: '#e0f2fe',
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+  },
+  headerBadgeText: {
+    color: '#0369a1',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  progressTrack: {
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: colors.border,
+    overflow: 'hidden',
+    marginBottom: spacing.m,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
   },
   card: {
     backgroundColor: colors.card,
@@ -266,21 +376,24 @@ const styles = StyleSheet.create({
     padding: spacing.m,
     marginBottom: spacing.m,
     fontSize: 16,
+    backgroundColor: '#fff',
   },
-  speakBtn: {
+  speakButton: {
+    width: '100%',
+    minHeight: 44,
+    justifyContent: 'center',
     marginBottom: spacing.m,
   },
-  resultBox: {
+  resultInline: {
     marginTop: spacing.m,
-    backgroundColor: colors.card,
-    borderRadius: radius.l,
-    padding: spacing.m,
+    padding: spacing.s,
+    borderRadius: radius.m,
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
   },
   resultText: {
-    marginBottom: spacing.m,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   correct: {
@@ -288,5 +401,112 @@ const styles = StyleSheet.create({
   },
   wrong: {
     color: colors.danger,
+  },
+  actions: {
+    marginTop: 'auto',
+    paddingTop: spacing.m,
+    paddingBottom: spacing.m,
+    borderTopWidth: 1,
+    borderColor: colors.border,
+  },
+  optionList: {
+    marginBottom: spacing.s,
+  },
+  answerCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.m,
+    padding: spacing.m,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.s,
+  },
+  answerFallback: {
+    backgroundColor: colors.card,
+    borderRadius: radius.m,
+    padding: spacing.m,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.s,
+  },
+  answerLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    marginBottom: spacing.xs,
+  },
+  answerHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: spacing.s,
+  },
+  answerHeadText: {
+    flex: 1,
+    paddingRight: spacing.s,
+  },
+  answerWord: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  answerReading: {
+    marginTop: spacing.xs,
+    color: colors.muted,
+  },
+  answerMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    maxWidth: '45%',
+  },
+  answerMetaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.s,
+    paddingVertical: 2,
+    borderRadius: radius.s,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  answerMetaGap: {
+    marginLeft: spacing.xs,
+  },
+  answerMetaText: {
+    fontSize: 11,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  answerMeaning: {
+    color: colors.text,
+    marginBottom: spacing.s,
+  },
+  answerExample: {
+    padding: spacing.s,
+    borderRadius: radius.m,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: '#bfdbfe',
+  },
+  answerExampleJa: {
+    color: '#475569',
+  },
+  answerExampleCn: {
+    marginTop: spacing.s,
+    color: '#64748b',
+  },
+  answerText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  actionButton: {
+    width: '100%',
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+  buttonSpacing: {
+    marginBottom: spacing.s,
   },
 });
