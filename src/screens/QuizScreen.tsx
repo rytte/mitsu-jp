@@ -1,6 +1,6 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Speech from 'expo-speech';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
@@ -18,9 +18,217 @@ import { generateQuizItems } from '../utils/quiz';
 
 type Props = NativeStackScreenProps<LearnStackParamList, 'Quiz'>;
 
+type RomajiMap = Record<string, string>;
+
+const ROMAJI_MAP: RomajiMap = {
+  a: 'あ',
+  i: 'い',
+  u: 'う',
+  e: 'え',
+  o: 'お',
+  ka: 'か',
+  ki: 'き',
+  ku: 'く',
+  ke: 'け',
+  ko: 'こ',
+  sa: 'さ',
+  shi: 'し',
+  si: 'し',
+  su: 'す',
+  se: 'せ',
+  so: 'そ',
+  ta: 'た',
+  chi: 'ち',
+  ti: 'ち',
+  tsu: 'つ',
+  tu: 'つ',
+  te: 'て',
+  to: 'と',
+  na: 'な',
+  ni: 'に',
+  nu: 'ぬ',
+  ne: 'ね',
+  no: 'の',
+  ha: 'は',
+  hi: 'ひ',
+  fu: 'ふ',
+  hu: 'ふ',
+  he: 'へ',
+  ho: 'ほ',
+  ma: 'ま',
+  mi: 'み',
+  mu: 'む',
+  me: 'め',
+  mo: 'も',
+  ya: 'や',
+  yu: 'ゆ',
+  yo: 'よ',
+  ra: 'ら',
+  ri: 'り',
+  ru: 'る',
+  re: 'れ',
+  ro: 'ろ',
+  wa: 'わ',
+  wo: 'を',
+  ga: 'が',
+  gi: 'ぎ',
+  gu: 'ぐ',
+  ge: 'げ',
+  go: 'ご',
+  za: 'ざ',
+  ji: 'じ',
+  zi: 'じ',
+  zu: 'ず',
+  ze: 'ぜ',
+  zo: 'ぞ',
+  da: 'だ',
+  di: 'ぢ',
+  du: 'づ',
+  de: 'で',
+  do: 'ど',
+  ba: 'ば',
+  bi: 'び',
+  bu: 'ぶ',
+  be: 'べ',
+  bo: 'ぼ',
+  pa: 'ぱ',
+  pi: 'ぴ',
+  pu: 'ぷ',
+  pe: 'ぺ',
+  po: 'ぽ',
+  kya: 'きゃ',
+  kyu: 'きゅ',
+  kyo: 'きょ',
+  sha: 'しゃ',
+  sya: 'しゃ',
+  shu: 'しゅ',
+  syu: 'しゅ',
+  sho: 'しょ',
+  syo: 'しょ',
+  cha: 'ちゃ',
+  cya: 'ちゃ',
+  tya: 'ちゃ',
+  chu: 'ちゅ',
+  cyu: 'ちゅ',
+  tyu: 'ちゅ',
+  cho: 'ちょ',
+  cyo: 'ちょ',
+  tyo: 'ちょ',
+  nya: 'にゃ',
+  nyu: 'にゅ',
+  nyo: 'にょ',
+  hya: 'ひゃ',
+  hyu: 'ひゅ',
+  hyo: 'ひょ',
+  mya: 'みゃ',
+  myu: 'みゅ',
+  myo: 'みょ',
+  rya: 'りゃ',
+  ryu: 'りゅ',
+  ryo: 'りょ',
+  gya: 'ぎゃ',
+  gyu: 'ぎゅ',
+  gyo: 'ぎょ',
+  ja: 'じゃ',
+  ju: 'じゅ',
+  jo: 'じょ',
+  bya: 'びゃ',
+  byu: 'びゅ',
+  byo: 'びょ',
+  pya: 'ぴゃ',
+  pyu: 'ぴゅ',
+  pyo: 'ぴょ',
+  fa: 'ふぁ',
+  fi: 'ふぃ',
+  fe: 'ふぇ',
+  fo: 'ふぉ',
+  fyu: 'ふゅ',
+  va: 'ゔぁ',
+  vi: 'ゔぃ',
+  vu: 'ゔ',
+  ve: 'ゔぇ',
+  vo: 'ゔぉ',
+  la: 'ぁ',
+  li: 'ぃ',
+  lu: 'ぅ',
+  le: 'ぇ',
+  lo: 'ぉ',
+  xa: 'ぁ',
+  xi: 'ぃ',
+  xu: 'ぅ',
+  xe: 'ぇ',
+  xo: 'ぉ',
+  lya: 'ゃ',
+  lyu: 'ゅ',
+  lyo: 'ょ',
+  xya: 'ゃ',
+  xyu: 'ゅ',
+  xyo: 'ょ',
+  ltu: 'っ',
+  xtu: 'っ',
+  ltsu: 'っ',
+  xtsu: 'っ',
+};
+
+const ROMAJI_PREFIXES = new Set<string>(
+  Object.keys(ROMAJI_MAP).flatMap((key) => Array.from({ length: key.length - 1 }, (_, i) => key.slice(0, i + 1)))
+);
+
+const VOWELS = new Set(['a', 'i', 'u', 'e', 'o']);
+const MAX_ROMAJI = 4;
+
+const ROMAJI_ROWS = [
+  ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+  ['', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ''],
+  ['—', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '⌫'],
+];
+
 function stripBoldTags(text: string) {
   if (!text) return '';
   return text.replace(/<\/?b>/gi, '');
+}
+
+function isConsonant(letter: string) {
+  return letter >= 'a' && letter <= 'z' && !VOWELS.has(letter);
+}
+
+function consumeRomaji(buffer: string) {
+  let rest = buffer;
+  let output = '';
+
+  while (rest.length > 0) {
+    if (rest.length >= 2 && rest[0] === rest[1] && isConsonant(rest[0]) && rest[0] !== 'n') {
+      output += 'っ';
+      rest = rest.slice(1);
+      continue;
+    }
+
+    if (rest.startsWith('nn')) {
+      output += 'ん';
+      rest = rest.slice(2);
+      continue;
+    }
+
+    let matched = false;
+    for (let len = Math.min(MAX_ROMAJI, rest.length); len >= 1; len -= 1) {
+      const chunk = rest.slice(0, len);
+      const kana = ROMAJI_MAP[chunk];
+      if (kana) {
+        output += kana;
+        rest = rest.slice(len);
+        matched = true;
+        break;
+      }
+    }
+
+    if (matched) continue;
+    if (ROMAJI_PREFIXES.has(rest)) break;
+
+    output += rest[0];
+    rest = rest.slice(1);
+  }
+
+  return { output, buffer: rest };
 }
 
 export default function QuizScreen({ navigation, route }: Props) {
@@ -36,6 +244,7 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
   const [wordMap, setWordMap] = useState<Record<string, Word>>({});
+  const [romajiBuffer, setRomajiBuffer] = useState('');
 
   const currentItem = items[currentIndex];
   const meaningLabel = getMeaningLabel(settings.meaning_language);
@@ -86,6 +295,8 @@ export default function QuizScreen({ navigation, route }: Props) {
     return Math.round(((currentIndex + 1) / items.length) * 100);
   }, [currentIndex, items.length]);
 
+  const displayInputValue = useMemo(() => `${inputValue}${romajiBuffer}`, [inputValue, romajiBuffer]);
+
   const isOptionQuiz =
     currentItem?.type === 'mcq_ja_to_cn' ||
     currentItem?.type === 'mcq_cn_to_ja' ||
@@ -97,6 +308,56 @@ export default function QuizScreen({ navigation, route }: Props) {
       language: 'ja-JP',
       rate: settings.tts_rate,
     });
+  };
+
+  const commitRomajiBuffer = () => {
+    if (!romajiBuffer) return '';
+    let extra = '';
+    const consumed = consumeRomaji(romajiBuffer);
+    extra += consumed.output;
+    const remaining = consumed.buffer;
+    if (extra) {
+      setInputValue((prev) => prev + extra);
+    }
+    setRomajiBuffer(remaining);
+    return extra;
+  };
+
+  const appendRomaji = (letter: string) => {
+    if (showResult) return;
+    setRomajiBuffer((prevBuffer) => {
+      const combined = prevBuffer + letter;
+      const consumed = consumeRomaji(combined);
+      if (consumed.output) {
+        setInputValue((prev) => prev + consumed.output);
+      }
+      return consumed.buffer;
+    });
+  };
+
+  const handleLongVowel = () => {
+    if (showResult) return;
+    commitRomajiBuffer();
+    setInputValue((prev) => prev + 'ー');
+  };
+
+  const handleBackspace = () => {
+    if (showResult) return;
+    setRomajiBuffer((prev) => {
+      if (prev.length > 0) return prev.slice(0, -1);
+      setInputValue((value) => value.slice(0, -1));
+      return prev;
+    });
+  };
+
+  const handleSubmitSpelling = () => {
+    const consumed = consumeRomaji(romajiBuffer);
+    const finalValue = `${inputValue}${consumed.output}${consumed.buffer}`;
+    if (consumed.output || consumed.buffer) {
+      setInputValue(finalValue);
+    }
+    setRomajiBuffer('');
+    handleAnswer(finalValue);
   };
 
   const handleAnswer = async (answer: string) => {
@@ -128,6 +389,7 @@ export default function QuizScreen({ navigation, route }: Props) {
     setCurrentIndex((prev) => prev + 1);
     setSelected(null);
     setInputValue('');
+    setRomajiBuffer('');
     setShowResult(false);
     setIsCorrect(null);
   };
@@ -190,13 +452,14 @@ export default function QuizScreen({ navigation, route }: Props) {
           {currentItem.type === 'spelling' && (
             <>
               <Text style={styles.prompt}>{currentItem.prompt}</Text>
-              <Text style={styles.subPrompt}>请输入假名拼写</Text>
+              <Text style={styles.subPrompt}>请输入假名拼写（罗马音输入）</Text>
               <TextInput
                 style={styles.input}
-                placeholder=""
-                value={inputValue}
-                onChangeText={setInputValue}
-                editable={!showResult}
+                placeholder="点击下方键盘输入罗马音"
+                value={displayInputValue}
+                editable={false}
+                showSoftInputOnFocus={false}
+                caretHidden
               />
             </>
           )}
@@ -227,11 +490,59 @@ export default function QuizScreen({ navigation, route }: Props) {
         )}
 
         {currentItem.type === 'spelling' && !showResult && (
-          <PrimaryButton
-            title="提交"
-            onPress={() => handleAnswer(inputValue)}
-            style={[styles.actionButton, styles.buttonSpacing]}
-          />
+          <>
+            <View style={styles.romajiGrid}>
+              {ROMAJI_ROWS.map((row, rowIndex) => (
+                <View key={`row-${rowIndex}`} style={styles.romajiRow}>
+                  {row.map((letter, index) => {
+                    const isLast = index === row.length - 1;
+                    if (!letter) {
+                      return (
+                        <View
+                          key={`spacer-${rowIndex}-${index}`}
+                          style={[styles.romajiKeySpacer, !isLast ? styles.romajiKeyGap : null]}
+                        />
+                      );
+                    }
+
+                    const handlePress = () => {
+                      if (letter === '—') {
+                        handleLongVowel();
+                        return;
+                      }
+                      if (letter === '⌫') {
+                        handleBackspace();
+                        return;
+                      }
+                      appendRomaji(letter);
+                    };
+
+                    return (
+                      <Pressable
+                        key={`${letter}-${rowIndex}-${index}`}
+                        onPress={handlePress}
+                        style={({ pressed }) => [
+                          styles.romajiKey,
+                          letter === '⌫' ? styles.romajiKeyWide : null,
+                          letter === '—' ? styles.romajiKeyWide : null,
+                          !isLast ? styles.romajiKeyGap : null,
+                          pressed ? styles.romajiKeyPressed : null,
+                        ]}
+                      >
+                        <Text style={styles.romajiKeyText}>{letter}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+
+            <PrimaryButton
+              title="提交"
+              onPress={handleSubmitSpelling}
+              style={[styles.actionButton, styles.buttonSpacing]}
+            />
+          </>
         )}
 
         {showResult && isOptionQuiz && answerWord ? (
@@ -405,7 +716,7 @@ const styles = StyleSheet.create({
   actions: {
     marginTop: 'auto',
     paddingTop: spacing.m,
-    paddingBottom: spacing.m,
+    paddingBottom: spacing.s,
     borderTopWidth: 1,
     borderColor: colors.border,
   },
@@ -499,12 +810,48 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  romajiGrid: {
+    marginBottom: spacing.s,
+  },
+  romajiRow: {
+    flexDirection: 'row',
+    marginBottom: spacing.s,
+  },
+  romajiKey: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.m,
+    minHeight: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 2,
+  },
+  romajiKeyPressed: {
+    borderColor: colors.primary,
+  },
+  romajiKeyText: {
+    fontSize: 17,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  romajiKeyGap: {
+    marginRight: Math.max(3, Math.floor(spacing.xs / 2)),
+  },
+  romajiKeySpacer: {
+    flex: 0.5,
+    minHeight: 50,
+  },
+  romajiKeyWide: {
+    flex: 1.2,
+  },
   actionButton: {
     width: '100%',
     minHeight: 48,
     justifyContent: 'center',
   },
   buttonSpacing: {
-    marginBottom: spacing.s,
+    marginBottom: spacing.xs,
   },
 });
