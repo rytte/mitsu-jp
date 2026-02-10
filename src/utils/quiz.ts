@@ -6,6 +6,14 @@ function displayJa(word: Word) {
   return word.kanji ?? word.kana;
 }
 
+function formatMeaningWithPos(word: Word, meaningLanguage: MeaningLanguage) {
+  const meaning = getMeaning(word, meaningLanguage);
+  const posText = (word.pos ?? '').trim();
+  if (!posText) return meaning;
+  if (!meaning) return `【${posText}】`;
+  return `【${posText}】${meaning}`;
+}
+
 function weightedPick(mix: QuizMix): 'mcq' | 'spelling' | 'listening' {
   const r = Math.random();
   if (r < mix.mcq) return 'mcq';
@@ -53,13 +61,13 @@ export function generateQuizItems(params: {
   const effectiveMix = buildEqualMix(mcqEnabled, spellingEnabled, listeningEnabled);
   const items: QuizItem[] = [];
   const shuffledWords = shuffle([...stageWords]);
-  const meanings = stageWords.map((item) => getMeaning(item, meaningLanguage));
+  const meanings = stageWords.map((item) => formatMeaningWithPos(item, meaningLanguage));
   const jaWords = stageWords.map((item) => displayJa(item));
 
   for (let i = 0; i < shuffledWords.length; i += 1) {
     const word = shuffledWords[i];
     const type = weightedPick(effectiveMix);
-    const meaning = getMeaning(word, meaningLanguage);
+    const meaning = formatMeaningWithPos(word, meaningLanguage);
 
     if (type === 'mcq') {
       const direction = pickMcqDirection(mcqModes);
