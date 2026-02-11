@@ -598,14 +598,26 @@ export default function QuizScreen({ navigation, route }: Props) {
                           pressed ? styles.romajiKeyPressed : null,
                         ]}
                       >
-                        <Text
-                          style={[
-                            styles.romajiKeyText,
-                            isFunctionKey ? styles.romajiKeyTextFunction : styles.romajiKeyTextLetter,
-                          ]}
-                        >
-                          {letter}
-                        </Text>
+                        {({ pressed }) => (
+                          <>
+                            {pressed ? (
+                              <View pointerEvents="none" style={styles.keyBubbleWrap}>
+                                <View style={styles.keyBubble}>
+                                  <Text style={styles.keyBubbleText}>{letter}</Text>
+                                  <View style={styles.keyBubbleCaret} />
+                                </View>
+                              </View>
+                            ) : null}
+                            <Text
+                              style={[
+                                styles.romajiKeyText,
+                                isFunctionKey ? styles.romajiKeyTextFunction : styles.romajiKeyTextLetter,
+                              ]}
+                            >
+                              {letter}
+                            </Text>
+                          </>
+                        )}
                       </Pressable>
                     );
                   })}
@@ -958,6 +970,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 2,
+    position: 'relative',
+    overflow: 'visible',
   },
   romajiKeyLetter: {
     backgroundColor: '#ffffff',
@@ -990,6 +1004,46 @@ const styles = StyleSheet.create({
   },
   romajiKeyWide: {
     flex: 1.2,
+  },
+  keyBubbleWrap: {
+    position: 'absolute',
+    top: -90,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  keyBubble: {
+    minWidth: 48,
+    height: 80,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  keyBubbleText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  keyBubbleCaret: {
+    position: 'absolute',
+    bottom: -6,
+    width: 10,
+    height: 10,
+    backgroundColor: '#ffffff',
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#e2e8f0',
+    transform: [{ rotate: '45deg' }],
   },
   actionButton: {
     width: '100%',
