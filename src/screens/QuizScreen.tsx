@@ -268,6 +268,7 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [wrongCount, setWrongCount] = useState(0);
   const [wordMap, setWordMap] = useState<Record<string, Word>>({});
   const [romajiBuffer, setRomajiBuffer] = useState('');
+  const [activeKeyId, setActiveKeyId] = useState<string | null>(null);
 
   const currentItem = items[currentIndex];
   const meaningLabel = getMeaningLabel(settings.meaning_language);
@@ -307,6 +308,7 @@ export default function QuizScreen({ navigation, route }: Props) {
     settings.quiz_mix,
     stageId,
   ]);
+
 
   const progressText = useMemo(() => {
     if (!items.length) return '';
@@ -583,41 +585,41 @@ export default function QuizScreen({ navigation, route }: Props) {
                       appendRomaji(letter);
                     };
 
+                    const keyId = `${letter}-${rowIndex}-${index}`;
+                    const isActive = activeKeyId === keyId;
                     return (
                       <Pressable
-                        key={`${letter}-${rowIndex}-${index}`}
+                        key={keyId}
+                        onPressIn={() => setActiveKeyId(keyId)}
+                        onPressOut={() => setActiveKeyId((prev) => (prev === keyId ? null : prev))}
                         onPress={handlePress}
                         onLongPress={isBackspace ? handleClearSpelling : undefined}
                         delayLongPress={isBackspace ? 400 : undefined}
-                        style={({ pressed }) => [
+                        style={[
                           styles.romajiKey,
                           isFunctionKey ? styles.romajiKeyFunction : styles.romajiKeyLetter,
                           isBackspace ? styles.romajiKeyWide : null,
                           isLongVowel ? styles.romajiKeyWide : null,
                           !isLast ? styles.romajiKeyGap : null,
-                          pressed ? styles.romajiKeyPressed : null,
+                          isActive ? styles.romajiKeyPressed : null,
                         ]}
                       >
-                        {({ pressed }) => (
-                          <>
-                            {pressed ? (
-                              <View pointerEvents="none" style={styles.keyBubbleWrap}>
-                                <View style={styles.keyBubble}>
-                                  <Text style={styles.keyBubbleText}>{letter}</Text>
-                                  <View style={styles.keyBubbleCaret} />
-                                </View>
-                              </View>
-                            ) : null}
-                            <Text
-                              style={[
-                                styles.romajiKeyText,
-                                isFunctionKey ? styles.romajiKeyTextFunction : styles.romajiKeyTextLetter,
-                              ]}
-                            >
-                              {letter}
-                            </Text>
-                          </>
-                        )}
+                        {isActive ? (
+                          <View pointerEvents="none" style={styles.keyBubbleWrap}>
+                            <View style={styles.keyBubble}>
+                              <Text style={styles.keyBubbleText}>{letter}</Text>
+                              <View style={styles.keyBubbleCaret} />
+                            </View>
+                          </View>
+                        ) : null}
+                        <Text
+                          style={[
+                            styles.romajiKeyText,
+                            isFunctionKey ? styles.romajiKeyTextFunction : styles.romajiKeyTextLetter,
+                          ]}
+                        >
+                          {letter}
+                        </Text>
                       </Pressable>
                     );
                   })}
@@ -965,8 +967,8 @@ const styles = StyleSheet.create({
   romajiKey: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: radius.m,
-    minHeight: 54,
+    borderRadius: radius.s,
+    minHeight: 56,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 2,
@@ -985,7 +987,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   romajiKeyText: {
-    fontSize: 17,
+    fontSize: 20,
   },
   romajiKeyTextLetter: {
     color: colors.text,
@@ -1015,7 +1017,7 @@ const styles = StyleSheet.create({
   },
   keyBubble: {
     minWidth: 48,
-    height: 80,
+    height: 76,
     paddingHorizontal: 8,
     borderRadius: 12,
     backgroundColor: '#ffffff',
@@ -1030,7 +1032,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   keyBubbleText: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
     color: colors.text,
   },
