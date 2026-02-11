@@ -40,6 +40,16 @@ export default function MyScreen({ navigation }: Props) {
   const entries = useMemo(
     () => [
       {
+        key: 'n1-exam',
+        title: '真题练习',
+        subtitle: '选择 N1-N5 题库后开始',
+        icon: 'document-text-outline' as const,
+        accent: '#8b5cf6',
+        accentSoft: '#ede9fe',
+        onPress: () => navigation.navigate('N1ExamQuiz'),
+        visible: true,
+      },
+      {
         key: 'search',
         title: '搜索',
         subtitle: '查词 / 文法',
