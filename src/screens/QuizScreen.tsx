@@ -1,6 +1,7 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
@@ -270,6 +271,7 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [romajiBuffer, setRomajiBuffer] = useState('');
   const [activeKeyId, setActiveKeyId] = useState<string | null>(null);
   const lastAutoPlayedId = useRef<string | null>(null);
+  const correctSoundRef = useRef<Audio.Sound | null>(null);
 
   const currentItem = items[currentIndex];
   const meaningLabel = getMeaningLabel(settings.meaning_language);
@@ -334,6 +336,43 @@ export default function QuizScreen({ navigation, route }: Props) {
       language: 'ja-JP',
       rate: settings.tts_rate,
     });
+  };
+
+  useEffect(() => {
+    let active = true;
+    const loadSound = async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require('../../assets/sfx/correct.wav'),
+          { shouldPlay: false, volume: 1.0, rate: 1.15, shouldCorrectPitch: true }
+        );
+        if (!active) {
+          await sound.unloadAsync();
+          return;
+        }
+        correctSoundRef.current = sound;
+      } catch {
+        // ignore
+      }
+    };
+    loadSound();
+    return () => {
+      active = false;
+      if (correctSoundRef.current) {
+        void correctSoundRef.current.unloadAsync();
+        correctSoundRef.current = null;
+      }
+    };
+  }, []);
+
+  const playCorrectSound = async () => {
+    const sound = correctSoundRef.current;
+    if (!sound) return;
+    try {
+      await sound.replayAsync();
+    } catch {
+      // ignore
+    }
   };
 
   useEffect(() => {
@@ -417,6 +456,7 @@ export default function QuizScreen({ navigation, route }: Props) {
     setShowResult(true);
     if (correct) {
       setCorrectCount((prev) => prev + 1);
+      void playCorrectSound();
     } else {
       setWrongCount((prev) => prev + 1);
       await recordMistake(currentItem.wordId);
