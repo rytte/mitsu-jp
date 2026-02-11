@@ -239,7 +239,7 @@ export default function SettingsScreen() {
           />
           <Text style={styles.toggleText}>英文</Text>
         </View>
-        <Text style={styles.tip}>当中文释义缺失时，自动回退为英文</Text>
+        <Text style={styles.tip}>当英文释义缺失时，自动回退为中文</Text>
       </View>
 
       <View style={styles.section}>

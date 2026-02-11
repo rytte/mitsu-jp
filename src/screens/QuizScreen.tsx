@@ -197,6 +197,24 @@ function isConsonant(letter: string) {
   return letter >= 'a' && letter <= 'z' && !VOWELS.has(letter);
 }
 
+function isKanaChar(char: string) {
+  return /[\u3040-\u30ff]/.test(char);
+}
+
+function splitTrailingRomajiPrefix(value: string) {
+  if (!value) return { base: value, buffer: '' };
+  const lower = value.toLowerCase();
+  const maxLen = Math.min(MAX_ROMAJI - 1, lower.length);
+  for (let len = maxLen; len >= 1; len -= 1) {
+    const suffix = lower.slice(-len);
+    if (!/^[a-z]+$/.test(suffix)) continue;
+    if (ROMAJI_PREFIXES.has(suffix)) {
+      return { base: value.slice(0, value.length - len), buffer: suffix };
+    }
+  }
+  return { base: value, buffer: '' };
+}
+
 function consumeRomaji(buffer: string) {
   let rest = buffer;
   let output = '';
@@ -348,11 +366,21 @@ export default function QuizScreen({ navigation, route }: Props) {
 
   const handleBackspace = () => {
     if (showResult) return;
-    setRomajiBuffer((prev) => {
-      if (prev.length > 0) return prev.slice(0, -1);
-      setInputValue((value) => value.slice(0, -1));
-      return prev;
-    });
+    if (romajiBuffer.length > 0) {
+      setRomajiBuffer(romajiBuffer.slice(0, -1));
+      return;
+    }
+    if (!inputValue) return;
+    const removed = inputValue.slice(-1);
+    let nextInput = inputValue.slice(0, -1);
+    let nextBuffer = '';
+    if (isKanaChar(removed)) {
+      const split = splitTrailingRomajiPrefix(nextInput);
+      nextInput = split.base;
+      nextBuffer = split.buffer;
+    }
+    setInputValue(nextInput);
+    if (nextBuffer) setRomajiBuffer(nextBuffer);
   };
 
   const handleClearSpelling = () => {
