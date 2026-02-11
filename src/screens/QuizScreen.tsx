@@ -324,6 +324,7 @@ export default function QuizScreen({ navigation, route }: Props) {
   }, [currentIndex, items.length]);
 
   const displayInputValue = useMemo(() => `${inputValue}${romajiBuffer}`, [inputValue, romajiBuffer]);
+  const answeredCorrectly = isCorrect === true;
 
   const isOptionQuiz =
     currentItem?.type === 'mcq_ja_to_cn' ||
@@ -553,13 +554,6 @@ export default function QuizScreen({ navigation, route }: Props) {
             </>
           )}
 
-          {showResult && (
-            <View style={styles.resultInline}>
-              <Text style={[styles.resultText, isCorrect ? styles.correct : styles.wrong]}>
-                {isCorrect ? '回答正确！' : `回答错误，正确答案：${currentItem.answer}`}
-              </Text>
-            </View>
-          )}
         </View>
       </View>
 
@@ -679,6 +673,9 @@ export default function QuizScreen({ navigation, route }: Props) {
 
         {showResult && answerWord ? (
           <View style={styles.answerCard}>
+            <Text style={[styles.resultText, answeredCorrectly ? styles.correct : styles.wrong]}>
+              {answeredCorrectly ? '回答正确！' : '回答错误'}
+            </Text>
             <Text style={styles.answerLabel}>正确答案</Text>
             <View style={styles.answerHeader}>
               <View style={styles.answerHeadText}>
@@ -722,6 +719,9 @@ export default function QuizScreen({ navigation, route }: Props) {
 
         {showResult && !answerWord ? (
           <View style={styles.answerFallback}>
+            <Text style={[styles.resultText, answeredCorrectly ? styles.correct : styles.wrong]}>
+              {answeredCorrectly ? '回答正确！' : '回答错误'}
+            </Text>
             <Text style={styles.answerLabel}>正确答案</Text>
             <Text style={styles.answerText}>{currentItem.answer}</Text>
           </View>
@@ -828,17 +828,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.m,
   },
-  resultInline: {
-    marginTop: spacing.m,
-    padding: spacing.s,
-    borderRadius: radius.m,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
   resultText: {
     fontSize: 15,
     fontWeight: '600',
+    marginBottom: spacing.s,
   },
   correct: {
     color: colors.success,
