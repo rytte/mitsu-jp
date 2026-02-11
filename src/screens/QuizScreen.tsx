@@ -1,5 +1,5 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Speech from 'expo-speech';
 import OptionButton from '../components/OptionButton';
@@ -269,6 +269,7 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [wordMap, setWordMap] = useState<Record<string, Word>>({});
   const [romajiBuffer, setRomajiBuffer] = useState('');
   const [activeKeyId, setActiveKeyId] = useState<string | null>(null);
+  const lastAutoPlayedId = useRef<string | null>(null);
 
   const currentItem = items[currentIndex];
   const meaningLabel = getMeaningLabel(settings.meaning_language);
@@ -334,6 +335,13 @@ export default function QuizScreen({ navigation, route }: Props) {
       rate: settings.tts_rate,
     });
   };
+
+  useEffect(() => {
+    if (!currentItem || currentItem.type !== 'listening') return;
+    if (lastAutoPlayedId.current === currentItem.id) return;
+    lastAutoPlayedId.current = currentItem.id;
+    speak(currentItem.audioText);
+  }, [currentItem, settings.tts_rate]);
 
   const commitRomajiBuffer = () => {
     if (!romajiBuffer) return '';
@@ -756,7 +764,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   prompt: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: colors.text,
     marginBottom: spacing.s,
