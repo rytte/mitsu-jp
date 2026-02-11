@@ -9,6 +9,17 @@ type KeigoRow = {
   polite: string;
 };
 
+type GiveRow = {
+  scene: string;
+  plain: string;
+  keigo: string;
+};
+
+type RequestRow = {
+  pattern: string;
+  usage: string;
+};
+
 const ROWS: KeigoRow[] = [
   { plain: '見る', respectful: 'ご覧になる', humble: '拝見する', polite: '見ます' },
   { plain: '行く / 来る', respectful: 'いらっしゃる / おいでになる', humble: '伺う / 参る', polite: '行きます / 来ます' },
@@ -22,6 +33,19 @@ const ROWS: KeigoRow[] = [
   { plain: 'もらう', respectful: 'お受け取りになる', humble: 'いただく', polite: 'もらいます' },
   { plain: '会う', respectful: 'お会いになる', humble: 'お目にかかる', polite: '会います' },
   { plain: '聞く / 尋ねる', respectful: 'お聞きになる / お尋ねになる', humble: '伺う / お聞きする', polite: '聞きます / 尋ねます' },
+];
+
+const GIVE_ROWS: GiveRow[] = [
+  { scene: '我 → 他人', plain: 'あげる', keigo: '差し上げる（谦）' },
+  { scene: '他人 → 我/我方', plain: 'くれる', keigo: 'くださる（尊）' },
+  { scene: '从他人得到', plain: 'もらう', keigo: 'いただく（谦）' },
+];
+
+const REQUEST_ROWS: RequestRow[] = [
+  { pattern: '～をください / ～をちょうだい', usage: '请求对方给东西（ちょうだい较随意）' },
+  { pattern: '～てください / ～てちょうだい', usage: '请求对方做某事（ちょうだい较随意）' },
+  { pattern: '～させてください', usage: '请求许可“让我做…”' },
+  { pattern: '～ないでください', usage: '请求不要做某事' },
 ];
 
 const NOTES: string[] = [
@@ -53,6 +77,44 @@ function KeigoRowItem({ plain, respectful, humble, polite }: KeigoRow) {
   );
 }
 
+function GiveHeaderRow() {
+  return (
+    <View style={[styles.row, styles.headerRow]}>
+      <Text style={[styles.cell, styles.headerText]}>场景</Text>
+      <Text style={[styles.cell, styles.headerText]}>普通形</Text>
+      <Text style={[styles.cell, styles.headerText]}>敬语</Text>
+    </View>
+  );
+}
+
+function GiveRowItem({ scene, plain, keigo }: GiveRow) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.cell}>{scene}</Text>
+      <Text style={styles.cell}>{plain}</Text>
+      <Text style={styles.cell}>{keigo}</Text>
+    </View>
+  );
+}
+
+function RequestHeaderRow() {
+  return (
+    <View style={[styles.row, styles.headerRow]}>
+      <Text style={[styles.cell, styles.headerText]}>表达</Text>
+      <Text style={[styles.cell, styles.headerText]}>用途</Text>
+    </View>
+  );
+}
+
+function RequestRowItem({ pattern, usage }: RequestRow) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.cell}>{pattern}</Text>
+      <Text style={styles.cell}>{usage}</Text>
+    </View>
+  );
+}
+
 export default function KeigoChartScreen() {
   const insets = useSafeAreaInsets();
   return (
@@ -64,6 +126,24 @@ export default function KeigoChartScreen() {
         <HeaderRow />
         {ROWS.map((row) => (
           <KeigoRowItem key={row.plain} {...row} />
+        ))}
+      </View>
+
+      <Text style={styles.sectionTitle}>授受表达</Text>
+      <Text style={styles.sectionSubtitle}>常用的给与 / 接受敬语表达</Text>
+      <View style={[styles.card, styles.sectionCard]}>
+        <GiveHeaderRow />
+        {GIVE_ROWS.map((row) => (
+          <GiveRowItem key={`${row.scene}-${row.plain}`} {...row} />
+        ))}
+      </View>
+
+      <Text style={styles.sectionTitle}>请求表达</Text>
+      <Text style={styles.sectionSubtitle}>常用的请求/许可表达</Text>
+      <View style={[styles.card, styles.sectionCard]}>
+        <RequestHeaderRow />
+        {REQUEST_ROWS.map((row) => (
+          <RequestRowItem key={row.pattern} {...row} />
         ))}
       </View>
 
@@ -98,12 +178,26 @@ const styles = StyleSheet.create({
     marginBottom: spacing.m,
     color: colors.muted,
   },
+  sectionTitle: {
+    marginTop: spacing.m,
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  sectionSubtitle: {
+    marginTop: spacing.xs,
+    marginBottom: spacing.s,
+    color: colors.muted,
+  },
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.l,
     padding: spacing.s,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  sectionCard: {
+    marginBottom: spacing.m,
   },
   row: {
     flexDirection: 'row',
