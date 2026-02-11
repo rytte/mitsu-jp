@@ -46,7 +46,7 @@ export type RootTabParamList = {
 
 export type MyStackParamList = {
   MyHome: undefined;
-  N1ExamQuiz: undefined;
+  ExamQuiz: undefined;
   Search: undefined;
   Mistakes: undefined;
   KanaChart: undefined;

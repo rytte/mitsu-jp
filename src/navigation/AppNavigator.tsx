@@ -16,7 +16,7 @@ import GrammarQuizScreen from '../screens/GrammarQuizScreen';
 import MistakesScreen from '../screens/MistakesScreen';
 import SearchScreen from '../screens/SearchScreen';
 import MyScreen from '../screens/MyScreen';
-import N1ExamQuizScreen from '../screens/N1ExamQuizScreen';
+import ExamQuizScreen from '../screens/ExamQuizScreen';
 import KanaChartScreen from '../screens/KanaChartScreen';
 import VerbConjugationScreen from '../screens/VerbConjugationScreen';
 import KeigoChartScreen from '../screens/KeigoChartScreen';
@@ -99,7 +99,7 @@ function MyStackScreen() {
       }}
     >
       <MyStack.Screen name="MyHome" component={MyScreen} options={{ title: '我的' }} />
-      <MyStack.Screen name="N1ExamQuiz" component={N1ExamQuizScreen} options={{ title: '真题练习' }} />
+      <MyStack.Screen name="ExamQuiz" component={ExamQuizScreen} options={{ title: '真题练习' }} />
       <MyStack.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} />
       <MyStack.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题本' }} />
       <MyStack.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音图' }} />

@@ -46,7 +46,7 @@ export default function MyScreen({ navigation }: Props) {
         icon: 'document-text-outline' as const,
         accent: '#8b5cf6',
         accentSoft: '#ede9fe',
-        onPress: () => navigation.navigate('N1ExamQuiz'),
+        onPress: () => navigation.navigate('ExamQuiz'),
         visible: true,
       },
       {

@@ -1,25 +1,25 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ReactNode, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
-import n1Bank from '../data/JLPT__N1.json';
-import n2Bank from '../data/JLPT__N2.json';
-import n3Bank from '../data/JLPT__N3.json';
-import n4Bank from '../data/JLPT__N4.json';
-import n5Bank from '../data/JLPT__N5.json';
+import n1Bank from '../data/jlpt-n1.json';
+import n2Bank from '../data/jlpt-n2.json';
+import n3Bank from '../data/jlpt-n3.json';
+import n4Bank from '../data/jlpt-n4.json';
+import n5Bank from '../data/jlpt-n5.json';
 import { MyStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { shuffle } from '../utils/random';
 
-type Props = NativeStackScreenProps<MyStackParamList, 'N1ExamQuiz'>;
+type Props = NativeStackScreenProps<MyStackParamList, 'ExamQuiz'>;
 
 type RawExamItem = {
   id?: string;
   question_html?: string;
   options?: string[];
   answer_index?: number;
-  explanation_html?: string;
 };
 
 type N1QuizItem = {
@@ -27,12 +27,11 @@ type N1QuizItem = {
   prompt: string;
   options: string[];
   answer: string;
-  explanationHtml: string;
 };
 
 type BankLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
 
-const SESSION_SIZE = 20;
+const SESSION_SIZE = 10;
 const BANK_LEVELS: BankLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
 const RAW_BANKS: Record<BankLevel, unknown> = {
   N1: n1Bank,
@@ -105,97 +104,6 @@ function normalizePrompt(html: string) {
   return (lines.length ? lines : plain.split('\n').map((line) => line.trim()).filter(Boolean)).join('\n');
 }
 
-function normalizeExplanationHtml(html: string) {
-  return html
-    .replace(/\[sound:[^\]]+\]/gi, '')
-    .replace(/<details[^>]*>/gi, '')
-    .replace(/<\/\s*details\s*>/gi, '<br>')
-    .replace(/<summary[^>]*>/gi, '')
-    .replace(/<\/\s*summary\s*>/gi, '<br>')
-    .replace(/<p[^>]*>/gi, '')
-    .replace(/<\/\s*p\s*>/gi, '<br>')
-    .replace(/<div[^>]*>/gi, '')
-    .replace(/<\/\s*div\s*>/gi, '<br>')
-    .replace(/<li[^>]*>/gi, '• ')
-    .replace(/<\/\s*li\s*>/gi, '<br>')
-    .replace(/<font[^>]*>/gi, '')
-    .replace(/<\/\s*font\s*>/gi, '')
-    .replace(/<span[^>]*>/gi, '')
-    .replace(/<\/\s*span\s*>/gi, '')
-    .replace(/<a[^>]*>/gi, '')
-    .replace(/<\/\s*a\s*>/gi, '')
-    .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
-    .trim();
-}
-
-function renderLimitedHtml(
-  html: string,
-  boldStyle: TextStyle,
-  underlineStyle: TextStyle,
-  strikeStyle: TextStyle
-) {
-  if (!html) return '';
-  const normalized = html
-    .replace(/<\s*strong\s*>/gi, '<b>')
-    .replace(/<\s*\/\s*strong\s*>/gi, '</b>')
-    .replace(/<\s*em\s*>/gi, '<u>')
-    .replace(/<\s*\/\s*em\s*>/gi, '</u>')
-    .replace(/<\s*(b|u|s)\s*\/>/gi, '');
-  const parts = normalized.split(/(<\/?b>|<\/?u>|<\/?s>|<br\s*\/?>)/gi);
-  let bold = false;
-  let underline = false;
-  let strike = false;
-  let key = 0;
-  const nodes: ReactNode[] = [];
-
-  for (const part of parts) {
-    if (!part) continue;
-    const lower = part.toLowerCase();
-    if (lower === '<b>') {
-      bold = true;
-      continue;
-    }
-    if (lower === '</b>') {
-      bold = false;
-      continue;
-    }
-    if (lower === '<u>') {
-      underline = true;
-      continue;
-    }
-    if (lower === '</u>') {
-      underline = false;
-      continue;
-    }
-    if (lower === '<s>') {
-      strike = true;
-      continue;
-    }
-    if (lower === '</s>') {
-      strike = false;
-      continue;
-    }
-    if (lower.startsWith('<br')) {
-      nodes.push('\n');
-      continue;
-    }
-
-    const text = decodeHtmlEntities(part.replace(/<[^>]+>/g, ''));
-    if (!text) continue;
-    const inlineStyles = [bold ? boldStyle : null, underline ? underlineStyle : null, strike ? strikeStyle : null].filter(
-      Boolean
-    );
-    nodes.push(
-      <Text key={`html-${key}`} style={inlineStyles.length ? inlineStyles : undefined}>
-        {text}
-      </Text>
-    );
-    key += 1;
-  }
-
-  return nodes.length ? nodes : decodeHtmlEntities(normalized.replace(/<[^>]+>/g, ''));
-}
-
 function resolveRawItems(raw: unknown): RawExamItem[] {
   return Array.isArray(raw)
     ? (raw as RawExamItem[])
@@ -223,7 +131,6 @@ function buildQuestionBank(level: BankLevel) {
       prompt,
       options,
       answer,
-      explanationHtml: normalizeExplanationHtml(String(item.explanation_html ?? '')),
     });
   }
 
@@ -237,7 +144,7 @@ function getQuestionBank(level: BankLevel) {
   return BANK_CACHE[level] ?? [];
 }
 
-export default function N1ExamQuizScreen({ navigation }: Props) {
+export default function ExamQuizScreen({ navigation }: Props) {
   const [selectedLevel, setSelectedLevel] = useState<BankLevel | null>(null);
   const [items, setItems] = useState<N1QuizItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -324,6 +231,7 @@ export default function N1ExamQuizScreen({ navigation }: Props) {
         {BANK_LEVELS.map((level) => {
           const count = getQuestionBank(level).length;
           const disabled = count === 0;
+          const drawCount = Math.min(SESSION_SIZE, count);
           return (
             <Pressable
               key={level}
@@ -335,11 +243,27 @@ export default function N1ExamQuizScreen({ navigation }: Props) {
                 disabled ? styles.bankCardDisabled : null,
               ]}
             >
-              <View>
-                <Text style={styles.bankTitle}>{level} 真题题库</Text>
-                <Text style={styles.bankSubtitle}>共 {count} 题，每次抽取 {Math.min(SESSION_SIZE, count)} 题</Text>
+              <View style={styles.bankMain}>
+                <View style={styles.bankTopRow}>
+                  <View style={styles.bankBadge}>
+                    <Text style={styles.bankBadgeText}>{level}</Text>
+                  </View>
+                  <Text style={styles.bankTitle}>真题题库</Text>
+                </View>
+                <View style={styles.bankMetaRow}>
+                  <View style={styles.bankMetaChip}>
+                    <Text style={styles.bankMetaText}>共 {count} 题</Text>
+                  </View>
+                  <View style={styles.bankMetaChip}>
+                    <Text style={styles.bankMetaText}>每组 {drawCount} 题</Text>
+                  </View>
+                </View>
               </View>
-              <Text style={styles.bankAction}>{disabled ? '暂无题目' : '开始'}</Text>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.muted}
+              />
             </Pressable>
           );
         })}
@@ -388,17 +312,6 @@ export default function N1ExamQuizScreen({ navigation }: Props) {
           <Text style={[styles.resultText, isCorrect ? styles.correct : styles.wrong]}>
             {isCorrect ? '回答正确！' : `回答错误，正确答案：${currentItem.answer}`}
           </Text>
-          {currentItem.explanationHtml ? (
-            <Text style={styles.explanation}>
-              解析：
-              {renderLimitedHtml(
-                currentItem.explanationHtml,
-                styles.inlineBold,
-                styles.inlineUnderline,
-                styles.inlineStrike
-              )}
-            </Text>
-          ) : null}
           <PrimaryButton title="下一题" onPress={handleNext} style={styles.nextButton} />
         </View>
       ) : null}
@@ -462,10 +375,35 @@ const styles = StyleSheet.create({
     padding: spacing.m,
     borderWidth: 1,
     borderColor: colors.border,
+    borderLeftColor: colors.primary,
+    borderLeftWidth: 5,
     marginBottom: spacing.s,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  bankMain: {
+    flex: 1,
+    marginRight: spacing.s,
+  },
+  bankTopRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: spacing.xs,
+    gap: spacing.xs,
+  },
+  bankBadge: {
+    backgroundColor: '#eef2ff',
+    borderColor: '#c7d2fe',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 2,
+  },
+  bankBadgeText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
   },
   bankCardPressed: {
     opacity: 0.9,
@@ -475,17 +413,31 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   bankTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: colors.text,
   },
   bankSubtitle: {
     color: colors.muted,
     marginTop: spacing.xs,
+    marginBottom: spacing.s,
+    fontSize: 12,
   },
-  bankAction: {
-    color: colors.primary,
-    fontWeight: '700',
+  bankMetaRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  bankMetaChip: {
+    backgroundColor: '#f8fafc',
+    borderColor: '#e2e8f0',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 3,
+  },
+  bankMetaText: {
+    color: colors.muted,
+    fontSize: 12,
   },
   card: {
     backgroundColor: colors.card,
@@ -518,20 +470,6 @@ const styles = StyleSheet.create({
   },
   wrong: {
     color: colors.danger,
-  },
-  explanation: {
-    marginTop: spacing.s,
-    color: colors.muted,
-    lineHeight: 22,
-  },
-  inlineBold: {
-    fontWeight: '700',
-  },
-  inlineUnderline: {
-    textDecorationLine: 'underline',
-  },
-  inlineStrike: {
-    textDecorationLine: 'line-through',
   },
   nextButton: {
     marginTop: spacing.m,
