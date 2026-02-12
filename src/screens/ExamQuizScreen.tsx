@@ -296,9 +296,9 @@ export default function ExamQuizScreen({ navigation }: Props) {
 
       <View style={styles.card}>
         <Text style={styles.prompt}>{currentItem.prompt}</Text>
-        {currentItem.options.map((option) => (
+        {currentItem.options.map((option, optionIndex) => (
           <OptionButton
-            key={`${currentItem.id}-${option}`}
+            key={`${currentItem.id}-${optionIndex}`}
             title={option}
             selected={selected === option}
             correct={showResult ? option === currentItem.answer : null}
