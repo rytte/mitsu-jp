@@ -3,7 +3,7 @@ import n2Bank from '../../data/jlpt-n2.json';
 import n3Bank from '../../data/jlpt-n3.json';
 import n4Bank from '../../data/jlpt-n4.json';
 import n5Bank from '../../data/jlpt-n5.json';
-import { BankLevel, ExamQuizItem, RawExamItem } from '../../types';
+import { BankLevel, ExamQuestionType, ExamQuizItem, RawExamItem } from '../../types';
 
 const ENTITY_MAP: Record<string, string> = {
   amp: '&',
@@ -15,7 +15,10 @@ const ENTITY_MAP: Record<string, string> = {
 };
 const GENERIC_BLANK = '____';
 const TARGET_SLOT_TOKEN = '__TARGET_SLOT__';
-const TARGET_SLOT_LABEL = '【目标空】';
+const TARGET_SLOT_LABEL = '__★__';
+const CONVERSION_SLOT_PREFIX = '【';
+const CONVERSION_SLOT_SUFFIX = '】';
+const QUESTION_TYPES: ExamQuestionType[] = ['reorder_fill', 'single_blank_fill', 'kana_kanji_conversion'];
 
 const RAW_BANKS: Record<BankLevel, unknown> = {
   N1: n1Bank,
@@ -59,9 +62,53 @@ function htmlToPlainText(html: string) {
     .trim();
 }
 
-function maskPromptAnswer(html: string) {
+function isParenthesizedTerm(text: string) {
+  return /^[(（][^()（）]+[)）]$/.test(text.trim());
+}
+
+function extractParenthesizedContent(text: string) {
+  return text.trim().replace(/^[(（]\s*|\s*[)）]$/g, '');
+}
+
+function formatConversionSlot(text: string) {
+  const content = extractParenthesizedContent(text);
+  if (!content) return `${CONVERSION_SLOT_PREFIX}${CONVERSION_SLOT_SUFFIX}`;
+  return `${CONVERSION_SLOT_PREFIX}${content}${CONVERSION_SLOT_SUFFIX}`;
+}
+
+function detectQuestionTypeFromHtml(html: string): ExamQuestionType {
+  const blankCount = (html.match(/_{3,}/g) ?? []).length;
+  if (blankCount >= 2) return 'reorder_fill';
+
+  const fontRegex = /<font[^>]*#ef3461[^>]*>([\s\S]*?)<\/font>/gi;
+  let match: RegExpExecArray | null = null;
+  while ((match = fontRegex.exec(html))) {
+    const innerPlain = htmlToPlainText(match[1])
+      .replace(/\{\{c\d+::([\s\S]*?)\}\}/gi, '$1')
+      .trim();
+    if (isParenthesizedTerm(innerPlain)) {
+      return 'kana_kanji_conversion';
+    }
+  }
+
+  return 'single_blank_fill';
+}
+
+function normalizeQuestionType(rawType: unknown, html: string): ExamQuestionType {
+  const raw = String(rawType ?? '').trim() as ExamQuestionType;
+  if (QUESTION_TYPES.includes(raw)) {
+    return raw;
+  }
+  return detectQuestionTypeFromHtml(html);
+}
+
+function maskPromptAnswer(html: string, questionType: ExamQuestionType) {
+  const shouldShowTargetSlot = questionType === 'reorder_fill';
   const withClozeToken = html.replace(/\{\{c(\d+)::[\s\S]*?\}\}/gi, (_raw: string, clozeIndex: string) => {
-    return clozeIndex === '1' ? TARGET_SLOT_TOKEN : GENERIC_BLANK;
+    if (shouldShowTargetSlot && clozeIndex === '1') {
+      return TARGET_SLOT_TOKEN;
+    }
+    return GENERIC_BLANK;
   });
 
   const withMaskedHighlight = withClozeToken.replace(/<font[^>]*#ef3461[^>]*>([\s\S]*?)<\/font>/gi, (_, inner: string) => {
@@ -71,19 +118,24 @@ function maskPromptAnswer(html: string) {
       if (innerPlain.startsWith('（') && innerPlain.endsWith('）')) return `（${TARGET_SLOT_TOKEN}）`;
       return TARGET_SLOT_TOKEN;
     }
+    if (questionType === 'kana_kanji_conversion' && isParenthesizedTerm(innerPlain)) {
+      return formatConversionSlot(innerPlain);
+    }
     if (!innerPlain) return GENERIC_BLANK;
     if (innerPlain.startsWith('(') && innerPlain.endsWith(')')) return `(${GENERIC_BLANK})`;
     if (innerPlain.startsWith('（') && innerPlain.endsWith('）')) return `（${GENERIC_BLANK}）`;
     return GENERIC_BLANK;
   });
 
-  return withMaskedHighlight.replace(new RegExp(TARGET_SLOT_TOKEN, 'g'), TARGET_SLOT_LABEL);
+  if (shouldShowTargetSlot) {
+    return withMaskedHighlight.replace(new RegExp(TARGET_SLOT_TOKEN, 'g'), TARGET_SLOT_LABEL);
+  }
+  return withMaskedHighlight.replace(new RegExp(TARGET_SLOT_TOKEN, 'g'), GENERIC_BLANK);
 }
 
-function normalizePrompt(html: string) {
-  const masked = maskPromptAnswer(html);
-  const withoutHidden = masked.replace(/<a[^>]*display\s*:\s*none[^>]*>[\s\S]*?<\/a>/gi, '');
-  const plain = htmlToPlainText(withoutHidden);
+function normalizePrompt(html: string, questionType: ExamQuestionType) {
+  const masked = maskPromptAnswer(html, questionType);
+  const plain = htmlToPlainText(masked);
   const lines = plain
     .split('\n')
     .map((line) => line.trim())
@@ -104,10 +156,12 @@ export function sanitizeRawExamItems(rawItems: RawExamItem[]) {
   const result: ExamQuizItem[] = [];
 
   for (const item of rawItems) {
+    const rawQuestionHtml = String(item.question_html ?? '');
+    const questionType = normalizeQuestionType(item.question_type, rawQuestionHtml);
     const options = Array.isArray(item.options) ? item.options.map((option) => String(option).trim()).filter(Boolean) : [];
     const answerIndex = Number(item.answer_index ?? 0) - 1;
     const answer = answerIndex >= 0 && answerIndex < options.length ? options[answerIndex] : '';
-    const prompt = normalizePrompt(String(item.question_html ?? ''));
+    const prompt = normalizePrompt(rawQuestionHtml, questionType);
 
     if (!prompt || options.length < 2 || !answer) continue;
 
@@ -116,6 +170,7 @@ export function sanitizeRawExamItems(rawItems: RawExamItem[]) {
       prompt,
       options,
       answer,
+      questionType,
     });
   }
 

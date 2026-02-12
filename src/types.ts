@@ -8,11 +8,14 @@ export type FontScale = 's' | 'm' | 'l';
 
 export type BankLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
 
+export type ExamQuestionType = 'reorder_fill' | 'single_blank_fill' | 'kana_kanji_conversion';
+
 export type RawExamItem = {
   id?: string;
   question_html?: string;
   options?: string[];
   answer_index?: number;
+  question_type?: ExamQuestionType;
 };
 
 export type ExamQuizItem = {
@@ -20,6 +23,7 @@ export type ExamQuizItem = {
   prompt: string;
   options: string[];
   answer: string;
+  questionType?: ExamQuestionType;
 };
 
 export type AiProviderConfig = {

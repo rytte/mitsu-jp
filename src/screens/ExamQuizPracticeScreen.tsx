@@ -6,6 +6,7 @@ import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
 import { explainExamQuestionWithAi } from '../features/ai/service';
 import { getQuestionBank, SESSION_SIZE } from '../features/exam/examBank';
+import { getQuestionTypeInfo, getReorderFillTip } from '../features/exam/questionType';
 import { ExamQuizStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { ExamQuizItem } from '../types';
@@ -44,6 +45,16 @@ export default function ExamQuizPracticeScreen({ navigation, route }: Props) {
   const sessionSize = hasAiItems
     ? Math.min(SESSION_SIZE, aiItems.length)
     : Math.min(SESSION_SIZE, getQuestionBank(level).length);
+  const questionTypeInfo = useMemo(() => {
+    const base = getQuestionTypeInfo(currentItem?.questionType);
+    if (currentItem?.questionType !== 'reorder_fill') {
+      return base;
+    }
+    return {
+      ...base,
+      tip: getReorderFillTip(currentItem.prompt.includes('★')),
+    };
+  }, [currentItem?.prompt, currentItem?.questionType]);
 
   useLayoutEffect(() => {
     const parent = navigation.getParent();
@@ -121,6 +132,7 @@ export default function ExamQuizPracticeScreen({ navigation, route }: Props) {
         correctAnswer: currentItem.answer,
         userAnswer: selected,
         isCorrect: selected === currentItem.answer,
+        questionType: currentItem.questionType,
       });
       setAiExplainText(text.trim());
     } catch (error) {
@@ -152,6 +164,12 @@ export default function ExamQuizPracticeScreen({ navigation, route }: Props) {
       </Text>
 
       <View style={styles.card}>
+        <View style={styles.questionTypeRow}>
+          <View style={styles.questionTypeChip}>
+            <Text style={styles.questionTypeChipText}>题型：{questionTypeInfo.label}</Text>
+          </View>
+          <Text style={styles.questionTypeTip}>{questionTypeInfo.tip}</Text>
+        </View>
         <Text style={styles.prompt}>{currentItem.prompt}</Text>
         {currentItem.options.map((option, optionIndex) => (
           <OptionButton
@@ -236,6 +254,28 @@ const styles = StyleSheet.create({
     padding: spacing.m,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  questionTypeRow: {
+    marginBottom: spacing.s,
+  },
+  questionTypeChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#eff6ff',
+    borderColor: '#bfdbfe',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 2,
+  },
+  questionTypeChipText: {
+    color: '#1d4ed8',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  questionTypeTip: {
+    marginTop: spacing.xs,
+    color: colors.muted,
+    fontSize: 12,
   },
   prompt: {
     fontSize: 18,

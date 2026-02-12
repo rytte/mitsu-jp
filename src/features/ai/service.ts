@@ -1,4 +1,4 @@
-import { BankLevel, RawExamItem } from '../../types';
+import { BankLevel, ExamQuestionType, RawExamItem } from '../../types';
 import { DEFAULT_AI_PROVIDER_CONFIG } from './constants';
 import { ConversationTurnResult, createResponsesProvider } from './provider';
 import { loadAiProviderConfig } from './storage';
@@ -19,6 +19,7 @@ export async function explainExamQuestionWithAi(params: {
   correctAnswer: string;
   userAnswer: string;
   isCorrect: boolean;
+  questionType?: ExamQuestionType;
 }) {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
