@@ -2,13 +2,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Audio } from 'expo-av';
+import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
 import {
+  addToVocabBook,
   getStage,
+  getVocabBookWords,
   getWordsByIds,
   recordMistake,
+  removeFromVocabBook,
 } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
 import { useAppStore } from '../store/useAppStore';
@@ -271,6 +275,8 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
   const [wordMap, setWordMap] = useState<Record<string, Word>>({});
+  const [addedWordIds, setAddedWordIds] = useState<Set<string>>(new Set());
+  const [addingWordId, setAddingWordId] = useState<string | null>(null);
   const [romajiBuffer, setRomajiBuffer] = useState('');
   const [activeKeyId, setActiveKeyId] = useState<string | null>(null);
   const lastAutoPlayedId = useRef<string | null>(null);
@@ -280,12 +286,19 @@ export default function QuizScreen({ navigation, route }: Props) {
   const meaningLabel = getMeaningLabel(settings.meaning_language);
 
   useEffect(() => {
+    setAddingWordId(null);
+  }, [stageId]);
+
+  useEffect(() => {
     let active = true;
     const load = async () => {
       setLoading(true);
       const stage = await getStage(stageId);
       if (!stage) return;
-      const stageWords = await getWordsByIds(stage.word_ids);
+      const [stageWords, vocabWords] = await Promise.all([
+        getWordsByIds(stage.word_ids),
+        getVocabBookWords(),
+      ]);
       const list = generateQuizItems({
         stageWords,
         mix: settings.quiz_mix,
@@ -299,6 +312,7 @@ export default function QuizScreen({ navigation, route }: Props) {
         nextMap[word.id] = word;
       }
       setWordMap(nextMap);
+      setAddedWordIds(new Set(vocabWords.map((word) => word.id)));
       setLoading(false);
     };
 
@@ -334,6 +348,9 @@ export default function QuizScreen({ navigation, route }: Props) {
     currentItem?.type === 'mcq_cn_to_ja' ||
     currentItem?.type === 'listening';
   const answerWord = currentItem ? wordMap[currentItem.wordId] : undefined;
+  const answerWordId = answerWord?.id ?? null;
+  const answerWordAdded = answerWordId ? addedWordIds.has(answerWordId) : false;
+  const answerWordAdding = answerWordId ? addingWordId === answerWordId : false;
 
   const speak = (text: string) => {
     Speech.speak(text, {
@@ -485,6 +502,29 @@ export default function QuizScreen({ navigation, route }: Props) {
     setRomajiBuffer('');
     setShowResult(false);
     setIsCorrect(null);
+  };
+
+  const handleToggleAnswerWordVocab = async () => {
+    if (!answerWordId || answerWordAdding) return;
+    setAddingWordId(answerWordId);
+    try {
+      if (answerWordAdded) {
+        await removeFromVocabBook([answerWordId]);
+      } else {
+        await addToVocabBook([answerWordId]);
+      }
+      setAddedWordIds((prev) => {
+        const next = new Set(prev);
+        if (answerWordAdded) {
+          next.delete(answerWordId);
+        } else {
+          next.add(answerWordId);
+        }
+        return next;
+      });
+    } finally {
+      setAddingWordId(null);
+    }
   };
 
   if (loading) {
@@ -676,9 +716,27 @@ export default function QuizScreen({ navigation, route }: Props) {
 
         {showResult && answerWord ? (
           <View style={styles.answerCard}>
-            <Text style={[styles.resultText, answeredCorrectly ? styles.correct : styles.wrong]}>
-              {answeredCorrectly ? '回答正确！' : '回答错误'}
-            </Text>
+            <View style={styles.resultRow}>
+              <Text style={[styles.resultText, answeredCorrectly ? styles.correct : styles.wrong]}>
+                {answeredCorrectly ? '回答正确！' : '回答错误'}
+              </Text>
+              <Pressable
+                onPress={handleToggleAnswerWordVocab}
+                disabled={answerWordAdding}
+                style={({ pressed }) => [
+                  styles.vocabIconBtn,
+                  answerWordAdded ? styles.vocabIconBtnAdded : null,
+                  answerWordAdding ? styles.vocabIconBtnDisabled : null,
+                  pressed && !answerWordAdding ? styles.vocabIconBtnPressed : null,
+                ]}
+              >
+                <Ionicons
+                  name={answerWordAdded ? 'bookmark' : 'bookmark-outline'}
+                  size={16}
+                  color={answerWordAdded ? '#047857' : colors.primary}
+                />
+              </Pressable>
+            </View>
             <Text style={styles.answerLabel}>正确答案</Text>
             <View style={styles.answerHeader}>
               <View style={styles.answerHeadText}>
@@ -831,10 +889,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.m,
   },
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.s,
+  },
   resultText: {
     fontSize: 15,
     fontWeight: '600',
-    marginBottom: spacing.s,
   },
   correct: {
     color: colors.success,
@@ -875,7 +938,7 @@ const styles = StyleSheet.create({
   },
   answerHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.s,
   },
@@ -897,6 +960,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'flex-end',
     maxWidth: '45%',
+    marginTop: spacing.xs,
   },
   answerMetaChip: {
     flexDirection: 'row',
@@ -919,6 +983,26 @@ const styles = StyleSheet.create({
   answerMeaning: {
     color: colors.text,
     marginBottom: spacing.s,
+  },
+  vocabIconBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    backgroundColor: '#eff6ff',
+  },
+  vocabIconBtnPressed: {
+    opacity: 0.9,
+  },
+  vocabIconBtnAdded: {
+    borderColor: '#a7f3d0',
+    backgroundColor: '#ecfdf5',
+  },
+  vocabIconBtnDisabled: {
+    opacity: 0.7,
   },
   answerExample: {
     padding: spacing.s,
