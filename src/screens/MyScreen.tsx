@@ -149,7 +149,7 @@ export default function MyScreen({ navigation }: Props) {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.m }]}
+      contentContainerStyle={[styles.content, { paddingTop: spacing.m }]}
     >
       <View pointerEvents="none" style={styles.decorLayer}>
         <View style={styles.decorOrbPrimary} />
