@@ -6,8 +6,18 @@ type GenerateExamQuizParams = {
   count: number;
 };
 
+type ExplainExamQuestionParams = {
+  level: BankLevel;
+  prompt: string;
+  options: string[];
+  correctAnswer: string;
+  userAnswer: string;
+  isCorrect: boolean;
+};
+
 export type AiQuizProvider = {
   generateExamQuiz: (params: GenerateExamQuizParams) => Promise<RawExamItem[]>;
+  explainExamQuestion: (params: ExplainExamQuestionParams) => Promise<string>;
 };
 
 const LEVEL_GUIDE: Record<BankLevel, string> = {
@@ -83,6 +93,32 @@ function buildUserPrompt(level: BankLevel, count: number) {
   ].join('\n');
 }
 
+function buildExplainSystemPrompt() {
+  return [
+    '你是日语老师，需要为单选题提供简洁、可读的中文解析。',
+    '请严格遵守：',
+    '1) 只输出纯文本，不要 Markdown。',
+    '2) 内容控制在 3-5 行。',
+    '3) 必须包含：正确答案、为什么正确、其他选项为什么不选。',
+    '4) 语气友好、结论明确。',
+  ].join('\n');
+}
+
+function buildExplainUserPrompt(params: ExplainExamQuestionParams) {
+  const payload = {
+    level: params.level,
+    prompt: params.prompt,
+    options: params.options,
+    correct_answer: params.correctAnswer,
+    user_answer: params.userAnswer,
+    is_correct: params.isCorrect,
+  };
+  return [
+    '请基于下面题目信息输出中文解析：',
+    JSON.stringify(payload, null, 2),
+  ].join('\n');
+}
+
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.trim().replace(/\/+$/, '');
 }
@@ -138,17 +174,21 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
   const apiKey = config.api_key.trim();
   const model = config.model.trim();
 
+  function ensureConfigReady() {
+    if (!apiKey) {
+      throw new Error('请先配置 API Key');
+    }
+    if (!baseUrl) {
+      throw new Error('请先配置 API Base URL');
+    }
+    if (!model) {
+      throw new Error('请先配置模型名称');
+    }
+  }
+
   return {
     async generateExamQuiz({ level, count }: GenerateExamQuizParams) {
-      if (!apiKey) {
-        throw new Error('请先配置 API Key');
-      }
-      if (!baseUrl) {
-        throw new Error('请先配置 API Base URL');
-      }
-      if (!model) {
-        throw new Error('请先配置模型名称');
-      }
+      ensureConfigReady();
 
       const response = await fetch(`${baseUrl}/responses`, {
         method: 'POST',
@@ -198,6 +238,44 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
         throw new Error('AI 返回题目未通过校验，请重试');
       }
       return items;
+    },
+    async explainExamQuestion(params: ExplainExamQuestionParams) {
+      ensureConfigReady();
+
+      const response = await fetch(`${baseUrl}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: [
+            {
+              role: 'system',
+              content: [{ type: 'input_text', text: buildExplainSystemPrompt() }],
+            },
+            {
+              role: 'user',
+              content: [{ type: 'input_text', text: buildExplainUserPrompt(params) }],
+            },
+          ],
+          max_output_tokens: 800,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`AI 解析失败（${response.status}）：${errText || response.statusText}`);
+      }
+
+      const payload = (await response.json()) as unknown;
+      const outputText = extractOutputText(payload);
+      if (!outputText) {
+        throw new Error('AI 未返回解析内容，请稍后重试');
+      }
+
+      return outputText;
     },
   };
 }

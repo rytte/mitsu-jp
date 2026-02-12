@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
+import { explainExamQuestionWithAi } from '../features/ai/service';
 import { BANK_LEVELS, getQuestionBank, SESSION_SIZE } from '../features/exam/examBank';
 import { MyStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
@@ -28,6 +29,9 @@ export default function ExamQuizScreen({ navigation, route }: Props) {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
+  const [aiExplainLoading, setAiExplainLoading] = useState(false);
+  const [aiExplainText, setAiExplainText] = useState('');
+  const [aiExplainError, setAiExplainError] = useState('');
 
   const currentItem = items[currentIndex];
   const progressText = useMemo(() => {
@@ -50,6 +54,9 @@ export default function ExamQuizScreen({ navigation, route }: Props) {
     setIsCorrect(null);
     setCorrectCount(0);
     setWrongCount(0);
+    setAiExplainLoading(false);
+    setAiExplainText('');
+    setAiExplainError('');
   }, [aiItems, aiLevel, hasAiItems]);
 
   useEffect(() => {
@@ -67,6 +74,9 @@ export default function ExamQuizScreen({ navigation, route }: Props) {
     setIsCorrect(null);
     setCorrectCount(0);
     setWrongCount(0);
+    setAiExplainLoading(false);
+    setAiExplainText('');
+    setAiExplainError('');
   };
 
   const resetQuiz = () => {
@@ -79,6 +89,9 @@ export default function ExamQuizScreen({ navigation, route }: Props) {
       setIsCorrect(null);
       setCorrectCount(0);
       setWrongCount(0);
+      setAiExplainLoading(false);
+      setAiExplainText('');
+      setAiExplainError('');
       return;
     }
     const bank = getQuestionBank(selectedLevel);
@@ -89,6 +102,9 @@ export default function ExamQuizScreen({ navigation, route }: Props) {
     setIsCorrect(null);
     setCorrectCount(0);
     setWrongCount(0);
+    setAiExplainLoading(false);
+    setAiExplainText('');
+    setAiExplainError('');
   };
 
   const handleAnswer = (answer: string) => {
@@ -111,6 +127,9 @@ export default function ExamQuizScreen({ navigation, route }: Props) {
     setSelected(null);
     setShowResult(false);
     setIsCorrect(null);
+    setAiExplainLoading(false);
+    setAiExplainText('');
+    setAiExplainError('');
   };
 
   const backToBankSelect = () => {
@@ -125,6 +144,31 @@ export default function ExamQuizScreen({ navigation, route }: Props) {
     setIsCorrect(null);
     setCorrectCount(0);
     setWrongCount(0);
+    setAiExplainLoading(false);
+    setAiExplainText('');
+    setAiExplainError('');
+  };
+
+  const handleAiExplain = async () => {
+    if (!currentItem || !selected || !showResult || aiExplainLoading) return;
+    setAiExplainLoading(true);
+    setAiExplainError('');
+    try {
+      const level = selectedLevel ?? 'N5';
+      const text = await explainExamQuestionWithAi({
+        level,
+        prompt: currentItem.prompt,
+        options: currentItem.options,
+        correctAnswer: currentItem.answer,
+        userAnswer: selected,
+        isCorrect: selected === currentItem.answer,
+      });
+      setAiExplainText(text.trim());
+    } catch (error) {
+      setAiExplainError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setAiExplainLoading(false);
+    }
   };
 
   if (!selectedLevel) {
@@ -215,12 +259,30 @@ export default function ExamQuizScreen({ navigation, route }: Props) {
         ))}
       </View>
 
-      {showResult && !finished ? (
+      {showResult ? (
         <View style={styles.resultBox}>
           <Text style={[styles.resultText, isCorrect ? styles.correct : styles.wrong]}>
             {isCorrect ? '回答正确！' : `回答错误，正确答案：${currentItem.answer}`}
           </Text>
-          <PrimaryButton title="下一题" onPress={handleNext} style={styles.nextButton} />
+          <Pressable
+            onPress={handleAiExplain}
+            disabled={aiExplainLoading}
+            style={({ pressed }) => [
+              styles.aiExplainBtn,
+              pressed && !aiExplainLoading ? styles.aiExplainBtnPressed : null,
+              aiExplainLoading ? styles.aiExplainBtnDisabled : null,
+            ]}
+          >
+            <Text style={styles.aiExplainBtnText}>{aiExplainLoading ? 'AI 解析生成中...' : 'AI 解析'}</Text>
+          </Pressable>
+          {aiExplainError ? <Text style={styles.aiExplainError}>解析失败：{aiExplainError}</Text> : null}
+          {aiExplainText ? (
+            <View style={styles.aiExplainCard}>
+              <Text style={styles.aiExplainTitle}>AI 解析</Text>
+              <Text style={styles.aiExplainText}>{aiExplainText}</Text>
+            </View>
+          ) : null}
+          {!finished ? <PrimaryButton title="下一题" onPress={handleNext} style={styles.nextButton} /> : null}
         </View>
       ) : null}
 
@@ -384,6 +446,47 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     marginTop: spacing.m,
+  },
+  aiExplainBtn: {
+    marginTop: spacing.s,
+    borderWidth: 1,
+    borderColor: '#7c3aed',
+    borderRadius: radius.m,
+    backgroundColor: '#f5f3ff',
+    paddingVertical: spacing.xs,
+    alignItems: 'center',
+  },
+  aiExplainBtnPressed: {
+    opacity: 0.9,
+  },
+  aiExplainBtnDisabled: {
+    opacity: 0.6,
+  },
+  aiExplainBtnText: {
+    color: '#6d28d9',
+    fontWeight: '700',
+  },
+  aiExplainError: {
+    marginTop: spacing.s,
+    color: colors.danger,
+    fontSize: 12,
+  },
+  aiExplainCard: {
+    marginTop: spacing.s,
+    borderWidth: 1,
+    borderColor: '#e9d5ff',
+    backgroundColor: '#faf5ff',
+    borderRadius: radius.m,
+    padding: spacing.s,
+  },
+  aiExplainTitle: {
+    fontWeight: '700',
+    color: '#6d28d9',
+    marginBottom: spacing.xs,
+  },
+  aiExplainText: {
+    color: colors.text,
+    lineHeight: 22,
   },
   summaryTitle: {
     fontSize: 18,
