@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as Speech from 'expo-speech';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, InteractionManager, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PrimaryButton from '../components/PrimaryButton';
 import { replyConversationWithAi, startConversationWithAi } from '../features/ai/service';
+import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { BankLevel } from '../types';
 
@@ -61,6 +63,7 @@ const SCENARIOS: Scenario[] = [
 
 export default function AiConversationScreen() {
   const insets = useSafeAreaInsets();
+  const settings = useAppStore((state) => state.settings);
   const [level, setLevel] = useState<BankLevel>('N5');
   const [scenario, setScenario] = useState<Scenario>(SCENARIOS[0]);
   const [loading, setLoading] = useState(false);
@@ -68,6 +71,20 @@ export default function AiConversationScreen() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [inputText, setInputText] = useState('');
   const [error, setError] = useState('');
+  const spokenAssistantIdsRef = useRef<Set<string>>(new Set());
+
+  const speakAssistantText = (text: string) => {
+    const speakingText = text.trim();
+    if (!speakingText) return;
+    InteractionManager.runAfterInteractions(() => {
+      Speech.stop();
+      Speech.speak(speakingText, {
+        language: 'ja-JP',
+        rate: settings.tts_rate,
+        voice: settings.tts_voice ?? undefined,
+      });
+    });
+  };
 
   const history = useMemo(
     () =>
@@ -80,10 +97,26 @@ export default function AiConversationScreen() {
 
   const canSend = sessionStarted && !loading && inputText.trim().length > 0;
 
+  useEffect(() => {
+    for (let i = turns.length - 1; i >= 0; i -= 1) {
+      const turn = turns[i];
+      if (turn.role !== 'assistant') continue;
+      if (spokenAssistantIdsRef.current.has(turn.id)) break;
+      spokenAssistantIdsRef.current.add(turn.id);
+      speakAssistantText(turn.text);
+      break;
+    }
+  }, [settings.tts_rate, settings.tts_voice, turns]);
+
+  useEffect(() => () => {
+    Speech.stop();
+  }, []);
+
   const handleStart = async () => {
     setLoading(true);
     setError('');
     setTurns([]);
+    spokenAssistantIdsRef.current.clear();
     setSessionStarted(false);
     try {
       const first = await startConversationWithAi({
@@ -219,8 +252,29 @@ export default function AiConversationScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>对话记录</Text>
             {turns.map((turn) => (
-              <View key={turn.id} style={[styles.turnBubble, turn.role === 'assistant' ? styles.assistantBubble : styles.userBubble]}>
-                <Text style={styles.turnRole}>{turn.role === 'assistant' ? 'AI' : '你'}</Text>
+              <Pressable
+                key={turn.id}
+                disabled={turn.role !== 'assistant'}
+                onPress={() => {
+                  if (turn.role === 'assistant') {
+                    speakAssistantText(turn.text);
+                  }
+                }}
+                style={({ pressed }) => [
+                  styles.turnBubble,
+                  turn.role === 'assistant' ? styles.assistantBubble : styles.userBubble,
+                  pressed && turn.role === 'assistant' ? styles.assistantBubblePressed : null,
+                ]}
+              >
+                <View style={styles.turnHeadRow}>
+                  <Text style={styles.turnRole}>{turn.role === 'assistant' ? 'AI' : '你'}</Text>
+                  {turn.role === 'assistant' ? (
+                    <View style={styles.playHintWrap}>
+                      <Ionicons name="volume-high-outline" size={13} color="#0369a1" />
+                      <Text style={styles.playHintText}>点击播放</Text>
+                    </View>
+                  ) : null}
+                </View>
                 <Text style={styles.turnText}>{turn.text}</Text>
                 {turn.translation ? <Text style={styles.turnTranslation}>{turn.translation}</Text> : null}
                 {turn.role === 'user' && turn.correction ? (
@@ -234,7 +288,7 @@ export default function AiConversationScreen() {
                 {turn.hint ? <Text style={styles.hintText}>下一步提示：{turn.hint}</Text> : null}
                 {typeof turn.score === 'number' ? <Text style={styles.scoreText}>本轮建议分：{turn.score}</Text> : null}
                 {turn.completed ? <Text style={styles.doneText}>{turn.completionComment || '目标已完成，做得很好！'}</Text> : null}
-              </View>
+              </Pressable>
             ))}
           </View>
         ) : null}
@@ -409,6 +463,24 @@ const styles = StyleSheet.create({
     color: colors.muted,
     marginBottom: 4,
     fontWeight: '700',
+  },
+  turnHeadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  playHintWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  playHintText: {
+    color: '#0369a1',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  assistantBubblePressed: {
+    opacity: 0.7,
   },
   turnText: {
     color: colors.text,
