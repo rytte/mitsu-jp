@@ -71,3 +71,17 @@ export async function askDictionaryWithAi(params: {
   const provider = createResponsesProvider(config);
   return provider.askDictionary(params);
 }
+
+export async function askDictionaryStreamWithAi(params: {
+  entry: string;
+  followUp?: string;
+  history?: Array<{ role: 'assistant' | 'user'; text: string }>;
+  onDelta?: (chunk: string) => void;
+}): Promise<string> {
+  const config = await loadAiProviderConfig();
+  if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
+    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+  }
+  const provider = createResponsesProvider(config);
+  return provider.askDictionaryStream(params);
+}

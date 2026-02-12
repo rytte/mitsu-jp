@@ -19,7 +19,7 @@ import PrimaryButton from '../components/PrimaryButton';
 import { getAllGrammars } from '../data/grammars';
 import { LEXICONS } from '../data/lexicons';
 import { addToVocabBook, getAllWords, updateSettings } from '../db/queries';
-import { askDictionaryWithAi } from '../features/ai/service';
+import { askDictionaryStreamWithAi } from '../features/ai/service';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { GrammarPoint, Level, Settings, Word } from '../types';
@@ -316,24 +316,44 @@ export default function SearchScreen() {
     exitWordSelection();
   };
 
+  const appendAiAssistantChunk = (id: string, chunk: string) => {
+    if (!chunk) return;
+    setAiMessages((prev) =>
+      prev.map((message) => (message.id === id ? { ...message, text: `${message.text}${chunk}` } : message))
+    );
+  };
+
   const handleAskAiDictionary = async () => {
     const entry = query.trim();
     if (!entry || aiLoading) return;
 
+    const assistantMessageId = `${Date.now()}-assistant-initial`;
     setAiLoading(true);
     setAiError('');
     setAiFollowUp('');
+    setAiEntry(entry);
+    setAiMessages([
+      {
+        id: assistantMessageId,
+        role: 'assistant',
+        text: '',
+      },
+    ]);
+
     try {
-      const text = await askDictionaryWithAi({ entry });
-      setAiEntry(entry);
-      setAiMessages([
-        {
-          id: `${Date.now()}-assistant-initial`,
-          role: 'assistant',
-          text,
-        },
-      ]);
+      const text = await askDictionaryStreamWithAi({
+        entry,
+        onDelta: (chunk) => appendAiAssistantChunk(assistantMessageId, chunk),
+      });
+      const finalText = text.trim();
+      if (!finalText) {
+        throw new Error('AI 未返回解释内容，请稍后重试');
+      }
+      setAiMessages((prev) =>
+        prev.map((item) => (item.id === assistantMessageId ? { ...item, text: finalText } : item))
+      );
     } catch (err) {
+      setAiMessages((prev) => prev.filter((item) => item.id !== assistantMessageId));
       setAiError(err instanceof Error ? err.message : String(err));
     } finally {
       setAiLoading(false);
@@ -350,28 +370,34 @@ export default function SearchScreen() {
       role: 'user',
       text: followUp,
     };
+    const assistantMessageId = `${Date.now()}-assistant-reply`;
+    const assistantPlaceholder: AiDictMessage = {
+      id: assistantMessageId,
+      role: 'assistant',
+      text: '',
+    };
 
     const historyForAi = aiMessages.map((item) => ({ role: item.role, text: item.text }));
-    setAiMessages((prev) => [...prev, userMessage]);
+    setAiMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
     setAiFollowUp('');
     setAiLoading(true);
     setAiError('');
     try {
-      const text = await askDictionaryWithAi({
+      const text = await askDictionaryStreamWithAi({
         entry,
         followUp,
         history: historyForAi,
+        onDelta: (chunk) => appendAiAssistantChunk(assistantMessageId, chunk),
       });
-      setAiMessages((prev) => [
-        ...prev,
-        {
-          id: `${Date.now()}-assistant-reply`,
-          role: 'assistant',
-          text,
-        },
-      ]);
+      const finalText = text.trim();
+      if (!finalText) {
+        throw new Error('AI 未返回解释内容，请稍后重试');
+      }
+      setAiMessages((prev) =>
+        prev.map((item) => (item.id === assistantMessageId ? { ...item, text: finalText } : item))
+      );
     } catch (err) {
-      setAiMessages((prev) => prev.filter((item) => item.id !== userMessage.id));
+      setAiMessages((prev) => prev.filter((item) => item.id !== userMessage.id && item.id !== assistantMessageId));
       setAiError(err instanceof Error ? err.message : String(err));
     } finally {
       setAiLoading(false);

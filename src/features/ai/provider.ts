@@ -47,6 +47,10 @@ type AskDictionaryParams = {
   history?: DictionaryHistoryItem[];
 };
 
+type AskDictionaryStreamParams = AskDictionaryParams & {
+  onDelta?: (chunk: string) => void;
+};
+
 export type ConversationTurnResult = {
   assistantReplyJa: string;
   assistantReplyZh: string;
@@ -67,6 +71,7 @@ export type AiQuizProvider = {
   startConversation: (params: StartConversationParams) => Promise<ConversationTurnResult>;
   replyConversation: (params: ReplyConversationParams) => Promise<ConversationTurnResult>;
   askDictionary: (params: AskDictionaryParams) => Promise<string>;
+  askDictionaryStream: (params: AskDictionaryStreamParams) => Promise<string>;
 };
 
 const LEVEL_GUIDE: Record<BankLevel, string> = {
@@ -312,6 +317,81 @@ function extractOutputText(payload: unknown): string {
   return textParts.join('\n').trim();
 }
 
+function extractStreamDelta(payload: unknown): { delta?: string; doneText?: string } {
+  const data = payload as {
+    type?: string;
+    delta?: string;
+    text?: string;
+  };
+
+  if (data.type === 'response.output_text.delta' && typeof data.delta === 'string') {
+    return { delta: data.delta };
+  }
+
+  if (data.type === 'response.output_text.done' && typeof data.text === 'string') {
+    return { doneText: data.text };
+  }
+
+  return {};
+}
+
+function parseSseDataFrame(frame: string) {
+  const lines = frame.split('\n');
+  const dataLines: string[] = [];
+  for (const line of lines) {
+    if (line.startsWith('data:')) {
+      dataLines.push(line.slice(5).trimStart());
+    }
+  }
+  if (!dataLines.length) return '';
+  return dataLines.join('\n');
+}
+
+function extractOutputTextFromSseRaw(raw: string): string {
+  const normalized = raw.replace(/\r\n/g, '\n');
+  const frames = normalized.split('\n\n');
+  let outputText = '';
+  let hasDelta = false;
+
+  for (const frame of frames) {
+    const dataLine = parseSseDataFrame(frame);
+    if (!dataLine || dataLine === '[DONE]') continue;
+    let payload: unknown = null;
+    try {
+      payload = JSON.parse(dataLine) as unknown;
+    } catch {
+      continue;
+    }
+    const piece = extractStreamDelta(payload);
+    if (piece.delta) {
+      hasDelta = true;
+      outputText += piece.delta;
+      continue;
+    }
+    if (piece.doneText && !hasDelta) {
+      outputText += piece.doneText;
+    }
+  }
+
+  return outputText.trim();
+}
+
+function extractOutputTextFromRaw(raw: string): string {
+  const sseText = extractOutputTextFromSseRaw(raw);
+  if (sseText) return sseText;
+
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return '';
+
+  try {
+    const payload = JSON.parse(trimmed) as unknown;
+    return extractOutputText(payload).trim();
+  } catch {
+    return '';
+  }
+}
+
 function sanitizeItems(rawItems: RawExamItem[]) {
   return rawItems
     .map((item, index) => {
@@ -381,6 +461,162 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
     if (!model) {
       throw new Error('请先配置模型名称');
     }
+  }
+
+  async function requestDictionary(
+    params: AskDictionaryParams,
+    options: { stream?: boolean; onDelta?: (chunk: string) => void } = {}
+  ) {
+    ensureConfigReady();
+
+    const entry = params.entry.trim();
+    if (!entry) {
+      throw new Error('请输入要查询的词汇或文法点');
+    }
+
+    const response = await fetch(`${baseUrl}/responses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        input: [
+          {
+            role: 'system',
+            content: [{ type: 'input_text', text: buildDictionarySystemPrompt() }],
+          },
+          {
+            role: 'user',
+            content: [{ type: 'input_text', text: buildDictionaryUserPrompt(params) }],
+          },
+        ],
+        max_output_tokens: 900,
+        stream: Boolean(options.stream),
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`AI 辞典请求失败（${response.status}）：${errText || response.statusText}`);
+    }
+
+    if (!options.stream) {
+      const payload = (await response.json()) as unknown;
+      const outputText = extractOutputText(payload);
+      if (!outputText) {
+        throw new Error('AI 未返回解释内容，请稍后重试');
+      }
+      return outputText;
+    }
+
+    const decoder = typeof TextDecoder === 'function' ? new TextDecoder() : null;
+    if (!decoder) {
+      const raw = await response.text();
+      const outputText = extractOutputTextFromRaw(raw);
+      if (!outputText) {
+        throw new Error('当前环境不支持流式输出');
+      }
+      if (typeof options.onDelta === 'function') {
+        options.onDelta(outputText);
+      }
+      return outputText;
+    }
+
+    const reader = response.body?.getReader?.();
+    if (!reader) {
+      const raw = await response.text();
+      const outputText = extractOutputTextFromRaw(raw);
+      if (!outputText) {
+        throw new Error('AI 未返回解释内容，请稍后重试');
+      }
+      if (typeof options.onDelta === 'function') {
+        options.onDelta(outputText);
+      }
+      return outputText;
+    }
+
+    let rawText = '';
+    let buffer = '';
+    let outputText = '';
+    let hasDelta = false;
+    let streamDone = false;
+
+    while (!streamDone) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
+      rawText += chunk;
+      buffer += chunk;
+
+      const frames = buffer.split('\n\n');
+      buffer = frames.pop() ?? '';
+
+      for (const frame of frames) {
+        const dataLine = parseSseDataFrame(frame);
+        if (!dataLine) continue;
+        if (dataLine === '[DONE]') {
+          streamDone = true;
+          break;
+        }
+        let payload: unknown = null;
+        try {
+          payload = JSON.parse(dataLine) as unknown;
+        } catch {
+          continue;
+        }
+        const piece = extractStreamDelta(payload);
+        if (piece.delta) {
+          hasDelta = true;
+          outputText += piece.delta;
+          options.onDelta?.(piece.delta);
+          continue;
+        }
+        if (piece.doneText && !hasDelta) {
+          outputText += piece.doneText;
+          options.onDelta?.(piece.doneText);
+        }
+      }
+    }
+
+    const flushChunk = decoder.decode().replace(/\r\n/g, '\n');
+    if (flushChunk) {
+      rawText += flushChunk;
+      buffer += flushChunk;
+    }
+
+    if (buffer.trim()) {
+      const dataLine = parseSseDataFrame(buffer);
+      if (dataLine && dataLine !== '[DONE]') {
+        try {
+          const payload = JSON.parse(dataLine) as unknown;
+          const piece = extractStreamDelta(payload);
+          if (piece.delta) {
+            outputText += piece.delta;
+            options.onDelta?.(piece.delta);
+          } else if (piece.doneText && !hasDelta) {
+            outputText += piece.doneText;
+            options.onDelta?.(piece.doneText);
+          }
+        } catch {
+          // ignore trailing non-JSON frame
+        }
+      }
+    }
+
+    if (!outputText.trim()) {
+      const fallbackText = extractOutputTextFromRaw(rawText);
+      if (fallbackText) {
+        options.onDelta?.(fallbackText);
+        return fallbackText;
+      }
+    }
+
+    if (!outputText.trim()) {
+      throw new Error('AI 未返回解释内容，请稍后重试');
+    }
+    return outputText;
   }
 
   return {
@@ -575,47 +811,10 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
     },
     async askDictionary(params: AskDictionaryParams) {
-      ensureConfigReady();
-
-      const entry = params.entry.trim();
-      if (!entry) {
-        throw new Error('请输入要查询的词汇或文法点');
-      }
-
-      const response = await fetch(`${baseUrl}/responses`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          input: [
-            {
-              role: 'system',
-              content: [{ type: 'input_text', text: buildDictionarySystemPrompt() }],
-            },
-            {
-              role: 'user',
-              content: [{ type: 'input_text', text: buildDictionaryUserPrompt(params) }],
-            },
-          ],
-          max_output_tokens: 900,
-        }),
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`AI 辞典请求失败（${response.status}）：${errText || response.statusText}`);
-      }
-
-      const payload = (await response.json()) as unknown;
-      const outputText = extractOutputText(payload);
-      if (!outputText) {
-        throw new Error('AI 未返回解释内容，请稍后重试');
-      }
-
-      return outputText;
+      return requestDictionary(params, { stream: false });
+    },
+    async askDictionaryStream(params: AskDictionaryStreamParams) {
+      return requestDictionary(params, { stream: true, onDelta: params.onDelta });
     },
   };
 }
