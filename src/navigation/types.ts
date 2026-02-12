@@ -1,3 +1,4 @@
+import { NavigatorScreenParams } from '@react-navigation/native';
 import { BankLevel, ExamQuizItem, Level } from '../types';
 
 export type LearnStackParamList = {
@@ -31,6 +32,11 @@ export type GrammarStackParamList = {
   GrammarQuiz: { level: Level };
 };
 
+export type ExamQuizStackParamList = {
+  ExamQuizBank: undefined;
+  ExamQuizPractice: { level: BankLevel; aiItems?: ExamQuizItem[] };
+};
+
 export type RootTabParamList = {
   Learn: undefined;
   Grammar: undefined;
@@ -41,14 +47,15 @@ export type RootTabParamList = {
   VerbConjugation: undefined;
   KeigoChart: undefined;
   AiHub: undefined;
-  ExamQuiz: undefined;
+  ExamQuiz: NavigatorScreenParams<ExamQuizStackParamList> | undefined;
   Settings: undefined;
   My: undefined;
 };
 
 export type MyStackParamList = {
   MyHome: undefined;
-  ExamQuiz: { aiItems?: ExamQuizItem[]; aiLevel?: BankLevel } | undefined;
+  ExamQuiz: NavigatorScreenParams<ExamQuizStackParamList> | undefined;
+  AiExamQuizPractice: { level: BankLevel; aiItems: ExamQuizItem[] };
   AiHub: undefined;
   AiSettings: undefined;
   AiConversation: undefined;

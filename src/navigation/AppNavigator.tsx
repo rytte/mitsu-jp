@@ -17,6 +17,7 @@ import MistakesScreen from '../screens/MistakesScreen';
 import SearchScreen from '../screens/SearchScreen';
 import MyScreen from '../screens/MyScreen';
 import ExamQuizScreen from '../screens/ExamQuizScreen';
+import AiExamQuizPracticeScreen from '../screens/AiExamQuizPracticeScreen';
 import AiHubScreen from '../screens/AiHubScreen';
 import AiSettingsScreen from '../screens/AiSettingsScreen';
 import AiConversationScreen from '../screens/AiConversationScreen';
@@ -32,6 +33,7 @@ import { useAppStore } from '../store/useAppStore';
 const LearnStack = createNativeStackNavigator<LearnStackParamList>();
 const GrammarStack = createNativeStackNavigator<GrammarStackParamList>();
 const MyStack = createNativeStackNavigator<MyStackParamList>();
+const AiHubStack = createNativeStackNavigator<MyStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const TAB_ICON_MAP: Record<
   keyof RootTabParamList,
@@ -105,9 +107,10 @@ function MyStackScreen() {
     >
       <MyStack.Screen name="MyHome" component={MyScreen} options={{ title: '我的' }} />
       <MyStack.Screen name="AiHub" component={AiHubScreen} options={{ title: 'AI 学习中心' }} />
+      <MyStack.Screen name="AiExamQuizPractice" component={AiExamQuizPracticeScreen} options={{ title: 'AI 练习' }} />
       <MyStack.Screen name="AiSettings" component={AiSettingsScreen} options={{ title: 'AI 配置' }} />
       <MyStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 对话训练' }} />
-      <MyStack.Screen name="ExamQuiz" component={ExamQuizScreen} options={{ title: '真题练习' }} />
+      <MyStack.Screen name="ExamQuiz" component={ExamQuizScreen} options={{ title: '真题练习', headerShown: false }} />
       <MyStack.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} />
       <MyStack.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题本' }} />
       <MyStack.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音图' }} />
@@ -116,6 +119,22 @@ function MyStackScreen() {
       <MyStack.Screen name="VocabBook" component={VocabBookScreen} options={{ title: '生词本' }} />
       <MyStack.Screen name="Settings" component={SettingsScreen} options={{ title: '设置' }} />
     </MyStack.Navigator>
+  );
+}
+
+function AiHubStackScreen() {
+  return (
+    <AiHubStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.background },
+        headerTitleStyle: { color: colors.text },
+      }}
+    >
+      <AiHubStack.Screen name="AiHub" component={AiHubScreen} options={{ title: 'AI 学习中心', headerShown: false }} />
+      <AiHubStack.Screen name="AiSettings" component={AiSettingsScreen} options={{ title: 'AI 配置' }} />
+      <AiHubStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 对话训练' }} />
+      <AiHubStack.Screen name="AiExamQuizPractice" component={AiExamQuizPracticeScreen} options={{ title: 'AI 练习' }} />
+    </AiHubStack.Navigator>
   );
 }
 
@@ -155,19 +174,16 @@ export default function AppNavigator() {
         {navExamQuiz ? (
           <Tab.Screen
             name="ExamQuiz"
-            component={ExamQuizScreen as any}
+            component={ExamQuizScreen}
             options={{
               title: '真题练习',
-              headerShown: true,
-              headerStyle: { backgroundColor: colors.background },
-              headerTitleStyle: { color: colors.text },
             }}
           />
         ) : null}
         {navAiHub ? (
           <Tab.Screen
             name="AiHub"
-            component={AiHubScreen as any}
+            component={AiHubStackScreen}
             options={{ title: 'AI 学习中心' }}
           />
         ) : null}

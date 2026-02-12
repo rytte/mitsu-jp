@@ -37,10 +37,27 @@ export default function AiHubScreen({ navigation }: Props) {
         throw new Error(`AI 仅返回 ${items.length} 题，未达到 ${SESSION_SIZE} 题要求，请重试`);
       }
       setLastInfo(`已生成 ${items.length} 题，等级 ${selectedLevel}`);
-      navigation.navigate('ExamQuiz', {
-        aiItems: items,
-        aiLevel: selectedLevel,
-      });
+      const practiceParams = { level: selectedLevel, aiItems: items };
+      const navState = navigation.getState() as { routeNames?: string[] };
+      const routeNames = navState.routeNames ?? [];
+      const navAny = navigation as any;
+
+      // 1) 当前容器可直达 AI 练习页（MyStack）时直接跳转
+      if (routeNames.includes('AiExamQuizPractice')) {
+        navAny.navigate('AiExamQuizPractice', practiceParams);
+        return;
+      }
+
+      // 2) 当前容器是 Tab 时，兜底走 MyStack 内的 AI 练习页
+      if (routeNames.includes('My')) {
+        navAny.navigate('My', {
+          screen: 'AiExamQuizPractice',
+          params: practiceParams,
+        });
+        return;
+      }
+
+      throw new Error('无法定位 AI 练习路由，请检查导航配置');
     } catch (error) {
       Alert.alert('AI 生题失败', error instanceof Error ? error.message : String(error));
     } finally {
