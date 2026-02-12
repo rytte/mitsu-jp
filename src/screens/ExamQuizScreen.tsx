@@ -323,8 +323,7 @@ export default function ExamQuizScreen({ navigation }: Props) {
             正确 {correctCount}，错误 {wrongCount}，准确率 {accuracy}%
           </Text>
           <PrimaryButton title="再来一组" onPress={resetQuiz} style={styles.summaryButton} />
-          <PrimaryButton title="重新选题库" onPress={backToBankSelect} style={styles.summaryButton} />
-          <PrimaryButton title="返回我的" onPress={() => navigation.goBack()} />
+          <PrimaryButton title="返回题库" onPress={backToBankSelect} style={styles.summaryButton} />
         </View>
       ) : null}
     </ScrollView>
