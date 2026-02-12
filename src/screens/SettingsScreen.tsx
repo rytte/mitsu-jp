@@ -15,14 +15,14 @@ const FONT_OPTIONS = [
   { label: '大', value: 'l' },
 ] as const;
 const NAV_ITEMS = [
+  { key: 'nav_show_ai_hub', label: 'AI 学习中心' },
+  { key: 'nav_show_exam_quiz', label: '真题练习' },
   { key: 'nav_show_search', label: '搜索' },
   { key: 'nav_show_mistakes', label: '错题' },
   { key: 'nav_show_vocab_book', label: '生词本' },
   { key: 'nav_show_kana', label: '五十音图' },
   { key: 'nav_show_verb_conjugation', label: '动词变形表' },
   { key: 'nav_show_keigo', label: '敬语表' },
-  { key: 'nav_show_ai_hub', label: 'AI 学习中心' },
-  { key: 'nav_show_exam_quiz', label: '真题练习' },
   { key: 'nav_show_settings', label: '设置' },
 ] as const;
 
@@ -30,14 +30,14 @@ type NavItemKey = (typeof NAV_ITEMS)[number]['key'];
 
 function buildNavState(source: Settings): Record<NavItemKey, boolean> {
   return {
+    nav_show_ai_hub: source.nav_show_ai_hub,
+    nav_show_exam_quiz: source.nav_show_exam_quiz,
     nav_show_search: source.nav_show_search,
     nav_show_mistakes: source.nav_show_mistakes,
     nav_show_vocab_book: source.nav_show_vocab_book,
     nav_show_kana: source.nav_show_kana,
     nav_show_verb_conjugation: source.nav_show_verb_conjugation,
     nav_show_keigo: source.nav_show_keigo,
-    nav_show_ai_hub: source.nav_show_ai_hub,
-    nav_show_exam_quiz: source.nav_show_exam_quiz,
     nav_show_settings: source.nav_show_settings,
   };
 }

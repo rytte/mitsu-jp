@@ -152,18 +152,23 @@ export default function AppNavigator() {
         {navKana ? <Tab.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音' }} /> : null}
         {navVerb ? <Tab.Screen name="VerbConjugation" component={VerbConjugationScreen} options={{ title: '动词变形' }} /> : null}
         {navKeigo ? <Tab.Screen name="KeigoChart" component={KeigoChartScreen} options={{ title: '敬语表' }} /> : null}
+        {navExamQuiz ? (
+          <Tab.Screen
+            name="ExamQuiz"
+            component={ExamQuizScreen as any}
+            options={{
+              title: '真题练习',
+              headerShown: true,
+              headerStyle: { backgroundColor: colors.background },
+              headerTitleStyle: { color: colors.text },
+            }}
+          />
+        ) : null}
         {navAiHub ? (
           <Tab.Screen
             name="AiHub"
             component={AiHubScreen as any}
             options={{ title: 'AI 学习中心' }}
-          />
-        ) : null}
-        {navExamQuiz ? (
-          <Tab.Screen
-            name="ExamQuiz"
-            component={ExamQuizScreen as any}
-            options={{ title: '真题练习' }}
           />
         ) : null}
         {navSettings ? <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: '设置' }} /> : null}
