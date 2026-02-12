@@ -1,8 +1,9 @@
-﻿import { Pressable, StyleSheet, Text } from 'react-native';
+import { ReactNode } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, spacing } from '../theme';
 
 type Props = {
-  title: string;
+  title: ReactNode;
   selected?: boolean;
   correct?: boolean | null;
   onPress: () => void;
@@ -10,6 +11,7 @@ type Props = {
 
 export default function OptionButton({ title, selected, correct, onPress }: Props) {
   const showResult = typeof correct === 'boolean';
+  const isTextTitle = typeof title === 'string' || typeof title === 'number';
   return (
     <Pressable
       onPress={onPress}
@@ -22,7 +24,7 @@ export default function OptionButton({ title, selected, correct, onPress }: Prop
         pressed && !showResult ? styles.pressed : null,
       ]}
     >
-      <Text style={styles.text}>{title}</Text>
+      {isTextTitle ? <Text style={styles.text}>{title}</Text> : <View style={styles.content}>{title}</View>}
     </Pressable>
   );
 }
@@ -54,5 +56,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
+  content: {
+    alignSelf: 'stretch',
+  },
 });
-
