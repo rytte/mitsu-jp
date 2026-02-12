@@ -103,7 +103,7 @@ function MyStackScreen() {
         headerTitleStyle: { color: colors.text },
       }}
     >
-      <MyStack.Screen name="MyHome" component={MyScreen} options={{ title: '我的' }} />
+      <MyStack.Screen name="MyHome" component={MyScreen} options={{ headerShown: false }} />
       <MyStack.Screen name="AiHub" component={AiHubScreen} options={{ title: 'AI 学习中心' }} />
       <MyStack.Screen name="AiSettings" component={AiSettingsScreen} options={{ title: 'AI 配置' }} />
       <MyStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 对话训练' }} />
