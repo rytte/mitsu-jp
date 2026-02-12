@@ -197,10 +197,12 @@ function buildExplainSystemPrompt() {
     '2) 内容控制在 3-5 行。',
     '3) 必须包含：正确答案、为什么正确、其他选项为什么不选。',
     '4) 语气友好、结论明确。',
+    '5) 若题干包含“【目标空】”，按“排序填空题”处理：先给出 options 的参考排序，再解释目标空为什么应填正确答案。',
   ].join('\n');
 }
 
 function buildExplainUserPrompt(params: ExplainExamQuestionParams) {
+  const isReorderFill = params.prompt.includes('【目标空】');
   const payload = {
     level: params.level,
     prompt: params.prompt,
@@ -208,9 +210,13 @@ function buildExplainUserPrompt(params: ExplainExamQuestionParams) {
     correct_answer: params.correctAnswer,
     user_answer: params.userAnswer,
     is_correct: params.isCorrect,
+    question_type_hint: isReorderFill ? 'reorder_fill_with_target_slot' : 'normal_single_choice',
   };
   return [
     '请基于下面题目信息输出中文解析：',
+    isReorderFill
+      ? '题型补充：这是排序填空题，options 需要先按语法语义排序成完整句子，“【目标空】”是当前题目要求作答的位置。'
+      : '题型补充：这是普通单选题，直接对比选项并说明正确答案依据。',
     JSON.stringify(payload, null, 2),
   ].join('\n');
 }

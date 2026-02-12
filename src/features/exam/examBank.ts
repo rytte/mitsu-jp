@@ -13,6 +13,9 @@ const ENTITY_MAP: Record<string, string> = {
   apos: "'",
   nbsp: ' ',
 };
+const GENERIC_BLANK = '____';
+const TARGET_SLOT_TOKEN = '__TARGET_SLOT__';
+const TARGET_SLOT_LABEL = '【目标空】';
 
 const RAW_BANKS: Record<BankLevel, unknown> = {
   N1: n1Bank,
@@ -57,15 +60,24 @@ function htmlToPlainText(html: string) {
 }
 
 function maskPromptAnswer(html: string) {
-  const withMaskedHighlight = html.replace(/<font[^>]*#ef3461[^>]*>([\s\S]*?)<\/font>/gi, (_, inner: string) => {
-    const text = htmlToPlainText(inner).trim();
-    if (!text) return '____';
-    if (text.startsWith('(') && text.endsWith(')')) return '(____)';
-    if (text.startsWith('（') && text.endsWith('）')) return '（____）';
-    return '____';
+  const withClozeToken = html.replace(/\{\{c(\d+)::[\s\S]*?\}\}/gi, (_raw: string, clozeIndex: string) => {
+    return clozeIndex === '1' ? TARGET_SLOT_TOKEN : GENERIC_BLANK;
   });
 
-  return withMaskedHighlight.replace(/\{\{c\d+::[\s\S]*?\}\}/gi, '____');
+  const withMaskedHighlight = withClozeToken.replace(/<font[^>]*#ef3461[^>]*>([\s\S]*?)<\/font>/gi, (_, inner: string) => {
+    const innerPlain = htmlToPlainText(inner).trim();
+    if (innerPlain.includes(TARGET_SLOT_TOKEN)) {
+      if (innerPlain.startsWith('(') && innerPlain.endsWith(')')) return `(${TARGET_SLOT_TOKEN})`;
+      if (innerPlain.startsWith('（') && innerPlain.endsWith('）')) return `（${TARGET_SLOT_TOKEN}）`;
+      return TARGET_SLOT_TOKEN;
+    }
+    if (!innerPlain) return GENERIC_BLANK;
+    if (innerPlain.startsWith('(') && innerPlain.endsWith(')')) return `(${GENERIC_BLANK})`;
+    if (innerPlain.startsWith('（') && innerPlain.endsWith('）')) return `（${GENERIC_BLANK}）`;
+    return GENERIC_BLANK;
+  });
+
+  return withMaskedHighlight.replace(new RegExp(TARGET_SLOT_TOKEN, 'g'), TARGET_SLOT_LABEL);
 }
 
 function normalizePrompt(html: string) {
