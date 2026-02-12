@@ -1,10 +1,10 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
-import { explainExamQuestionWithAi } from '../features/ai/service';
-import { SESSION_SIZE } from '../features/exam/examBank';
+import { explainExamQuestionWithAi, generateExamQuizWithAi } from '../features/ai/service';
+import { sanitizeRawExamItems, SESSION_SIZE } from '../features/exam/examBank';
 import { getQuestionTypeInfo, getReorderFillTip } from '../features/exam/questionType';
 import { MyStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
@@ -29,6 +29,8 @@ export default function AiExamQuizPracticeScreen({ navigation, route }: Props) {
   const [aiExplainLoading, setAiExplainLoading] = useState(false);
   const [aiExplainText, setAiExplainText] = useState('');
   const [aiExplainError, setAiExplainError] = useState('');
+  const [aiRegenerateLoading, setAiRegenerateLoading] = useState(false);
+  const [aiRegenerateError, setAiRegenerateError] = useState('');
 
   const currentItem = items[currentIndex];
   const progressText = useMemo(() => {
@@ -59,10 +61,12 @@ export default function AiExamQuizPracticeScreen({ navigation, route }: Props) {
     setAiExplainLoading(false);
     setAiExplainText('');
     setAiExplainError('');
+    setAiRegenerateLoading(false);
+    setAiRegenerateError('');
   }, [aiItems, navigation]);
 
-  const resetQuiz = () => {
-    setItems(shuffle(aiItems).slice(0, Math.min(SESSION_SIZE, aiItems.length)));
+  const resetWithItems = (nextItems: ExamQuizItem[]) => {
+    setItems(nextItems);
     setCurrentIndex(0);
     setSelected(null);
     setShowResult(false);
@@ -72,6 +76,29 @@ export default function AiExamQuizPracticeScreen({ navigation, route }: Props) {
     setAiExplainLoading(false);
     setAiExplainText('');
     setAiExplainError('');
+  };
+
+  const resetQuiz = async () => {
+    if (aiRegenerateLoading) return;
+    setAiRegenerateLoading(true);
+    setAiRegenerateError('');
+    try {
+      const rawItems = await generateExamQuizWithAi(level, SESSION_SIZE);
+      const nextItems = sanitizeRawExamItems(rawItems).slice(0, SESSION_SIZE);
+      if (!nextItems.length) {
+        throw new Error('AI 返回题目为空或校验失败，请重试');
+      }
+      if (nextItems.length < SESSION_SIZE) {
+        throw new Error(`AI 仅返回 ${nextItems.length} 题，未达到 ${SESSION_SIZE} 题要求，请重试`);
+      }
+      resetWithItems(nextItems);
+    } catch (error) {
+      setAiRegenerateError(error instanceof Error ? error.message : String(error));
+      // 兜底：保持当前体验，不让用户卡死在完成页
+      resetWithItems(shuffle(aiItems).slice(0, Math.min(SESSION_SIZE, aiItems.length)));
+    } finally {
+      setAiRegenerateLoading(false);
+    }
   };
 
   const handleAnswer = (answer: string) => {
@@ -190,7 +217,14 @@ export default function AiExamQuizPracticeScreen({ navigation, route }: Props) {
           <Text style={styles.summaryText}>
             正确 {correctCount}，错误 {wrongCount}，准确率 {accuracy}%
           </Text>
-          <PrimaryButton title="再来一组" onPress={resetQuiz} style={styles.summaryButton} />
+          <PrimaryButton title={aiRegenerateLoading ? 'AI 出题中...' : '再来一组'} onPress={resetQuiz} style={styles.summaryButton} />
+          {aiRegenerateLoading ? (
+            <View style={styles.aiRegenerateRow}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.aiRegenerateText}>正在向 AI 请求新题...</Text>
+            </View>
+          ) : null}
+          {aiRegenerateError ? <Text style={styles.aiRegenerateError}>AI 出题失败：{aiRegenerateError}</Text> : null}
           <PrimaryButton title="返回 AI 学习中心" onPress={() => navigation.goBack()} style={styles.summaryButton} />
         </View>
       ) : null}
@@ -329,5 +363,20 @@ const styles = StyleSheet.create({
   },
   summaryButton: {
     marginBottom: spacing.s,
+  },
+  aiRegenerateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.s,
+  },
+  aiRegenerateText: {
+    marginLeft: spacing.xs,
+    color: colors.muted,
+    fontSize: 12,
+  },
+  aiRegenerateError: {
+    marginBottom: spacing.s,
+    color: colors.danger,
+    fontSize: 12,
   },
 });
