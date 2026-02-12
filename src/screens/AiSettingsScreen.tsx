@@ -10,6 +10,27 @@ function normalizeBaseUrl(value: string) {
   return value.trim().replace(/\/+$/, '');
 }
 
+type ComparableConfig = {
+  providerLabel: string;
+  apiBaseUrl: string;
+  apiKey: string;
+  model: string;
+};
+
+function buildComparableConfig(input: {
+  providerLabel: string;
+  apiBaseUrl: string;
+  apiKey: string;
+  model: string;
+}): ComparableConfig {
+  return {
+    providerLabel: input.providerLabel.trim(),
+    apiBaseUrl: normalizeBaseUrl(input.apiBaseUrl),
+    apiKey: input.apiKey.trim(),
+    model: input.model.trim(),
+  };
+}
+
 function extractModelIds(payload: unknown) {
   const data = payload as {
     data?: Array<{ id?: string }>;
@@ -36,6 +57,7 @@ export default function AiSettingsScreen() {
   const [modelHint, setModelHint] = useState('');
   const [saveHint, setSaveHint] = useState('');
   const [saveHintType, setSaveHintType] = useState<'info' | 'success' | 'error'>('info');
+  const [savedSnapshot, setSavedSnapshot] = useState<ComparableConfig | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -46,6 +68,14 @@ export default function AiSettingsScreen() {
       setApiBaseUrl(config.api_base_url);
       setApiKey(config.api_key);
       setModel(config.model);
+      setSavedSnapshot(
+        buildComparableConfig({
+          providerLabel: config.provider_label,
+          apiBaseUrl: config.api_base_url,
+          apiKey: config.api_key,
+          model: config.model,
+        })
+      );
       setLoading(false);
     })();
     return () => {
@@ -53,15 +83,40 @@ export default function AiSettingsScreen() {
     };
   }, []);
 
+  const normalizedDraft = useMemo(
+    () =>
+      buildComparableConfig({
+        providerLabel,
+        apiBaseUrl,
+        apiKey,
+        model,
+      }),
+    [apiBaseUrl, apiKey, model, providerLabel]
+  );
+
   const canSave = useMemo(() => {
-    return Boolean(providerLabel.trim() && normalizeBaseUrl(apiBaseUrl) && model.trim());
-  }, [apiBaseUrl, model, providerLabel]);
+    return Boolean(normalizedDraft.providerLabel && normalizedDraft.apiBaseUrl && normalizedDraft.model);
+  }, [normalizedDraft]);
+
+  const hasChanges = useMemo(() => {
+    if (!savedSnapshot) return false;
+    return (
+      normalizedDraft.providerLabel !== savedSnapshot.providerLabel ||
+      normalizedDraft.apiBaseUrl !== savedSnapshot.apiBaseUrl ||
+      normalizedDraft.apiKey !== savedSnapshot.apiKey ||
+      normalizedDraft.model !== savedSnapshot.model
+    );
+  }, [normalizedDraft, savedSnapshot]);
 
   const handleSave = async () => {
     if (!canSave) {
       setSaveHintType('error');
       setSaveHint('保存失败：请完整填写 Provider 名称、Base URL 和 Model');
-      Alert.alert('保存失败', '请完整填写 Provider 名称、Base URL 和 Model');
+      return;
+    }
+    if (!hasChanges) {
+      setSaveHintType('info');
+      setSaveHint('没有内容变更，无需保存');
       return;
     }
     setSaving(true);
@@ -70,20 +125,19 @@ export default function AiSettingsScreen() {
     try {
       await saveAiProviderConfig({
         provider_id: DEFAULT_AI_PROVIDER_CONFIG.provider_id,
-        provider_label: providerLabel.trim(),
-        api_base_url: normalizeBaseUrl(apiBaseUrl),
-        api_key: apiKey.trim(),
-        model: model.trim(),
+        provider_label: normalizedDraft.providerLabel,
+        api_base_url: normalizedDraft.apiBaseUrl,
+        api_key: normalizedDraft.apiKey,
+        model: normalizedDraft.model,
         updated_at: Date.now(),
       });
+      setSavedSnapshot(normalizedDraft);
       setSaveHintType('success');
       setSaveHint('保存成功：AI 配置已更新');
-      Alert.alert('已保存', 'AI 配置已更新');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setSaveHintType('error');
       setSaveHint(`保存失败：${message}`);
-      Alert.alert('保存失败', error instanceof Error ? error.message : String(error));
     } finally {
       setSaving(false);
     }
@@ -222,7 +276,7 @@ export default function AiSettingsScreen() {
         ) : null}
       </View>
 
-      <PrimaryButton title={saving ? '保存中...' : '保存配置'} onPress={handleSave} disabled={saving} />
+      <PrimaryButton title={saving ? '保存中...' : '保存配置'} onPress={handleSave} disabled={saving || !canSave || !hasChanges} />
       {saveHint ? (
         <Text
           style={[
