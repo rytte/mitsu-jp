@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '../theme';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 type KanaCell = { kana: string; romaji: string };
 
@@ -386,9 +386,9 @@ function KanaTable({
 }
 
 export default function KanaChartScreen() {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding();
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.m }]}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
       <Text style={styles.pageTitle}>五十音图</Text>
       <Text style={styles.pageSubtitle}>基础清音（平假名 / 片假名）</Text>
       <KanaTable title="平假名" rows={HIRAGANA_ROWS} />

@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '../theme';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 type KeigoRow = {
   plain: string;
@@ -116,9 +116,9 @@ function RequestRowItem({ pattern, usage }: RequestRow) {
 }
 
 export default function KeigoChartScreen() {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding();
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.m }]}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
       <Text style={styles.pageTitle}>敬语表</Text>
       <Text style={styles.pageSubtitle}>常用动词的尊敬语 / 谦让语 / 丁宁语</Text>
 

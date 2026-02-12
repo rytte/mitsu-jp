@@ -3,7 +3,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
 import { TabView } from 'react-native-tab-view';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GrammarCard from '../components/GrammarCard';
 import WordCard from '../components/WordCard';
 import PrimaryButton from '../components/PrimaryButton';
@@ -20,13 +19,14 @@ import { colors, spacing } from '../theme';
 import { GrammarPoint, Settings, Word } from '../types';
 import { bumpFontScale, getGrammarFontSizes, getWordFontSizes } from '../utils/fontScale';
 import { getMeaning } from '../utils/meaning';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 type MistakeWord = Word & { wrong_times: number };
 type MistakeGrammar = GrammarPoint & { wrong_times: number };
 type Mode = 'word' | 'grammar';
 
 export default function MistakesScreen() {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding();
   const [tabIndex, setTabIndex] = useState(0);
   const [wordMistakes, setWordMistakes] = useState<MistakeWord[]>([]);
   const [grammarMistakes, setGrammarMistakes] = useState<MistakeGrammar[]>([]);
@@ -250,7 +250,7 @@ export default function MistakesScreen() {
   }, [tabIndex]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.m }]}>
+    <View style={[styles.container, { paddingTop: topPadding }]}>
       <View style={styles.header}>
         <Text style={styles.title}>错题本</Text>
         <View style={styles.headerActions}>

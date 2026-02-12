@@ -2,20 +2,20 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PrimaryButton from '../components/PrimaryButton';
 import { generateExamQuizWithAi } from '../features/ai/service';
 import { SESSION_SIZE, sanitizeRawExamItems } from '../features/exam/examBank';
 import { MyStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { BankLevel } from '../types';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 type Props = NativeStackScreenProps<MyStackParamList, 'AiHub'>;
 
 const LEVELS: BankLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
 
 export default function AiHubScreen({ navigation }: Props) {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding({ mode: 'always-safe' });
   const [selectedLevel, setSelectedLevel] = useState<BankLevel>('N5');
   const [loading, setLoading] = useState(false);
   const [lastInfo, setLastInfo] = useState('');
@@ -66,7 +66,7 @@ export default function AiHubScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.m }]}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
       <View style={styles.heroCard}>
         <View style={styles.heroTopRow}>
           <View style={styles.heroIconWrap}>

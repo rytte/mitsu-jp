@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PrimaryButton from '../components/PrimaryButton';
 import { DEFAULT_AI_PROVIDER_CONFIG } from '../features/ai/constants';
 import { loadAiProviderConfig, saveAiProviderConfig } from '../features/ai/storage';
 import { colors, radius, spacing } from '../theme';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 function normalizeBaseUrl(value: string) {
   return value.trim().replace(/\/+$/, '');
@@ -24,7 +24,7 @@ function extractModelIds(payload: unknown) {
 }
 
 export default function AiSettingsScreen() {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
@@ -137,14 +137,14 @@ export default function AiSettingsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loading, { paddingTop: insets.top + spacing.m }]}>
+      <View style={[styles.loading, { paddingTop: topPadding }]}>
         <Text style={styles.loadingText}>加载 AI 配置中...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.m }]}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Provider</Text>
         <Text style={styles.tip}>当前使用 Responses 接口，后续可扩展更多 Provider。</Text>

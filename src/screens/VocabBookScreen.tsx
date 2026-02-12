@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import WordCard from '../components/WordCard';
 import PrimaryButton from '../components/PrimaryButton';
 import { getVocabBookWords, removeFromVocabBook } from '../db/queries';
@@ -11,9 +10,10 @@ import { colors, radius, spacing } from '../theme';
 import { Word } from '../types';
 import { bumpFontScale, getWordFontSizes } from '../utils/fontScale';
 import { getMeaning } from '../utils/meaning';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 export default function VocabBookScreen() {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding();
   const [loading, setLoading] = useState(true);
   const [words, setWords] = useState<Word[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -118,7 +118,7 @@ export default function VocabBookScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.m }]}>
+    <View style={[styles.container, { paddingTop: topPadding }]}>
       {selecting ? (
         <View style={styles.selectBar}>
           <Text style={styles.selectText}>已选 {selectedIds.size} 个</Text>

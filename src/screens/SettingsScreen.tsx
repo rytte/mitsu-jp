@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 import PrimaryButton from '../components/PrimaryButton';
 import { updateSettings } from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
@@ -43,7 +43,7 @@ function buildNavState(source: Settings): Record<NavItemKey, boolean> {
 }
 
 export default function SettingsScreen() {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding();
   const settings = useAppStore((state) => state.settings);
   const setSettings = useAppStore((state) => state.setSettings);
   const [mcqJaToMeaningEnabled, setMcqJaToMeaningEnabled] = useState(settings.mcq_modes.ja_to_meaning);
@@ -195,7 +195,7 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.m }]}
+      contentContainerStyle={[styles.content, { paddingTop: topPadding }]}
     >
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>发音速度</Text>

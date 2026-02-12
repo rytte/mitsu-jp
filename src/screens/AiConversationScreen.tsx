@@ -2,12 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, InteractionManager, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PrimaryButton from '../components/PrimaryButton';
 import { replyConversationWithAi, startConversationWithAi } from '../features/ai/service';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { BankLevel } from '../types';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 type Scenario = {
   id: string;
@@ -62,7 +62,7 @@ const SCENARIOS: Scenario[] = [
 ];
 
 export default function AiConversationScreen() {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding();
   const settings = useAppStore((state) => state.settings);
   const [level, setLevel] = useState<BankLevel>('N5');
   const [scenario, setScenario] = useState<Scenario>(SCENARIOS[0]);
@@ -200,7 +200,7 @@ export default function AiConversationScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.m }]}>
+    <View style={[styles.container, { paddingTop: topPadding }]}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>

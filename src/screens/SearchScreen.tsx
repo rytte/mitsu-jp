@@ -13,7 +13,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { TabView } from 'react-native-tab-view';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GrammarCard from '../components/GrammarCard';
 import WordCard from '../components/WordCard';
 import PrimaryButton from '../components/PrimaryButton';
@@ -26,6 +25,7 @@ import { colors, radius, spacing } from '../theme';
 import { GrammarPoint, Level, Settings, Word } from '../types';
 import { bumpFontScale, getGrammarFontSizes, getWordFontSizes } from '../utils/fontScale';
 import { getMeaning } from '../utils/meaning';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 type Mode = 'word' | 'grammar' | 'ai-dict';
 type LevelFilter = 'ALL' | Level;
@@ -148,7 +148,7 @@ function searchGrammars(list: GrammarPoint[], tokens: string[], query: string, l
 }
 
 export default function SearchScreen() {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding();
   const [query, setQuery] = useState('');
   const [tabIndex, setTabIndex] = useState(0);
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('ALL');
@@ -594,7 +594,7 @@ export default function SearchScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.m }]}>
+    <View style={[styles.container, { paddingTop: topPadding }]}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <View>

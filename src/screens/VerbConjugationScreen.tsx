@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '../theme';
+import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 type FormRow = {
   label: string;
@@ -99,9 +99,9 @@ function FormRowItem({ label, value, highlight }: FormRow) {
 }
 
 export default function VerbConjugationScreen() {
-  const insets = useSafeAreaInsets();
+  const topPadding = useScreenTopPadding();
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.m }]}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
       <Text style={styles.pageTitle}>动词变形表</Text>
       <Text style={styles.pageSubtitle}>一段 / 五段 / 不规则动词常用变形</Text>
       {TABLES.map((section) => (
