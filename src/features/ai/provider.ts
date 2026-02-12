@@ -1,5 +1,4 @@
-import { BankLevel, RawExamItem } from '../../types';
-import { AiProviderConfig } from '../../types';
+import { AiProviderConfig, BankLevel, RawExamItem } from '../../types';
 
 type GenerateExamQuizParams = {
   level: BankLevel;
@@ -15,9 +14,47 @@ type ExplainExamQuestionParams = {
   isCorrect: boolean;
 };
 
+type ConversationHistoryItem = {
+  role: 'assistant' | 'user';
+  text: string;
+};
+
+type StartConversationParams = {
+  level: BankLevel;
+  scenarioTitle: string;
+  scenarioDescription: string;
+  goal: string;
+};
+
+type ReplyConversationParams = {
+  level: BankLevel;
+  scenarioTitle: string;
+  scenarioDescription: string;
+  goal: string;
+  userInput: string;
+  history: ConversationHistoryItem[];
+  turnIndex: number;
+};
+
+export type ConversationTurnResult = {
+  assistantReplyJa: string;
+  assistantReplyZh: string;
+  correction: {
+    original: string;
+    better: string;
+    reasonCn: string;
+  } | null;
+  nextHintCn: string;
+  score: number;
+  isGoalCompleted: boolean;
+  completionCommentCn: string;
+};
+
 export type AiQuizProvider = {
   generateExamQuiz: (params: GenerateExamQuizParams) => Promise<RawExamItem[]>;
   explainExamQuestion: (params: ExplainExamQuestionParams) => Promise<string>;
+  startConversation: (params: StartConversationParams) => Promise<ConversationTurnResult>;
+  replyConversation: (params: ReplyConversationParams) => Promise<ConversationTurnResult>;
 };
 
 const LEVEL_GUIDE: Record<BankLevel, string> = {
@@ -60,6 +97,48 @@ const RESPONSES_SCHEMA = {
           },
         },
       },
+    },
+  },
+  strict: true,
+} as const;
+
+const CONVERSATION_SCHEMA = {
+  type: 'json_schema',
+  name: 'conversation_turn_schema',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: [
+      'assistant_reply_ja',
+      'assistant_reply_zh',
+      'correction',
+      'next_hint_cn',
+      'score',
+      'is_goal_completed',
+      'completion_comment_cn',
+    ],
+    properties: {
+      assistant_reply_ja: { type: 'string', minLength: 1 },
+      assistant_reply_zh: { type: 'string' },
+      correction: {
+        anyOf: [
+          {
+            type: 'object',
+            additionalProperties: false,
+            required: ['original', 'better', 'reason_cn'],
+            properties: {
+              original: { type: 'string' },
+              better: { type: 'string' },
+              reason_cn: { type: 'string' },
+            },
+          },
+          { type: 'null' },
+        ],
+      },
+      next_hint_cn: { type: 'string' },
+      score: { type: 'integer', minimum: 0, maximum: 100 },
+      is_goal_completed: { type: 'boolean' },
+      completion_comment_cn: { type: 'string' },
     },
   },
   strict: true,
@@ -119,6 +198,47 @@ function buildExplainUserPrompt(params: ExplainExamQuestionParams) {
   ].join('\n');
 }
 
+function buildConversationSystemPrompt() {
+  return [
+    '你是日语会话教练，正在进行 JLPT 分级对话训练。',
+    '你需要扮演场景中的对话角色，并提供学习反馈。',
+    '严格遵守：',
+    '1) assistant_reply_ja 用自然日语，长度 1-2 句。',
+    '2) assistant_reply_zh 用简短中文解释该句意思。',
+    '3) correction 仅针对用户上一句；如果用户句子很自然可返回 null。',
+    '4) next_hint_cn 给出下一句可说什么（不超过 20 字）。',
+    '5) score 为当前轮建议分（0-100）。',
+    '6) 当用户已达成目标时，is_goal_completed 设为 true 并给 completion_comment_cn。',
+    '7) 仅输出符合 JSON Schema 的结果。',
+  ].join('\n');
+}
+
+function buildConversationStartUserPrompt(params: StartConversationParams) {
+  return [
+    '请开始一段新的日语对话训练。',
+    `等级：${params.level}`,
+    `场景：${params.scenarioTitle}`,
+    `场景说明：${params.scenarioDescription}`,
+    `用户目标：${params.goal}`,
+    '要求：先由你输出第一句开场白，鼓励用户回复。',
+  ].join('\n');
+}
+
+function buildConversationReplyUserPrompt(params: ReplyConversationParams) {
+  const history = params.history.slice(-12);
+  return [
+    `等级：${params.level}`,
+    `场景：${params.scenarioTitle}`,
+    `场景说明：${params.scenarioDescription}`,
+    `用户目标：${params.goal}`,
+    `当前轮次：${params.turnIndex}`,
+    '最近对话历史（JSON）：',
+    JSON.stringify(history, null, 2),
+    '用户本轮输入：',
+    params.userInput,
+  ].join('\n');
+}
+
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.trim().replace(/\/+$/, '');
 }
@@ -167,6 +287,36 @@ function sanitizeItems(rawItems: RawExamItem[]) {
       } satisfies RawExamItem;
     })
     .filter(Boolean) as RawExamItem[];
+}
+
+function normalizeConversationTurn(payload: unknown): ConversationTurnResult {
+  const data = payload as {
+    assistant_reply_ja?: string;
+    assistant_reply_zh?: string;
+    correction?: { original?: string; better?: string; reason_cn?: string } | null;
+    next_hint_cn?: string;
+    score?: number;
+    is_goal_completed?: boolean;
+    completion_comment_cn?: string;
+  };
+
+  const correction = data.correction
+    ? {
+        original: String(data.correction.original ?? '').trim(),
+        better: String(data.correction.better ?? '').trim(),
+        reasonCn: String(data.correction.reason_cn ?? '').trim(),
+      }
+    : null;
+
+  return {
+    assistantReplyJa: String(data.assistant_reply_ja ?? '').trim(),
+    assistantReplyZh: String(data.assistant_reply_zh ?? '').trim(),
+    correction,
+    nextHintCn: String(data.next_hint_cn ?? '').trim(),
+    score: Number.isFinite(Number(data.score)) ? Number(data.score) : 0,
+    isGoalCompleted: Boolean(data.is_goal_completed),
+    completionCommentCn: String(data.completion_comment_cn ?? '').trim(),
+  };
 }
 
 export function createResponsesProvider(config: AiProviderConfig): AiQuizProvider {
@@ -276,6 +426,106 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
 
       return outputText;
+    },
+    async startConversation(params: StartConversationParams) {
+      ensureConfigReady();
+
+      const response = await fetch(`${baseUrl}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: [
+            {
+              role: 'system',
+              content: [{ type: 'input_text', text: buildConversationSystemPrompt() }],
+            },
+            {
+              role: 'user',
+              content: [{ type: 'input_text', text: buildConversationStartUserPrompt(params) }],
+            },
+          ],
+          max_output_tokens: 1200,
+          text: {
+            format: CONVERSATION_SCHEMA,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`对话启动失败（${response.status}）：${errText || response.statusText}`);
+      }
+
+      const payload = (await response.json()) as unknown;
+      const outputText = extractOutputText(payload);
+      if (!outputText) {
+        throw new Error('AI 未返回开场内容，请稍后重试');
+      }
+
+      try {
+        const parsed = JSON.parse(outputText) as unknown;
+        const result = normalizeConversationTurn(parsed);
+        if (!result.assistantReplyJa) {
+          throw new Error('开场白为空');
+        }
+        return result;
+      } catch {
+        throw new Error('AI 开场返回格式无效，请重试');
+      }
+    },
+    async replyConversation(params: ReplyConversationParams) {
+      ensureConfigReady();
+
+      const response = await fetch(`${baseUrl}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: [
+            {
+              role: 'system',
+              content: [{ type: 'input_text', text: buildConversationSystemPrompt() }],
+            },
+            {
+              role: 'user',
+              content: [{ type: 'input_text', text: buildConversationReplyUserPrompt(params) }],
+            },
+          ],
+          max_output_tokens: 1200,
+          text: {
+            format: CONVERSATION_SCHEMA,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`对话回复失败（${response.status}）：${errText || response.statusText}`);
+      }
+
+      const payload = (await response.json()) as unknown;
+      const outputText = extractOutputText(payload);
+      if (!outputText) {
+        throw new Error('AI 未返回回复内容，请稍后重试');
+      }
+
+      try {
+        const parsed = JSON.parse(outputText) as unknown;
+        const result = normalizeConversationTurn(parsed);
+        if (!result.assistantReplyJa) {
+          throw new Error('回复为空');
+        }
+        return result;
+      } catch {
+        throw new Error('AI 回复格式无效，请重试');
+      }
     },
   };
 }

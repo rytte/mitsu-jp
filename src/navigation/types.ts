@@ -49,6 +49,7 @@ export type MyStackParamList = {
   ExamQuiz: { aiItems?: ExamQuizItem[]; aiLevel?: BankLevel } | undefined;
   AiHub: undefined;
   AiSettings: undefined;
+  AiConversation: undefined;
   Search: undefined;
   Mistakes: undefined;
   KanaChart: undefined;
@@ -57,4 +58,3 @@ export type MyStackParamList = {
   VocabBook: undefined;
   Settings: undefined;
 };
-

@@ -58,7 +58,7 @@ export default function AiHubScreen({ navigation }: Props) {
           <Text style={styles.heroTag}>AI 工作台</Text>
         </View>
         <Text style={styles.heroTitle}>AI 学习中心</Text>
-        <Text style={styles.heroSub}>你可以在这里使用 AI 生题，后续还会上线讲解、改错、对话训练和作文批改。</Text>
+        <Text style={styles.heroSub}>你可以在这里使用 AI 生题和对话训练等功能。</Text>
       </View>
 
       <View style={styles.section}>
@@ -70,6 +70,12 @@ export default function AiHubScreen({ navigation }: Props) {
           </Pressable>
         </View>
         <Text style={styles.tip}>先完成 API 配置，再开始使用 AI 生题等功能。</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>AI 对话训练</Text>
+        <Text style={styles.tip}>按场景进行多轮对话，获得实时纠错、提示和阶段评分。</Text>
+        <PrimaryButton title="进入对话训练" onPress={() => navigation.navigate('AiConversation')} style={styles.actionBtn} />
       </View>
 
       <View style={styles.section}>

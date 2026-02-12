@@ -198,7 +198,7 @@ export default function AiSettingsScreen() {
           autoCorrect={false}
         />
         <PrimaryButton
-          title={loadingModels ? '拉取中...' : '通过接口拉取模型'}
+          title={loadingModels ? '拉取中...' : '拉取模型'}
           onPress={handleLoadModels}
           disabled={loadingModels}
           style={styles.modelFetchBtn}
