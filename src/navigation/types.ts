@@ -1,4 +1,4 @@
-﻿import { Level } from '../types';
+import { BankLevel, ExamQuizItem, Level } from '../types';
 
 export type LearnStackParamList = {
   LevelSelect: { skipAuto?: boolean } | undefined;
@@ -46,7 +46,9 @@ export type RootTabParamList = {
 
 export type MyStackParamList = {
   MyHome: undefined;
-  ExamQuiz: undefined;
+  ExamQuiz: { aiItems?: ExamQuizItem[]; aiLevel?: BankLevel } | undefined;
+  AiHub: undefined;
+  AiSettings: undefined;
   Search: undefined;
   Mistakes: undefined;
   KanaChart: undefined;

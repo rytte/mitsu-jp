@@ -6,6 +6,31 @@ export type MeaningLanguage = 'zh' | 'en';
 
 export type FontScale = 's' | 'm' | 'l';
 
+export type BankLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
+
+export type RawExamItem = {
+  id?: string;
+  question_html?: string;
+  options?: string[];
+  answer_index?: number;
+};
+
+export type ExamQuizItem = {
+  id: string;
+  prompt: string;
+  options: string[];
+  answer: string;
+};
+
+export type AiProviderConfig = {
+  provider_id: string;
+  provider_label: string;
+  api_base_url: string;
+  api_key: string;
+  model: string;
+  updated_at: number;
+};
+
 export type Word = {
   id: string;
   level: Level;

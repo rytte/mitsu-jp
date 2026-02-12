@@ -1,152 +1,27 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
-import n1Bank from '../data/jlpt-n1.json';
-import n2Bank from '../data/jlpt-n2.json';
-import n3Bank from '../data/jlpt-n3.json';
-import n4Bank from '../data/jlpt-n4.json';
-import n5Bank from '../data/jlpt-n5.json';
+import { BANK_LEVELS, getQuestionBank, SESSION_SIZE } from '../features/exam/examBank';
 import { MyStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
+import { BankLevel, ExamQuizItem } from '../types';
 import { shuffle } from '../utils/random';
 
 type Props = NativeStackScreenProps<MyStackParamList, 'ExamQuiz'>;
 
-type RawExamItem = {
-  id?: string;
-  question_html?: string;
-  options?: string[];
-  answer_index?: number;
-};
-
-type N1QuizItem = {
-  id: string;
-  prompt: string;
-  options: string[];
-  answer: string;
-};
-
-type BankLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
-
-const SESSION_SIZE = 10;
-const BANK_LEVELS: BankLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
-const RAW_BANKS: Record<BankLevel, unknown> = {
-  N1: n1Bank,
-  N2: n2Bank,
-  N3: n3Bank,
-  N4: n4Bank,
-  N5: n5Bank,
-};
-const BANK_CACHE: Partial<Record<BankLevel, N1QuizItem[]>> = {};
-
-const ENTITY_MAP: Record<string, string> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-};
-
-function decodeHtmlEntities(text: string) {
-  return text.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (_, entity: string) => {
-    const key = entity.toLowerCase();
-    if (key.startsWith('#x')) {
-      const code = Number.parseInt(key.slice(2), 16);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : _;
-    }
-    if (key.startsWith('#')) {
-      const code = Number.parseInt(key.slice(1), 10);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : _;
-    }
-    return ENTITY_MAP[key] ?? _;
-  });
-}
-
-function htmlToPlainText(html: string) {
-  const stripped = html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/\s*(p|div|details|summary|li)\s*>/gi, '\n')
-    .replace(/<li[^>]*>/gi, '• ')
-    .replace(/<[^>]+>/g, '');
-
-  return decodeHtmlEntities(stripped)
-    .replace(/\r/g, '')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
-function maskPromptAnswer(html: string) {
-  const withMaskedHighlight = html.replace(/<font[^>]*#ef3461[^>]*>([\s\S]*?)<\/font>/gi, (_, inner: string) => {
-    const text = htmlToPlainText(inner).trim();
-    if (!text) return '____';
-    if (text.startsWith('(') && text.endsWith(')')) return '(____)';
-    if (text.startsWith('（') && text.endsWith('）')) return '（____）';
-    return '____';
-  });
-
-  return withMaskedHighlight.replace(/\{\{c\d+::[\s\S]*?\}\}/gi, '____');
-}
-
-function normalizePrompt(html: string) {
-  const masked = maskPromptAnswer(html);
-  const withoutHidden = masked.replace(/<a[^>]*display\s*:\s*none[^>]*>[\s\S]*?<\/a>/gi, '');
-  const plain = htmlToPlainText(withoutHidden);
-  const lines = plain
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter((line) => !/\bN\d\s*\|\s*Practice/i.test(line) && !/takostar\.net/i.test(line));
-  return (lines.length ? lines : plain.split('\n').map((line) => line.trim()).filter(Boolean)).join('\n');
-}
-
-function resolveRawItems(raw: unknown): RawExamItem[] {
-  return Array.isArray(raw)
-    ? (raw as RawExamItem[])
-    : Array.isArray((raw as { items?: unknown })?.items)
-    ? (((raw as { items?: unknown }).items ?? []) as RawExamItem[])
-    : [];
-}
-
-function buildQuestionBank(level: BankLevel) {
-  const source = resolveRawItems(RAW_BANKS[level]);
-  const result: N1QuizItem[] = [];
-
-  for (const item of source) {
-    const options = Array.isArray(item.options)
-      ? item.options.map((option) => String(option).trim()).filter(Boolean)
-      : [];
-    const answerIndex = Number(item.answer_index ?? 0) - 1;
-    const answer = answerIndex >= 0 && answerIndex < options.length ? options[answerIndex] : '';
-    const prompt = normalizePrompt(String(item.question_html ?? ''));
-
-    if (!prompt || options.length < 2 || !answer) continue;
-
-    result.push({
-      id: String(item.id ?? `${result.length + 1}`),
-      prompt,
-      options,
-      answer,
-    });
-  }
-
-  return result;
-}
-
-function getQuestionBank(level: BankLevel) {
-  if (!BANK_CACHE[level]) {
-    BANK_CACHE[level] = buildQuestionBank(level);
-  }
-  return BANK_CACHE[level] ?? [];
-}
-
-export default function ExamQuizScreen({ navigation }: Props) {
-  const [selectedLevel, setSelectedLevel] = useState<BankLevel | null>(null);
-  const [items, setItems] = useState<N1QuizItem[]>([]);
+export default function ExamQuizScreen({ navigation, route }: Props) {
+  const aiItems = route.params?.aiItems;
+  const aiLevel = route.params?.aiLevel;
+  const hasAiItems = Array.isArray(aiItems) && aiItems.length > 0;
+  const practiceTitle = hasAiItems ? 'AI 练习' : '真题练习';
+  const bankTitle = hasAiItems ? 'AI 题单' : '真题题库';
+  const [selectedLevel, setSelectedLevel] = useState<BankLevel | null>(hasAiItems ? aiLevel ?? 'N5' : null);
+  const [items, setItems] = useState<ExamQuizItem[]>(
+    hasAiItems ? aiItems.slice(0, Math.min(SESSION_SIZE, aiItems.length)) : []
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -161,7 +36,25 @@ export default function ExamQuizScreen({ navigation }: Props) {
   }, [currentIndex, items.length]);
 
   const questionBank = useMemo(() => (selectedLevel ? getQuestionBank(selectedLevel) : []), [selectedLevel]);
-  const sessionSize = Math.min(SESSION_SIZE, questionBank.length);
+  const sessionSize = hasAiItems
+    ? Math.min(SESSION_SIZE, aiItems.length)
+    : Math.min(SESSION_SIZE, questionBank.length);
+
+  useEffect(() => {
+    if (!hasAiItems) return;
+    setSelectedLevel(aiLevel ?? 'N5');
+    setItems(aiItems.slice(0, Math.min(SESSION_SIZE, aiItems.length)));
+    setCurrentIndex(0);
+    setSelected(null);
+    setShowResult(false);
+    setIsCorrect(null);
+    setCorrectCount(0);
+    setWrongCount(0);
+  }, [aiItems, aiLevel, hasAiItems]);
+
+  useEffect(() => {
+    navigation.setOptions({ title: practiceTitle });
+  }, [navigation, practiceTitle]);
 
   const startQuiz = (level: BankLevel) => {
     const bank = getQuestionBank(level);
@@ -178,6 +71,16 @@ export default function ExamQuizScreen({ navigation }: Props) {
 
   const resetQuiz = () => {
     if (!selectedLevel) return;
+    if (hasAiItems) {
+      setItems(shuffle(aiItems).slice(0, Math.min(SESSION_SIZE, aiItems.length)));
+      setCurrentIndex(0);
+      setSelected(null);
+      setShowResult(false);
+      setIsCorrect(null);
+      setCorrectCount(0);
+      setWrongCount(0);
+      return;
+    }
     const bank = getQuestionBank(selectedLevel);
     setItems(shuffle(bank).slice(0, Math.min(SESSION_SIZE, bank.length)));
     setCurrentIndex(0);
@@ -211,6 +114,9 @@ export default function ExamQuizScreen({ navigation }: Props) {
   };
 
   const backToBankSelect = () => {
+    if (hasAiItems) {
+      navigation.setParams({ aiItems: undefined, aiLevel: undefined });
+    }
     setSelectedLevel(null);
     setItems([]);
     setCurrentIndex(0);
@@ -225,7 +131,7 @@ export default function ExamQuizScreen({ navigation }: Props) {
     return (
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.headerBlock}>
-          <Text style={styles.headerTitle}>真题练习</Text>
+          <Text style={styles.headerTitle}>{practiceTitle}</Text>
           <Text style={styles.tip}>先选择题库，再开始练习</Text>
         </View>
         {BANK_LEVELS.map((level) => {
@@ -248,7 +154,7 @@ export default function ExamQuizScreen({ navigation }: Props) {
                   <View style={styles.bankBadge}>
                     <Text style={styles.bankBadgeText}>{level}</Text>
                   </View>
-                  <Text style={styles.bankTitle}>真题题库</Text>
+                  <Text style={styles.bankTitle}>{bankTitle}</Text>
                 </View>
                 <View style={styles.bankMetaRow}>
                   <View style={styles.bankMetaChip}>
@@ -288,11 +194,13 @@ export default function ExamQuizScreen({ navigation }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{selectedLevel} 真题练习</Text>
+        <Text style={styles.headerTitle}>{selectedLevel} {practiceTitle}</Text>
         <Text style={styles.headerSubtitle}>{progressText}</Text>
       </View>
 
-      <Text style={styles.tip}>每次随机抽取 {sessionSize} 题</Text>
+      <Text style={styles.tip}>
+        {hasAiItems ? `本次由 AI 生成，共 ${sessionSize} 题` : `每次随机抽取 ${sessionSize} 题`}
+      </Text>
 
       <View style={styles.card}>
         <Text style={styles.prompt}>{currentItem.prompt}</Text>
@@ -323,7 +231,11 @@ export default function ExamQuizScreen({ navigation }: Props) {
             正确 {correctCount}，错误 {wrongCount}，准确率 {accuracy}%
           </Text>
           <PrimaryButton title="再来一组" onPress={resetQuiz} style={styles.summaryButton} />
-          <PrimaryButton title="返回题库" onPress={backToBankSelect} style={styles.summaryButton} />
+          <PrimaryButton
+            title={hasAiItems ? '返回 AI 学习中心' : '返回题库'}
+            onPress={() => (hasAiItems ? navigation.goBack() : backToBankSelect())}
+            style={styles.summaryButton}
+          />
         </View>
       ) : null}
     </ScrollView>

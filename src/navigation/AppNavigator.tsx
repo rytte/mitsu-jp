@@ -17,6 +17,8 @@ import MistakesScreen from '../screens/MistakesScreen';
 import SearchScreen from '../screens/SearchScreen';
 import MyScreen from '../screens/MyScreen';
 import ExamQuizScreen from '../screens/ExamQuizScreen';
+import AiHubScreen from '../screens/AiHubScreen';
+import AiSettingsScreen from '../screens/AiSettingsScreen';
 import KanaChartScreen from '../screens/KanaChartScreen';
 import VerbConjugationScreen from '../screens/VerbConjugationScreen';
 import KeigoChartScreen from '../screens/KeigoChartScreen';
@@ -99,6 +101,8 @@ function MyStackScreen() {
       }}
     >
       <MyStack.Screen name="MyHome" component={MyScreen} options={{ title: '我的' }} />
+      <MyStack.Screen name="AiHub" component={AiHubScreen} options={{ title: 'AI 学习中心' }} />
+      <MyStack.Screen name="AiSettings" component={AiSettingsScreen} options={{ title: 'AI 配置' }} />
       <MyStack.Screen name="ExamQuiz" component={ExamQuizScreen} options={{ title: '真题练习' }} />
       <MyStack.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} />
       <MyStack.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题本' }} />

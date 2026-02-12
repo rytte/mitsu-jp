@@ -40,6 +40,16 @@ export default function MyScreen({ navigation }: Props) {
   const entries = useMemo(
     () => [
       {
+        key: 'ai-hub',
+        title: 'AI 学习中心',
+        subtitle: '生题 / 解释 / 后续扩展',
+        icon: 'sparkles-outline' as const,
+        accent: '#7c3aed',
+        accentSoft: '#f3e8ff',
+        onPress: () => navigation.navigate('AiHub'),
+        visible: true,
+      },
+      {
         key: 'n1-exam',
         title: '真题练习',
         subtitle: '选择 N1-N5 题库后开始',
