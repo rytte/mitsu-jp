@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Switch,
   Text,
@@ -19,14 +20,21 @@ import PrimaryButton from '../components/PrimaryButton';
 import { getAllGrammars } from '../data/grammars';
 import { LEXICONS } from '../data/lexicons';
 import { addToVocabBook, getAllWords, updateSettings } from '../db/queries';
+import { askDictionaryWithAi } from '../features/ai/service';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { GrammarPoint, Level, Settings, Word } from '../types';
 import { bumpFontScale, getGrammarFontSizes, getWordFontSizes } from '../utils/fontScale';
 import { getMeaning } from '../utils/meaning';
 
-type Mode = 'word' | 'grammar';
+type Mode = 'word' | 'grammar' | 'ai-dict';
 type LevelFilter = 'ALL' | Level;
+
+type AiDictMessage = {
+  id: string;
+  role: 'assistant' | 'user';
+  text: string;
+};
 
 const LEVEL_ORDER: Level[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
 const LEVEL_RANK = new Map<Level, number>(LEVEL_ORDER.map((level, index) => [level, index]));
@@ -151,11 +159,17 @@ export default function SearchScreen() {
   const [expandedGrammarIds, setExpandedGrammarIds] = useState<Set<string>>(new Set());
   const [wordSelecting, setWordSelecting] = useState(false);
   const [selectedWordIds, setSelectedWordIds] = useState<Set<string>>(new Set());
+  const [aiMessages, setAiMessages] = useState<AiDictMessage[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [aiFollowUp, setAiFollowUp] = useState('');
+  const [aiEntry, setAiEntry] = useState('');
   const layout = useWindowDimensions();
   const routes = useMemo(
     () => [
       { key: 'word', title: '词汇' },
       { key: 'grammar', title: '文法' },
+      { key: 'ai-dict', title: 'AI辞典' },
     ],
     []
   );
@@ -230,10 +244,10 @@ export default function SearchScreen() {
     () => searchGrammars(grammars, tokens, query, levelFilter),
     [grammars, levelFilter, query, tokens]
   );
-  const mode: Mode = tabIndex === 0 ? 'word' : 'grammar';
-  const totalResults = mode === 'word' ? filteredWords.length : filteredGrammars.length;
-  const showHint = tokens.length === 0 && !loading;
-  const showEmpty = tokens.length > 0 && totalResults === 0 && !loading;
+  const mode: Mode = tabIndex === 0 ? 'word' : tabIndex === 1 ? 'grammar' : 'ai-dict';
+  const totalResults = mode === 'word' ? filteredWords.length : mode === 'grammar' ? filteredGrammars.length : 0;
+  const showHint = mode !== 'ai-dict' && tokens.length === 0 && !loading;
+  const showEmpty = mode !== 'ai-dict' && tokens.length > 0 && totalResults === 0 && !loading;
 
   const wordFontSizes = useMemo(() => {
     const effective = compactMode ? fontScale : bumpFontScale(fontScale);
@@ -302,6 +316,68 @@ export default function SearchScreen() {
     exitWordSelection();
   };
 
+  const handleAskAiDictionary = async () => {
+    const entry = query.trim();
+    if (!entry || aiLoading) return;
+
+    setAiLoading(true);
+    setAiError('');
+    setAiFollowUp('');
+    try {
+      const text = await askDictionaryWithAi({ entry });
+      setAiEntry(entry);
+      setAiMessages([
+        {
+          id: `${Date.now()}-assistant-initial`,
+          role: 'assistant',
+          text,
+        },
+      ]);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleAskAiFollowUp = async () => {
+    const followUp = aiFollowUp.trim();
+    const entry = aiEntry || query.trim();
+    if (!entry || !followUp || aiLoading) return;
+
+    const userMessage: AiDictMessage = {
+      id: `${Date.now()}-user`,
+      role: 'user',
+      text: followUp,
+    };
+
+    const historyForAi = aiMessages.map((item) => ({ role: item.role, text: item.text }));
+    setAiMessages((prev) => [...prev, userMessage]);
+    setAiFollowUp('');
+    setAiLoading(true);
+    setAiError('');
+    try {
+      const text = await askDictionaryWithAi({
+        entry,
+        followUp,
+        history: historyForAi,
+      });
+      setAiMessages((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}-assistant-reply`,
+          role: 'assistant',
+          text,
+        },
+      ]);
+    } catch (err) {
+      setAiMessages((prev) => prev.filter((item) => item.id !== userMessage.id));
+      setAiError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const renderEmpty = () => {
     if (loading) {
       return (
@@ -330,45 +406,122 @@ export default function SearchScreen() {
     return null;
   };
 
-  const renderScene = ({ route }: { route: { key: string } }) => {
-    const isWord = route.key === 'word';
-    const data = isWord ? filteredWords : filteredGrammars;
-    if (data.length === 0) {
-      return renderEmpty();
-    }
+  const renderAiDictionaryScene = () => {
+    const canAsk = query.trim().length > 0 && !aiLoading;
+    const canFollowUp = aiMessages.length > 0 && aiFollowUp.trim().length > 0 && !aiLoading;
     return (
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        keyboardShouldPersistTaps="handled"
-        renderItem={({ item }) =>
-          isWord ? (() => {
-            const word = item as Word;
-            const isSelected = selectedWordIds.has(word.id);
+      <ScrollView contentContainerStyle={styles.aiDictContent} keyboardShouldPersistTaps="handled">
+        <View style={styles.aiDictIntroCard}>
+          <Text style={styles.aiDictTitle}>AI 辞典</Text>
+          <Text style={styles.aiDictSubtitle}>输入词汇或文法点，先获取解释，再继续追问细节。</Text>
+          {aiEntry ? <Text style={styles.aiDictEntryTag}>当前词条：{aiEntry}</Text> : null}
+        </View>
+
+        <PrimaryButton
+          title={aiLoading ? 'AI 解释中...' : 'AI 解释'}
+          onPress={handleAskAiDictionary}
+          disabled={!canAsk}
+          style={styles.aiActionBtn}
+        />
+
+        {aiLoading ? (
+          <View style={styles.aiLoadingRow}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={styles.aiLoadingText}>AI 正在整理解释...</Text>
+          </View>
+        ) : null}
+
+        {aiError ? (
+          <View style={styles.aiErrorBox}>
+            <Text style={styles.aiErrorText}>{aiError}</Text>
+          </View>
+        ) : null}
+
+        {aiMessages.length === 0 ? (
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyText}>还没有解释内容</Text>
+            <Text style={styles.emptyHint}>先输入关键词并点击「AI 解释」</Text>
+          </View>
+        ) : (
+          <View style={styles.aiMessagesWrap}>
+            {aiMessages.map((message) => {
+              const isUser = message.role === 'user';
+              return (
+                <View
+                  key={message.id}
+                  style={[styles.aiMessageBubble, isUser ? styles.aiUserBubble : styles.aiAssistantBubble]}
+                >
+                  <Text style={styles.aiMessageRole}>{isUser ? '我的追问' : 'AI 解释'}</Text>
+                  <Text style={styles.aiMessageText}>{message.text}</Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {aiMessages.length > 0 ? (
+          <View style={styles.aiFollowUpBox}>
+            <Text style={styles.aiFollowUpTitle}>继续追问</Text>
+            <TextInput
+              value={aiFollowUp}
+              onChangeText={setAiFollowUp}
+              placeholder="例如：这个表达和「〜について」有什么区别？"
+              placeholderTextColor={colors.muted}
+              style={styles.aiFollowUpInput}
+              multiline
+            />
+            <PrimaryButton
+              title={aiLoading ? '发送中...' : '发送追问'}
+              onPress={handleAskAiFollowUp}
+              disabled={!canFollowUp}
+              style={styles.aiFollowUpBtn}
+            />
+          </View>
+        ) : null}
+      </ScrollView>
+    );
+  };
+
+  const renderScene = ({ route }: { route: { key: string } }) => {
+    if (route.key === 'ai-dict') {
+      return renderAiDictionaryScene();
+    }
+    const isWord = route.key === 'word';
+    if (isWord) {
+      if (filteredWords.length === 0) {
+        return renderEmpty();
+      }
+      return (
+        <FlatList
+          data={filteredWords}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item }) => {
+            const isSelected = selectedWordIds.has(item.id);
             const handlePress = () => {
               if (wordSelecting) {
-                toggleWordSelected(word.id);
+                toggleWordSelected(item.id);
                 return;
               }
               if (compactMode) {
-                toggleWordExpanded(word.id);
+                toggleWordExpanded(item.id);
               }
             };
             const handleLongPress = () => {
               if (wordSelecting) {
-                toggleWordSelected(word.id);
+                toggleWordSelected(item.id);
                 return;
               }
-              enterWordSelection(word.id);
+              enterWordSelection(item.id);
             };
             return (
               <View style={styles.selectableCard}>
                 <WordCard
-                  word={word}
-                  meaning={getMeaning(word, meaningLanguage)}
+                  word={item}
+                  meaning={getMeaning(item, meaningLanguage)}
                   compact={compactMode}
-                  expanded={expandedWordIds.has(word.id)}
+                  expanded={expandedWordIds.has(item.id)}
                   disabled={false}
                   onPress={handlePress}
                   onLongPress={handleLongPress}
@@ -386,37 +539,55 @@ export default function SearchScreen() {
                 )}
               </View>
             );
-          })() : (
-            <GrammarCard
-              grammar={item as GrammarPoint}
-              compact={compactMode}
-              expanded={expandedGrammarIds.has((item as GrammarPoint).id)}
-              disabled={!compactMode}
-              onPress={() => toggleGrammarExpanded((item as GrammarPoint).id)}
-              fontSizes={grammarFontSizes}
-              footer={
-                item.level ? (
-                  <Text style={styles.levelTag}>JLPT {item.level}</Text>
-                ) : (
-                  <Text style={styles.levelTagMuted}>未标注等级</Text>
-                )
-              }
-            />
-          )
-        }
+          }}
+        />
+      );
+    }
+
+    if (filteredGrammars.length === 0) {
+      return renderEmpty();
+    }
+    return (
+      <FlatList
+        data={filteredGrammars}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        keyboardShouldPersistTaps="handled"
+        renderItem={({ item }) => (
+          <GrammarCard
+            grammar={item}
+            compact={compactMode}
+            expanded={expandedGrammarIds.has(item.id)}
+            disabled={!compactMode}
+            onPress={() => toggleGrammarExpanded(item.id)}
+            fontSizes={grammarFontSizes}
+            footer={
+              item.level ? (
+                <Text style={styles.levelTag}>JLPT {item.level}</Text>
+              ) : (
+                <Text style={styles.levelTagMuted}>未标注等级</Text>
+              )
+            }
+          />
+        )}
       />
     );
   };
 
   const renderTabBar = () => {
     const isWord = tabIndex === 0;
+    const isGrammar = tabIndex === 1;
+    const isAiDict = tabIndex === 2;
     return (
       <View style={styles.toggleRow}>
         <Pressable onPress={() => setTabIndex(0)} style={[styles.toggleBtn, isWord ? styles.toggleActive : null]}>
           <Text style={[styles.toggleText, isWord ? styles.toggleTextActive : null]}>词汇</Text>
         </Pressable>
-        <Pressable onPress={() => setTabIndex(1)} style={[styles.toggleBtn, !isWord ? styles.toggleActive : null]}>
-          <Text style={[styles.toggleText, !isWord ? styles.toggleTextActive : null]}>文法</Text>
+        <Pressable onPress={() => setTabIndex(1)} style={[styles.toggleBtn, isGrammar ? styles.toggleActive : null]}>
+          <Text style={[styles.toggleText, isGrammar ? styles.toggleTextActive : null]}>文法</Text>
+        </Pressable>
+        <Pressable onPress={() => setTabIndex(2)} style={[styles.toggleBtn, isAiDict ? styles.toggleActive : null]}>
+          <Text style={[styles.toggleText, isAiDict ? styles.toggleTextActive : null]}>AI辞典</Text>
         </Pressable>
       </View>
     );
@@ -441,7 +612,13 @@ export default function SearchScreen() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={mode === 'word' ? '搜索词汇、读音或释义' : '搜索文法、用法或释义'}
+            placeholder={
+              mode === 'word'
+                ? '搜索词汇、读音或释义'
+                : mode === 'grammar'
+                  ? '搜索文法、用法或释义'
+                  : '输入词汇或文法点，点击 AI 解释'
+            }
             placeholderTextColor={colors.muted}
             style={styles.searchInput}
             returnKeyType="search"
@@ -457,20 +634,22 @@ export default function SearchScreen() {
 
         {renderTabBar()}
 
-        <View style={styles.filterRow}>
-          {LEVEL_FILTERS.map((item) => {
-            const active = levelFilter === item.id;
-            return (
-              <Pressable
-                key={item.id}
-                onPress={() => setLevelFilter(item.id)}
-                style={[styles.filterChip, active ? styles.filterChipActive : null]}
-              >
-                <Text style={[styles.filterText, active ? styles.filterTextActive : null]}>{item.label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {mode !== 'ai-dict' ? (
+          <View style={styles.filterRow}>
+            {LEVEL_FILTERS.map((item) => {
+              const active = levelFilter === item.id;
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => setLevelFilter(item.id)}
+                  style={[styles.filterChip, active ? styles.filterChipActive : null]}
+                >
+                  <Text style={[styles.filterText, active ? styles.filterTextActive : null]}>{item.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
 
         {tabIndex === 0 && wordSelecting ? (
           <View style={styles.selectBar}>
@@ -489,7 +668,7 @@ export default function SearchScreen() {
           </View>
         ) : null}
 
-        {tokens.length > 0 ? (
+        {mode !== 'ai-dict' && tokens.length > 0 ? (
           <Text style={styles.resultText}>
             {mode === 'word' ? '词汇' : '文法'}结果：{totalResults} 条
           </Text>
@@ -709,5 +888,117 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 11,
     fontWeight: '600',
+  },
+  aiDictContent: {
+    paddingBottom: spacing.l,
+  },
+  aiDictIntroCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.m,
+    marginBottom: spacing.s,
+  },
+  aiDictTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  aiDictSubtitle: {
+    marginTop: spacing.xs,
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  aiDictEntryTag: {
+    marginTop: spacing.s,
+    alignSelf: 'flex-start',
+    backgroundColor: '#eff6ff',
+    color: colors.primary,
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 4,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  aiActionBtn: {
+    marginBottom: spacing.s,
+  },
+  aiLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.s,
+  },
+  aiLoadingText: {
+    marginLeft: spacing.xs,
+    color: colors.muted,
+    fontSize: 12,
+  },
+  aiErrorBox: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: radius.m,
+    padding: spacing.s,
+    marginBottom: spacing.s,
+  },
+  aiErrorText: {
+    color: colors.danger,
+    fontSize: 12,
+  },
+  aiMessagesWrap: {
+    marginTop: spacing.xs,
+  },
+  aiMessageBubble: {
+    borderWidth: 1,
+    borderRadius: radius.m,
+    padding: spacing.s,
+    marginBottom: spacing.s,
+  },
+  aiAssistantBubble: {
+    borderColor: '#bfdbfe',
+    backgroundColor: '#eff6ff',
+  },
+  aiUserBubble: {
+    borderColor: '#d1fae5',
+    backgroundColor: '#f0fdf4',
+  },
+  aiMessageRole: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  aiMessageText: {
+    color: colors.text,
+    lineHeight: 20,
+    fontSize: 14,
+  },
+  aiFollowUpBox: {
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.m,
+  },
+  aiFollowUpTitle: {
+    color: colors.text,
+    fontWeight: '700',
+    marginBottom: spacing.s,
+  },
+  aiFollowUpInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.m,
+    backgroundColor: '#fff',
+    color: colors.text,
+    minHeight: 76,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.s,
+    textAlignVertical: 'top',
+  },
+  aiFollowUpBtn: {
+    marginTop: spacing.s,
   },
 });

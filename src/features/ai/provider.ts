@@ -36,6 +36,17 @@ type ReplyConversationParams = {
   turnIndex: number;
 };
 
+type DictionaryHistoryItem = {
+  role: 'assistant' | 'user';
+  text: string;
+};
+
+type AskDictionaryParams = {
+  entry: string;
+  followUp?: string;
+  history?: DictionaryHistoryItem[];
+};
+
 export type ConversationTurnResult = {
   assistantReplyJa: string;
   assistantReplyZh: string;
@@ -55,6 +66,7 @@ export type AiQuizProvider = {
   explainExamQuestion: (params: ExplainExamQuestionParams) => Promise<string>;
   startConversation: (params: StartConversationParams) => Promise<ConversationTurnResult>;
   replyConversation: (params: ReplyConversationParams) => Promise<ConversationTurnResult>;
+  askDictionary: (params: AskDictionaryParams) => Promise<string>;
 };
 
 const LEVEL_GUIDE: Record<BankLevel, string> = {
@@ -236,6 +248,41 @@ function buildConversationReplyUserPrompt(params: ReplyConversationParams) {
     JSON.stringify(history, null, 2),
     '用户本轮输入：',
     params.userInput,
+  ].join('\n');
+}
+
+function buildDictionarySystemPrompt() {
+  return [
+    '你是一名面向中文用户的日语学习辞典助手。',
+    '目标：帮助用户理解日语词汇、文法点和常见表达，并支持连续追问。',
+    '请严格遵守：',
+    '1) 只输出纯文本，不要 Markdown，不要 JSON。',
+    '2) 优先给出简洁结论，再补充关键细节。',
+    '3) 默认结构：核心含义；使用场景；1-2个自然例句（含中文释义）；常见易错点。',
+    '4) 如果是追问，只回答用户当前追问并与历史保持一致，避免重复整段解释。',
+    '5) 内容务实、易懂，避免过度学术化。',
+  ].join('\n');
+}
+
+function buildDictionaryUserPrompt(params: AskDictionaryParams) {
+  const entry = params.entry.trim();
+  const followUp = params.followUp?.trim() ?? '';
+  const history = Array.isArray(params.history) ? params.history.slice(-12) : [];
+
+  if (!followUp) {
+    return [
+      '请解释下面这个日语词条或文法点：',
+      entry,
+      '要求：输出简洁、实用、适合备考 JLPT 的说明。',
+    ].join('\n');
+  }
+
+  return [
+    `当前词条/文法点：${entry}`,
+    '历史对话（JSON）：',
+    JSON.stringify(history, null, 2),
+    '用户当前追问：',
+    followUp,
   ].join('\n');
 }
 
@@ -526,6 +573,49 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       } catch {
         throw new Error('AI 回复格式无效，请重试');
       }
+    },
+    async askDictionary(params: AskDictionaryParams) {
+      ensureConfigReady();
+
+      const entry = params.entry.trim();
+      if (!entry) {
+        throw new Error('请输入要查询的词汇或文法点');
+      }
+
+      const response = await fetch(`${baseUrl}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: [
+            {
+              role: 'system',
+              content: [{ type: 'input_text', text: buildDictionarySystemPrompt() }],
+            },
+            {
+              role: 'user',
+              content: [{ type: 'input_text', text: buildDictionaryUserPrompt(params) }],
+            },
+          ],
+          max_output_tokens: 900,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`AI 辞典请求失败（${response.status}）：${errText || response.statusText}`);
+      }
+
+      const payload = (await response.json()) as unknown;
+      const outputText = extractOutputText(payload);
+      if (!outputText) {
+        throw new Error('AI 未返回解释内容，请稍后重试');
+      }
+
+      return outputText;
     },
   };
 }

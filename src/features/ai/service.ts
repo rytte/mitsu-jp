@@ -58,3 +58,16 @@ export async function replyConversationWithAi(params: {
   const provider = createResponsesProvider(config);
   return provider.replyConversation(params);
 }
+
+export async function askDictionaryWithAi(params: {
+  entry: string;
+  followUp?: string;
+  history?: Array<{ role: 'assistant' | 'user'; text: string }>;
+}): Promise<string> {
+  const config = await loadAiProviderConfig();
+  if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
+    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+  }
+  const provider = createResponsesProvider(config);
+  return provider.askDictionary(params);
+}
