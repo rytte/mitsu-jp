@@ -147,7 +147,7 @@ export default function AiSettingsScreen() {
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.m }]}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Provider</Text>
-        <Text style={styles.tip}>当前先使用 Responses 接口，后续可扩展更多 Provider。</Text>
+        <Text style={styles.tip}>当前使用 Responses 接口，后续可扩展更多 Provider。</Text>
         <TextInput
           value={providerLabel}
           onChangeText={setProviderLabel}

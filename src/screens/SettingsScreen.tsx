@@ -21,6 +21,8 @@ const NAV_ITEMS = [
   { key: 'nav_show_kana', label: '五十音图' },
   { key: 'nav_show_verb_conjugation', label: '动词变形表' },
   { key: 'nav_show_keigo', label: '敬语表' },
+  { key: 'nav_show_ai_hub', label: 'AI 学习中心' },
+  { key: 'nav_show_exam_quiz', label: '真题练习' },
   { key: 'nav_show_settings', label: '设置' },
 ] as const;
 
@@ -34,6 +36,8 @@ function buildNavState(source: Settings): Record<NavItemKey, boolean> {
     nav_show_kana: source.nav_show_kana,
     nav_show_verb_conjugation: source.nav_show_verb_conjugation,
     nav_show_keigo: source.nav_show_keigo,
+    nav_show_ai_hub: source.nav_show_ai_hub,
+    nav_show_exam_quiz: source.nav_show_exam_quiz,
     nav_show_settings: source.nav_show_settings,
   };
 }
@@ -85,6 +89,8 @@ export default function SettingsScreen() {
     settings.nav_show_kana,
     settings.nav_show_verb_conjugation,
     settings.nav_show_keigo,
+    settings.nav_show_ai_hub,
+    settings.nav_show_exam_quiz,
     settings.nav_show_settings,
   ]);
 

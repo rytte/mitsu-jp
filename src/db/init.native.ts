@@ -102,6 +102,8 @@ async function runInit() {
       nav_show_kana INTEGER,
       nav_show_verb_conjugation INTEGER,
       nav_show_keigo INTEGER,
+      nav_show_ai_hub INTEGER,
+      nav_show_exam_quiz INTEGER,
       nav_show_settings INTEGER
     );`
   );
@@ -125,6 +127,8 @@ async function runInit() {
   await ensureColumn('settings', 'nav_show_kana', 'INTEGER');
   await ensureColumn('settings', 'nav_show_verb_conjugation', 'INTEGER');
   await ensureColumn('settings', 'nav_show_keigo', 'INTEGER');
+  await ensureColumn('settings', 'nav_show_ai_hub', 'INTEGER');
+  await ensureColumn('settings', 'nav_show_exam_quiz', 'INTEGER');
   await ensureColumn('settings', 'nav_show_settings', 'INTEGER');
 
   const countRow = await getFirst<{ count: number }>('SELECT COUNT(*) as count FROM words');
@@ -386,14 +390,16 @@ async function ensureDefaultSettings() {
     nav_show_kana?: number | null;
     nav_show_verb_conjugation?: number | null;
     nav_show_keigo?: number | null;
+    nav_show_ai_hub?: number | null;
+    nav_show_exam_quiz?: number | null;
     nav_show_settings?: number | null;
   }>(
-    'SELECT id, meaning_language, lexicon_version, nav_show_search, nav_show_mistakes, nav_show_vocab_book, nav_show_kana, nav_show_verb_conjugation, nav_show_keigo, nav_show_settings FROM settings WHERE id = ?',
+    'SELECT id, meaning_language, lexicon_version, nav_show_search, nav_show_mistakes, nav_show_vocab_book, nav_show_kana, nav_show_verb_conjugation, nav_show_keigo, nav_show_ai_hub, nav_show_exam_quiz, nav_show_settings FROM settings WHERE id = ?',
     ['default']
   );
   if (!existing) {
     await run(
-      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, mcq_modes, grammar_quiz_modes, meaning_language, show_example_furigana, compact_mode, compact_single_expand, lexicon_level, font_scale, lexicon_version, nav_show_search, nav_show_mistakes, nav_show_vocab_book, nav_show_kana, nav_show_verb_conjugation, nav_show_keigo, nav_show_settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      'INSERT INTO settings (id, tts_rate, tts_voice, quiz_mix, mcq_modes, grammar_quiz_modes, meaning_language, show_example_furigana, compact_mode, compact_single_expand, lexicon_level, font_scale, lexicon_version, nav_show_search, nav_show_mistakes, nav_show_vocab_book, nav_show_kana, nav_show_verb_conjugation, nav_show_keigo, nav_show_ai_hub, nav_show_exam_quiz, nav_show_settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
       [
         'default',
         DEFAULT_SETTINGS.tts_rate,
@@ -414,6 +420,8 @@ async function ensureDefaultSettings() {
         DEFAULT_SETTINGS.nav_show_kana ? 1 : 0,
         DEFAULT_SETTINGS.nav_show_verb_conjugation ? 1 : 0,
         DEFAULT_SETTINGS.nav_show_keigo ? 1 : 0,
+        DEFAULT_SETTINGS.nav_show_ai_hub ? 1 : 0,
+        DEFAULT_SETTINGS.nav_show_exam_quiz ? 1 : 0,
         DEFAULT_SETTINGS.nav_show_settings ? 1 : 0,
       ]
     );
@@ -551,6 +559,26 @@ async function ensureDefaultSettings() {
     if (navKeigo?.nav_show_keigo == null) {
       await run('UPDATE settings SET nav_show_keigo = ? WHERE id = ?;', [
         DEFAULT_SETTINGS.nav_show_keigo ? 1 : 0,
+        'default',
+      ]);
+    }
+    const navAiHub = await getFirst<{ nav_show_ai_hub?: number | null }>(
+      'SELECT nav_show_ai_hub FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (navAiHub?.nav_show_ai_hub == null) {
+      await run('UPDATE settings SET nav_show_ai_hub = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.nav_show_ai_hub ? 1 : 0,
+        'default',
+      ]);
+    }
+    const navExamQuiz = await getFirst<{ nav_show_exam_quiz?: number | null }>(
+      'SELECT nav_show_exam_quiz FROM settings WHERE id = ?',
+      ['default']
+    );
+    if (navExamQuiz?.nav_show_exam_quiz == null) {
+      await run('UPDATE settings SET nav_show_exam_quiz = ? WHERE id = ?;', [
+        DEFAULT_SETTINGS.nav_show_exam_quiz ? 1 : 0,
         'default',
       ]);
     }

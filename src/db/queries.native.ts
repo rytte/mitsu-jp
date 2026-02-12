@@ -278,6 +278,8 @@ export async function getSettings(): Promise<Settings> {
     nav_show_kana?: number | null;
     nav_show_verb_conjugation?: number | null;
     nav_show_keigo?: number | null;
+    nav_show_ai_hub?: number | null;
+    nav_show_exam_quiz?: number | null;
     nav_show_settings?: number | null;
   }>(
     'SELECT * FROM settings WHERE id = ? LIMIT 1',
@@ -324,6 +326,12 @@ export async function getSettings(): Promise<Settings> {
     nav_show_keigo: normalizeCompactMode(
       row.nav_show_keigo ?? (DEFAULT_SETTINGS.nav_show_keigo ? 1 : 0)
     ),
+    nav_show_ai_hub: normalizeCompactMode(
+      row.nav_show_ai_hub ?? (DEFAULT_SETTINGS.nav_show_ai_hub ? 1 : 0)
+    ),
+    nav_show_exam_quiz: normalizeCompactMode(
+      row.nav_show_exam_quiz ?? (DEFAULT_SETTINGS.nav_show_exam_quiz ? 1 : 0)
+    ),
     nav_show_settings: normalizeCompactMode(
       row.nav_show_settings ?? (DEFAULT_SETTINGS.nav_show_settings ? 1 : 0)
     ),
@@ -332,7 +340,7 @@ export async function getSettings(): Promise<Settings> {
 
 export async function updateSettings(settings: Settings) {
   await run(
-    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, grammar_quiz_modes = ?, meaning_language = ?, show_example_furigana = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_settings = ? WHERE id = ?;',
+    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, grammar_quiz_modes = ?, meaning_language = ?, show_example_furigana = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_ai_hub = ?, nav_show_exam_quiz = ?, nav_show_settings = ? WHERE id = ?;',
     [
       settings.tts_rate,
       settings.tts_voice,
@@ -351,6 +359,8 @@ export async function updateSettings(settings: Settings) {
       settings.nav_show_kana ? 1 : 0,
       settings.nav_show_verb_conjugation ? 1 : 0,
       settings.nav_show_keigo ? 1 : 0,
+      settings.nav_show_ai_hub ? 1 : 0,
+      settings.nav_show_exam_quiz ? 1 : 0,
       settings.nav_show_settings ? 1 : 0,
       'default',
     ]

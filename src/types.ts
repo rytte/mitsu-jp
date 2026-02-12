@@ -126,6 +126,8 @@ export type Settings = {
   nav_show_kana: boolean;
   nav_show_verb_conjugation: boolean;
   nav_show_keigo: boolean;
+  nav_show_ai_hub: boolean;
+  nav_show_exam_quiz: boolean;
   nav_show_settings: boolean;
 };
 

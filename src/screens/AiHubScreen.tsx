@@ -58,7 +58,7 @@ export default function AiHubScreen({ navigation }: Props) {
           <Text style={styles.heroTag}>AI 工作台</Text>
         </View>
         <Text style={styles.heroTitle}>AI 学习中心</Text>
-        <Text style={styles.heroSub}>你可以在这里使用 AI 生题和对话训练等功能。</Text>
+        <Text style={styles.heroSub}>你可以在这里使用 AI 对话训练和生题等功能。</Text>
       </View>
 
       <View style={styles.section}>

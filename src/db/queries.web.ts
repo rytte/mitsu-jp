@@ -264,6 +264,8 @@ export async function getSettings(): Promise<Settings> {
       settings.nav_show_verb_conjugation ?? DEFAULT_SETTINGS.nav_show_verb_conjugation
     ),
     nav_show_keigo: Boolean(settings.nav_show_keigo ?? DEFAULT_SETTINGS.nav_show_keigo),
+    nav_show_ai_hub: Boolean(settings.nav_show_ai_hub ?? DEFAULT_SETTINGS.nav_show_ai_hub),
+    nav_show_exam_quiz: Boolean(settings.nav_show_exam_quiz ?? DEFAULT_SETTINGS.nav_show_exam_quiz),
     nav_show_settings: Boolean(settings.nav_show_settings ?? DEFAULT_SETTINGS.nav_show_settings),
   };
 }

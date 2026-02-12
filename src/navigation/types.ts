@@ -40,6 +40,8 @@ export type RootTabParamList = {
   KanaChart: undefined;
   VerbConjugation: undefined;
   KeigoChart: undefined;
+  AiHub: undefined;
+  ExamQuiz: undefined;
   Settings: undefined;
   My: undefined;
 };

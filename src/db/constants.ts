@@ -22,5 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
   nav_show_kana: false,
   nav_show_verb_conjugation: false,
   nav_show_keigo: false,
+  nav_show_ai_hub: false,
+  nav_show_exam_quiz: false,
   nav_show_settings: false,
 };

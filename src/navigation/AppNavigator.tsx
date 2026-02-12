@@ -45,6 +45,8 @@ const TAB_ICON_MAP: Record<
   KanaChart: { focused: 'grid', unfocused: 'grid-outline' },
   VerbConjugation: { focused: 'swap-horizontal', unfocused: 'swap-horizontal-outline' },
   KeigoChart: { focused: 'chatbubbles', unfocused: 'chatbubbles-outline' },
+  AiHub: { focused: 'sparkles', unfocused: 'sparkles-outline' },
+  ExamQuiz: { focused: 'document-text', unfocused: 'document-text-outline' },
   Settings: { focused: 'settings', unfocused: 'settings-outline' },
   My: { focused: 'person', unfocused: 'person-outline' },
 };
@@ -124,17 +126,9 @@ export default function AppNavigator() {
   const navKana = useAppStore((state) => state.settings.nav_show_kana);
   const navVerb = useAppStore((state) => state.settings.nav_show_verb_conjugation);
   const navKeigo = useAppStore((state) => state.settings.nav_show_keigo);
+  const navAiHub = useAppStore((state) => state.settings.nav_show_ai_hub);
+  const navExamQuiz = useAppStore((state) => state.settings.nav_show_exam_quiz);
   const navSettings = useAppStore((state) => state.settings.nav_show_settings);
-
-  const extraTabs = [
-    { name: 'Search' as const, component: SearchScreen, title: '搜索', enabled: navSearch },
-    { name: 'Mistakes' as const, component: MistakesScreen, title: '错题', enabled: navMistakes },
-    { name: 'VocabBook' as const, component: VocabBookScreen, title: '生词本', enabled: navVocabBook },
-    { name: 'KanaChart' as const, component: KanaChartScreen, title: '五十音', enabled: navKana },
-    { name: 'VerbConjugation' as const, component: VerbConjugationScreen, title: '动词变形', enabled: navVerb },
-    { name: 'KeigoChart' as const, component: KeigoChartScreen, title: '敬语表', enabled: navKeigo },
-    { name: 'Settings' as const, component: SettingsScreen, title: '设置', enabled: navSettings },
-  ].filter((item) => item.enabled);
 
   return (
     <NavigationContainer>
@@ -152,9 +146,27 @@ export default function AppNavigator() {
       >
         <Tab.Screen name="Learn" component={LearnStackScreen} options={{ title: '学习' }} />
         <Tab.Screen name="Grammar" component={GrammarStackScreen} options={{ title: '文法' }} />
-        {extraTabs.map((item) => (
-          <Tab.Screen key={item.name} name={item.name} component={item.component} options={{ title: item.title }} />
-        ))}
+        {navSearch ? <Tab.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} /> : null}
+        {navMistakes ? <Tab.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题' }} /> : null}
+        {navVocabBook ? <Tab.Screen name="VocabBook" component={VocabBookScreen} options={{ title: '生词本' }} /> : null}
+        {navKana ? <Tab.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音' }} /> : null}
+        {navVerb ? <Tab.Screen name="VerbConjugation" component={VerbConjugationScreen} options={{ title: '动词变形' }} /> : null}
+        {navKeigo ? <Tab.Screen name="KeigoChart" component={KeigoChartScreen} options={{ title: '敬语表' }} /> : null}
+        {navAiHub ? (
+          <Tab.Screen
+            name="AiHub"
+            component={AiHubScreen as any}
+            options={{ title: 'AI 学习中心' }}
+          />
+        ) : null}
+        {navExamQuiz ? (
+          <Tab.Screen
+            name="ExamQuiz"
+            component={ExamQuizScreen as any}
+            options={{ title: '真题练习' }}
+          />
+        ) : null}
+        {navSettings ? <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: '设置' }} /> : null}
         <Tab.Screen name="My" component={MyStackScreen} options={{ title: '我的' }} />
       </Tab.Navigator>
     </NavigationContainer>

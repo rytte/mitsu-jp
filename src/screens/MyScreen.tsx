@@ -42,12 +42,12 @@ export default function MyScreen({ navigation }: Props) {
       {
         key: 'ai-hub',
         title: 'AI 学习中心',
-        subtitle: '生题 / 解释 / 后续扩展',
+        subtitle: '对话 / 生题 / 后续扩展',
         icon: 'sparkles-outline' as const,
         accent: '#7c3aed',
         accentSoft: '#f3e8ff',
         onPress: () => navigation.navigate('AiHub'),
-        visible: true,
+        visible: !navSettings.nav_show_ai_hub,
       },
       {
         key: 'n1-exam',
@@ -57,7 +57,7 @@ export default function MyScreen({ navigation }: Props) {
         accent: '#8b5cf6',
         accentSoft: '#ede9fe',
         onPress: () => navigation.navigate('ExamQuiz'),
-        visible: true,
+        visible: !navSettings.nav_show_exam_quiz,
       },
       {
         key: 'search',
@@ -137,6 +137,8 @@ export default function MyScreen({ navigation }: Props) {
       navSettings.nav_show_kana,
       navSettings.nav_show_verb_conjugation,
       navSettings.nav_show_keigo,
+      navSettings.nav_show_ai_hub,
+      navSettings.nav_show_exam_quiz,
       navSettings.nav_show_settings,
       navigation,
     ]
