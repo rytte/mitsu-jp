@@ -191,6 +191,11 @@ function stripFurigana(text: string) {
     .join('');
 }
 
+function stripBracketFurigana(text: string) {
+  if (!text) return '';
+  return text.replace(/\[[^\]]*\]/g, '');
+}
+
 function renderFuriganaMarkup(text: string, fontSize: number, baseStyle?: TextStyle) {
   const tokens = parseInlineTokens(text);
   const readingSize = Math.max(10, Math.round(fontSize * 0.6));
@@ -355,7 +360,7 @@ export default function GrammarCard({
           <Text style={styles.blockLabel}>备注</Text>
           {noteLines.map((line, index) => (
             <Text key={`note-${index}`} style={[styles.blockText, { fontSize: fontSizes.detail }]}>
-              {renderInlineMarkup(line, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+              {renderInlineMarkup(stripBracketFurigana(line), styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
             </Text>
           ))}
         </View>
