@@ -1,4 +1,5 @@
 import { AiProviderConfig, BankLevel, ExamQuestionType, RawExamItem } from '../../types';
+import { Platform } from 'react-native';
 
 type GenerateExamQuizParams = {
   level: BankLevel;
@@ -412,6 +413,128 @@ function extractOutputTextFromRaw(raw: string): string {
   }
 }
 
+function isNativeRuntime() {
+  return Platform.OS !== 'web';
+}
+
+function tryConsumeSseFrames(
+  chunk: string,
+  state: { buffer: string; outputText: string; hasDelta: boolean },
+  onDelta?: (chunk: string) => void
+) {
+  if (!chunk) return;
+  state.buffer += chunk.replace(/\r\n/g, '\n');
+  const frames = state.buffer.split('\n\n');
+  state.buffer = frames.pop() ?? '';
+
+  for (const frame of frames) {
+    const dataLine = parseSseDataFrame(frame);
+    if (!dataLine || dataLine === '[DONE]') continue;
+    let payload: unknown = null;
+    try {
+      payload = JSON.parse(dataLine) as unknown;
+    } catch {
+      continue;
+    }
+    const piece = extractStreamDelta(payload);
+    if (piece.delta) {
+      state.hasDelta = true;
+      state.outputText += piece.delta;
+      onDelta?.(piece.delta);
+      continue;
+    }
+    if (piece.doneText && !state.hasDelta) {
+      state.outputText += piece.doneText;
+      onDelta?.(piece.doneText);
+    }
+  }
+}
+
+function requestDictionaryViaXhrSse(params: {
+  url: string;
+  apiKey: string;
+  body: Record<string, unknown>;
+  onDelta?: (chunk: string) => void;
+}) {
+  return new Promise<string>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    let settled = false;
+    let readOffset = 0;
+    const streamState = {
+      buffer: '',
+      outputText: '',
+      hasDelta: false,
+    };
+
+    const settleResolve = (value: string) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+
+    const settleReject = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    };
+
+    const consumeUnreadText = () => {
+      const responseText = xhr.responseText ?? '';
+      if (responseText.length <= readOffset) return;
+      const unread = responseText.slice(readOffset);
+      readOffset = responseText.length;
+      tryConsumeSseFrames(unread, streamState, params.onDelta);
+    };
+
+    xhr.open('POST', params.url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Authorization', `Bearer ${params.apiKey}`);
+
+    xhr.onprogress = consumeUnreadText;
+    xhr.onerror = () => {
+      settleReject(new Error('AI 辞典请求失败：网络异常，请稍后重试'));
+    };
+    xhr.ontimeout = () => {
+      settleReject(new Error('AI 辞典请求超时，请稍后重试'));
+    };
+    xhr.onload = () => {
+      consumeUnreadText();
+      const rawText = xhr.responseText ?? '';
+      if (xhr.status < 200 || xhr.status >= 300) {
+        settleReject(new Error(`AI 辞典请求失败（${xhr.status}）：${rawText || xhr.statusText}`));
+        return;
+      }
+
+      if (streamState.buffer.trim()) {
+        const trailingFrameState = {
+          buffer: '',
+          outputText: streamState.outputText,
+          hasDelta: streamState.hasDelta,
+        };
+        tryConsumeSseFrames(`${streamState.buffer}\n\n`, trailingFrameState, params.onDelta);
+        streamState.outputText = trailingFrameState.outputText;
+        streamState.hasDelta = trailingFrameState.hasDelta;
+      }
+
+      const finalText = streamState.outputText.trim() || extractOutputTextFromRaw(rawText);
+      if (!finalText) {
+        settleReject(new Error('AI 未返回解释内容，请稍后重试'));
+        return;
+      }
+      if (!streamState.outputText.trim()) {
+        params.onDelta?.(finalText);
+      }
+      settleResolve(finalText);
+    };
+
+    try {
+      xhr.send(JSON.stringify(params.body));
+    } catch (error) {
+      settleReject(error instanceof Error ? error : new Error('AI 辞典请求发送失败'));
+    }
+  });
+}
+
 function sanitizeItems(rawItems: RawExamItem[]) {
   return rawItems
     .map((item, index) => {
@@ -494,27 +617,38 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       throw new Error('请输入要查询的词汇或文法点');
     }
 
+    const requestBody = {
+      model,
+      input: [
+        {
+          role: 'system',
+          content: [{ type: 'input_text', text: buildDictionarySystemPrompt() }],
+        },
+        {
+          role: 'user',
+          content: [{ type: 'input_text', text: buildDictionaryUserPrompt(params) }],
+        },
+      ],
+      max_output_tokens: 900,
+      stream: Boolean(options.stream),
+    } satisfies Record<string, unknown>;
+
+    if (options.stream && isNativeRuntime() && typeof XMLHttpRequest === 'function') {
+      return requestDictionaryViaXhrSse({
+        url: `${baseUrl}/responses`,
+        apiKey,
+        body: requestBody,
+        onDelta: options.onDelta,
+      });
+    }
+
     const response = await fetch(`${baseUrl}/responses`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model,
-        input: [
-          {
-            role: 'system',
-            content: [{ type: 'input_text', text: buildDictionarySystemPrompt() }],
-          },
-          {
-            role: 'user',
-            content: [{ type: 'input_text', text: buildDictionaryUserPrompt(params) }],
-          },
-        ],
-        max_output_tokens: 900,
-        stream: Boolean(options.stream),
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -557,66 +691,38 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       return outputText;
     }
 
+    const streamState = {
+      buffer: '',
+      outputText: '',
+      hasDelta: false,
+    };
     let rawText = '';
-    let buffer = '';
-    let outputText = '';
-    let hasDelta = false;
-    let streamDone = false;
 
-    while (!streamDone) {
+    while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
+      const chunk = decoder.decode(value, { stream: true });
       rawText += chunk;
-      buffer += chunk;
-
-      const frames = buffer.split('\n\n');
-      buffer = frames.pop() ?? '';
-
-      for (const frame of frames) {
-        const dataLine = parseSseDataFrame(frame);
-        if (!dataLine) continue;
-        if (dataLine === '[DONE]') {
-          streamDone = true;
-          break;
-        }
-        let payload: unknown = null;
-        try {
-          payload = JSON.parse(dataLine) as unknown;
-        } catch {
-          continue;
-        }
-        const piece = extractStreamDelta(payload);
-        if (piece.delta) {
-          hasDelta = true;
-          outputText += piece.delta;
-          options.onDelta?.(piece.delta);
-          continue;
-        }
-        if (piece.doneText && !hasDelta) {
-          outputText += piece.doneText;
-          options.onDelta?.(piece.doneText);
-        }
-      }
+      tryConsumeSseFrames(chunk, streamState, options.onDelta);
     }
 
-    const flushChunk = decoder.decode().replace(/\r\n/g, '\n');
+    const flushChunk = decoder.decode();
     if (flushChunk) {
       rawText += flushChunk;
-      buffer += flushChunk;
+      tryConsumeSseFrames(flushChunk, streamState, options.onDelta);
     }
 
-    if (buffer.trim()) {
-      const dataLine = parseSseDataFrame(buffer);
+    if (streamState.buffer.trim()) {
+      const dataLine = parseSseDataFrame(streamState.buffer);
       if (dataLine && dataLine !== '[DONE]') {
         try {
           const payload = JSON.parse(dataLine) as unknown;
           const piece = extractStreamDelta(payload);
           if (piece.delta) {
-            outputText += piece.delta;
+            streamState.outputText += piece.delta;
             options.onDelta?.(piece.delta);
-          } else if (piece.doneText && !hasDelta) {
-            outputText += piece.doneText;
+          } else if (piece.doneText && !streamState.hasDelta) {
+            streamState.outputText += piece.doneText;
             options.onDelta?.(piece.doneText);
           }
         } catch {
@@ -625,7 +731,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
     }
 
-    if (!outputText.trim()) {
+    if (!streamState.outputText.trim()) {
       const fallbackText = extractOutputTextFromRaw(rawText);
       if (fallbackText) {
         options.onDelta?.(fallbackText);
@@ -633,10 +739,10 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
     }
 
-    if (!outputText.trim()) {
+    if (!streamState.outputText.trim()) {
       throw new Error('AI 未返回解释内容，请稍后重试');
     }
-    return outputText;
+    return streamState.outputText;
   }
 
   return {
