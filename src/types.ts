@@ -10,6 +10,10 @@ export type BankLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
 
 export type ExamQuestionType = 'reorder_fill' | 'single_blank_fill' | 'kana_kanji_conversion';
 
+export type TranslationDirection = 'zh_to_ja' | 'ja_to_zh';
+
+export type TranslationFocus = 'vocab' | 'grammar' | 'mixed';
+
 export type RawExamItem = {
   id?: string;
   question_html?: string;
@@ -33,6 +37,16 @@ export type AiProviderConfig = {
   api_key: string;
   model: string;
   updated_at: number;
+};
+
+export type TranslationEvalResult = {
+  score: number;
+  level: 'excellent' | 'pass' | 'retry';
+  isCorrect: boolean;
+  referenceAnswer: string;
+  betterAnswer?: string;
+  errors: string[];
+  feedbackCn: string;
 };
 
 export type Word = {

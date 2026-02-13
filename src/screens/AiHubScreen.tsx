@@ -96,6 +96,12 @@ export default function AiHubScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>AI 翻译题</Text>
+        <Text style={styles.tip}>支持汉译日、日译汉。汉译日可选词汇向或文法向，并显示词条/文法提示。</Text>
+        <PrimaryButton title="进入翻译练习" onPress={() => navigation.navigate('AiTranslationPractice')} style={styles.actionBtn} />
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>AI 生题</Text>
         <Text style={styles.tip}>按等级生成与真题结构一致的 4 选 1 题目。</Text>
         <View style={styles.levelRow}>

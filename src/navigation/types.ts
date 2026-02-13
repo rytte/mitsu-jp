@@ -59,6 +59,7 @@ export type MyStackParamList = {
   AiHub: undefined;
   AiSettings: undefined;
   AiConversation: undefined;
+  AiTranslationPractice: undefined;
   Search: undefined;
   Mistakes: undefined;
   KanaChart: undefined;

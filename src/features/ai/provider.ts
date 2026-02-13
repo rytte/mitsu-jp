@@ -1,4 +1,12 @@
-import { AiProviderConfig, BankLevel, ExamQuestionType, RawExamItem } from '../../types';
+import {
+  AiProviderConfig,
+  BankLevel,
+  ExamQuestionType,
+  RawExamItem,
+  TranslationDirection,
+  TranslationEvalResult,
+  TranslationFocus,
+} from '../../types';
 import { Platform } from 'react-native';
 
 type GenerateExamQuizParams = {
@@ -53,6 +61,16 @@ type AskDictionaryStreamParams = AskDictionaryParams & {
   onDelta?: (chunk: string) => void;
 };
 
+type EvaluateTranslationAnswerParams = {
+  level: BankLevel;
+  direction: TranslationDirection;
+  focus?: TranslationFocus;
+  sourceText: string;
+  hint?: string;
+  referenceAnswer: string;
+  userAnswer: string;
+};
+
 export type ConversationTurnResult = {
   assistantReplyJa: string;
   assistantReplyZh: string;
@@ -74,6 +92,7 @@ export type AiQuizProvider = {
   replyConversation: (params: ReplyConversationParams) => Promise<ConversationTurnResult>;
   askDictionary: (params: AskDictionaryParams) => Promise<string>;
   askDictionaryStream: (params: AskDictionaryStreamParams) => Promise<string>;
+  evaluateTranslationAnswer: (params: EvaluateTranslationAnswerParams) => Promise<TranslationEvalResult>;
 };
 
 const LEVEL_GUIDE: Record<BankLevel, string> = {
@@ -158,6 +177,31 @@ const CONVERSATION_SCHEMA = {
       score: { type: 'integer', minimum: 0, maximum: 100 },
       is_goal_completed: { type: 'boolean' },
       completion_comment_cn: { type: 'string' },
+    },
+  },
+  strict: true,
+} as const;
+
+const TRANSLATION_EVAL_SCHEMA = {
+  type: 'json_schema',
+  name: 'translation_eval_schema',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['score', 'level', 'is_correct', 'reference_answer', 'better_answer', 'errors', 'feedback_cn'],
+    properties: {
+      score: { type: 'integer', minimum: 0, maximum: 100 },
+      level: { type: 'string', enum: ['excellent', 'pass', 'retry'] },
+      is_correct: { type: 'boolean' },
+      reference_answer: { type: 'string', minLength: 1 },
+      better_answer: {
+        anyOf: [{ type: 'string' }, { type: 'null' }],
+      },
+      errors: {
+        type: 'array',
+        items: { type: 'string' },
+      },
+      feedback_cn: { type: 'string', minLength: 1 },
     },
   },
   strict: true,
@@ -309,6 +353,42 @@ function buildDictionaryUserPrompt(params: AskDictionaryParams) {
     JSON.stringify(history, null, 2),
     '用户当前追问：',
     followUp,
+  ].join('\n');
+}
+
+function buildTranslationEvalSystemPrompt() {
+  return [
+    '你是日语翻译批改老师，需要对学习者的译文做严格、可读的中文评估。',
+    '严格遵守：',
+    '1) 仅输出符合 JSON Schema 的内容，不要 Markdown。',
+    '2) score 范围 0-100，按语义准确、语法、搭配、自然度综合评分。',
+    '3) level 仅可为 excellent / pass / retry。',
+    '4) is_correct 仅在译文整体可接受时设为 true。',
+    '5) reference_answer 给出标准参考译文。',
+    '6) better_answer 在汉译日时尽量给出更自然版本；日译汉可为 null。',
+    '7) errors 使用短语数组列出主要问题，如“漏译时间信息”“助词错误”“语气不自然”。',
+    '8) feedback_cn 给出 2-4 句中文反馈，结论明确、可执行。',
+  ].join('\n');
+}
+
+function buildTranslationEvalUserPrompt(params: EvaluateTranslationAnswerParams) {
+  const directionLabel = params.direction === 'zh_to_ja' ? '汉译日' : '日译汉';
+  const focusLabel =
+    params.focus === 'vocab' ? '词汇向' : params.focus === 'grammar' ? '文法向' : '综合向';
+  const payload = {
+    level: params.level,
+    direction: params.direction,
+    focus: params.focus ?? 'mixed',
+    source_text: params.sourceText,
+    source_hint: params.hint ?? '',
+    reference_answer: params.referenceAnswer,
+    user_answer: params.userAnswer,
+  };
+  return [
+    `题型：${directionLabel}`,
+    `训练方向：${focusLabel}`,
+    '请根据以下信息进行翻译批改：',
+    JSON.stringify(payload, null, 2),
   ].join('\n');
 }
 
@@ -586,6 +666,34 @@ function normalizeConversationTurn(payload: unknown): ConversationTurnResult {
     score: Number.isFinite(Number(data.score)) ? Number(data.score) : 0,
     isGoalCompleted: Boolean(data.is_goal_completed),
     completionCommentCn: String(data.completion_comment_cn ?? '').trim(),
+  };
+}
+
+function normalizeTranslationEvalResult(payload: unknown): TranslationEvalResult {
+  const data = payload as {
+    score?: number;
+    level?: 'excellent' | 'pass' | 'retry';
+    is_correct?: boolean;
+    reference_answer?: string;
+    better_answer?: string | null;
+    errors?: unknown;
+    feedback_cn?: string;
+  };
+
+  const score = Number.isFinite(Number(data.score)) ? Number(data.score) : 0;
+  const level = data.level === 'excellent' || data.level === 'pass' || data.level === 'retry' ? data.level : 'retry';
+  const errors = Array.isArray(data.errors)
+    ? data.errors.map((item) => String(item ?? '').trim()).filter(Boolean)
+    : [];
+
+  return {
+    score: Math.max(0, Math.min(100, score)),
+    level,
+    isCorrect: Boolean(data.is_correct),
+    referenceAnswer: String(data.reference_answer ?? '').trim(),
+    betterAnswer: data.better_answer == null ? undefined : String(data.better_answer).trim(),
+    errors,
+    feedbackCn: String(data.feedback_cn ?? '').trim(),
   };
 }
 
@@ -934,6 +1042,69 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
         return result;
       } catch {
         throw new Error('AI 回复格式无效，请重试');
+      }
+    },
+    async evaluateTranslationAnswer(params: EvaluateTranslationAnswerParams) {
+      ensureConfigReady();
+
+      const sourceText = params.sourceText.trim();
+      const referenceAnswer = params.referenceAnswer.trim();
+      const userAnswer = params.userAnswer.trim();
+      if (!sourceText) {
+        throw new Error('题干为空，请重新生成题目');
+      }
+      if (!referenceAnswer) {
+        throw new Error('参考答案为空，请重新生成题目');
+      }
+      if (!userAnswer) {
+        throw new Error('请输入你的翻译答案');
+      }
+
+      const response = await fetch(`${baseUrl}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: [
+            {
+              role: 'system',
+              content: [{ type: 'input_text', text: buildTranslationEvalSystemPrompt() }],
+            },
+            {
+              role: 'user',
+              content: [{ type: 'input_text', text: buildTranslationEvalUserPrompt(params) }],
+            },
+          ],
+          max_output_tokens: 900,
+          text: {
+            format: TRANSLATION_EVAL_SCHEMA,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`翻译批改失败（${response.status}）：${errText || response.statusText}`);
+      }
+
+      const payload = (await response.json()) as unknown;
+      const outputText = extractOutputText(payload);
+      if (!outputText) {
+        throw new Error('AI 未返回批改结果，请稍后重试');
+      }
+
+      try {
+        const parsed = JSON.parse(outputText) as unknown;
+        const result = normalizeTranslationEvalResult(parsed);
+        if (!result.referenceAnswer || !result.feedbackCn) {
+          throw new Error('批改关键字段为空');
+        }
+        return result;
+      } catch {
+        throw new Error('AI 批改结果格式无效，请重试');
       }
     },
     async askDictionary(params: AskDictionaryParams) {
