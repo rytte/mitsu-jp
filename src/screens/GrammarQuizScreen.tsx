@@ -347,6 +347,13 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
   const finished = currentIndex + 1 >= items.length && showResult;
   const accuracy =
     items.length === 0 ? 0 : Math.round((correctCount / Math.max(1, correctCount + wrongCount)) * 100);
+  const subPromptText =
+    currentItem.type === 'example_to_pattern'
+      ? '根据例句选择正确文法'
+      : currentItem.type === 'meaning_to_pattern'
+      ? '根据释义选择正确文法'
+      : '根据文法选择正确释义';
+  const showPromptZhAboveSubPrompt = currentItem.type === 'example_to_pattern' && Boolean(currentItem.promptZh);
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
@@ -357,14 +364,15 @@ export default function GrammarQuizScreen({ navigation, route }: Props) {
 
       <View style={styles.card}>
         <View style={styles.promptWrap}>{renderRichText(currentItem.prompt, 18, styles.promptText)}</View>
-        <Text style={styles.subPrompt}>
-          {currentItem.type === 'example_to_pattern'
-            ? '根据例句选择正确文法'
-            : currentItem.type === 'meaning_to_pattern'
-            ? '根据释义选择正确文法'
-            : '根据文法选择正确释义'}
+        {showPromptZhAboveSubPrompt ? (
+          <Text style={[styles.subPromptAlt, styles.subPromptAltBefore]}>
+            {renderInlineMarkup(currentItem.promptZh ?? '', styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+          </Text>
+        ) : null}
+        <Text style={[styles.subPrompt, showPromptZhAboveSubPrompt ? styles.subPromptWithBottomGap : null]}>
+          {subPromptText}
         </Text>
-        {currentItem.promptZh ? (
+        {!showPromptZhAboveSubPrompt && currentItem.promptZh ? (
           <Text style={styles.subPromptAlt}>
             {renderInlineMarkup(currentItem.promptZh, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
           </Text>
@@ -463,6 +471,12 @@ const styles = StyleSheet.create({
   },
   subPromptAlt: {
     color: colors.muted,
+    marginBottom: spacing.m,
+  },
+  subPromptAltBefore: {
+    marginBottom: spacing.xs,
+  },
+  subPromptWithBottomGap: {
     marginBottom: spacing.m,
   },
   resultBox: {
