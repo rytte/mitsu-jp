@@ -196,6 +196,16 @@ function stripBracketFurigana(text: string) {
   return text.replace(/\[[^\]]*\]/g, '');
 }
 
+function sanitizeFormationText(text: string) {
+  if (!text) return '';
+  return text
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\[[^\]]*\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function renderFuriganaMarkup(text: string, fontSize: number, baseStyle?: TextStyle) {
   const tokens = parseInlineTokens(text);
   const readingSize = Math.max(10, Math.round(fontSize * 0.6));
@@ -284,7 +294,10 @@ export default function GrammarCard({
   const showDetails = !compact || expanded;
   const cardStyles = [styles.card, shadow ? styles.cardShadow : null];
 
-  const formationText = (grammar.formation ?? []).map((item) => item.trim()).filter(Boolean).join(' / ');
+  const formationText = (grammar.formation ?? [])
+    .map((item) => sanitizeFormationText(item))
+    .filter(Boolean)
+    .join(' / ');
   const meaning = (grammar.meaning_cn ?? '').trim() || (grammar.usage?.[0] ?? '').trim();
   const usageLines = (grammar.usage ?? []).map((item) => item.trim()).filter((item) => item && item !== meaning);
   const noteLines = (grammar.notes ?? []).map((item) => item.trim()).filter(Boolean);
