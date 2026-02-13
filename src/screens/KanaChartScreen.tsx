@@ -1,4 +1,6 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import KanaPracticePanel from '../components/KanaPracticePanel';
 import { colors, radius, spacing } from '../theme';
 import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
@@ -387,24 +389,57 @@ function KanaTable({
 
 export default function KanaChartScreen() {
   const topPadding = useScreenTopPadding();
+  const [showPractice, setShowPractice] = useState(false);
+  const practiceSources = useMemo(
+    () => [
+      HIRAGANA_ROWS,
+      KATAKANA_ROWS,
+      HIRAGANA_DAKUTEN_ROWS,
+      HIRAGANA_HANDAKUTEN_ROWS,
+      KATAKANA_DAKUTEN_ROWS,
+      KATAKANA_HANDAKUTEN_ROWS,
+      HIRAGANA_YOON_ROWS,
+      KATAKANA_YOON_ROWS,
+    ],
+    []
+  );
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
-      <Text style={styles.pageTitle}>五十音图</Text>
-      <Text style={styles.pageSubtitle}>基础清音（平假名 / 片假名）</Text>
-      <KanaTable title="平假名" rows={HIRAGANA_ROWS} />
-      <KanaTable title="片假名" rows={KATAKANA_ROWS} />
+      <View style={styles.pageHeaderRow}>
+        <Text style={styles.pageTitle}>五十音图</Text>
+        <Pressable
+          onPress={() => setShowPractice((prev) => !prev)}
+          style={({ pressed }) => [styles.pageActionBtn, pressed ? styles.pageActionBtnPressed : null]}
+        >
+          <Text style={styles.pageActionText}>{showPractice ? '返回音图' : '开始训练'}</Text>
+        </Pressable>
+      </View>
 
-      <Text style={styles.sectionTitle}>浊音 / 半浊音</Text>
-      <Text style={styles.sectionSubtitle}>が〜 / ぱ〜 等变化</Text>
-      <KanaTable title="平假名・浊音" rows={HIRAGANA_DAKUTEN_ROWS} />
-      <KanaTable title="平假名・半浊音" rows={HIRAGANA_HANDAKUTEN_ROWS} />
-      <KanaTable title="片假名・浊音" rows={KATAKANA_DAKUTEN_ROWS} />
-      <KanaTable title="片假名・半浊音" rows={KATAKANA_HANDAKUTEN_ROWS} />
+      {showPractice ? (
+        <>
+          <Text style={styles.pageSubtitle}>四模式训练：看字选音 / 听音选字 / 拼写输入 / 易混淆专项</Text>
+          <KanaPracticePanel sources={practiceSources} />
+        </>
+      ) : (
+        <>
+          <Text style={styles.pageSubtitle}>基础清音（平假名 / 片假名）</Text>
+          <KanaTable title="平假名" rows={HIRAGANA_ROWS} />
+          <KanaTable title="片假名" rows={KATAKANA_ROWS} />
 
-      <Text style={styles.sectionTitle}>拗音（小ゃ / ゅ / ょ）</Text>
-      <Text style={styles.sectionSubtitle}>きゃ / きゅ / きょ 等组合</Text>
-      <KanaTable title="平假名・拗音" rows={HIRAGANA_YOON_ROWS} headers={Y_VOWELS} />
-      <KanaTable title="片假名・拗音" rows={KATAKANA_YOON_ROWS} headers={Y_VOWELS} />
+          <Text style={styles.sectionTitle}>浊音 / 半浊音</Text>
+          <Text style={styles.sectionSubtitle}>が〜 / ぱ〜 等变化</Text>
+          <KanaTable title="平假名・浊音" rows={HIRAGANA_DAKUTEN_ROWS} />
+          <KanaTable title="平假名・半浊音" rows={HIRAGANA_HANDAKUTEN_ROWS} />
+          <KanaTable title="片假名・浊音" rows={KATAKANA_DAKUTEN_ROWS} />
+          <KanaTable title="片假名・半浊音" rows={KATAKANA_HANDAKUTEN_ROWS} />
+
+          <Text style={styles.sectionTitle}>拗音（小ゃ / ゅ / ょ）</Text>
+          <Text style={styles.sectionSubtitle}>きゃ / きゅ / きょ 等组合</Text>
+          <KanaTable title="平假名・拗音" rows={HIRAGANA_YOON_ROWS} headers={Y_VOWELS} />
+          <KanaTable title="片假名・拗音" rows={KATAKANA_YOON_ROWS} headers={Y_VOWELS} />
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -422,6 +457,27 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: colors.text,
+  },
+  pageHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  pageActionBtn: {
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    backgroundColor: '#eff6ff',
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 6,
+  },
+  pageActionBtnPressed: {
+    opacity: 0.8,
+  },
+  pageActionText: {
+    color: '#0369a1',
+    fontWeight: '700',
+    fontSize: 12,
   },
   pageSubtitle: {
     marginTop: spacing.xs,
