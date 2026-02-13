@@ -36,6 +36,7 @@
 - 词汇部分：`PLAN_WORDS.md`
 - 文法部分：`PLAN_GRAMMAR.md`
 - AI 教学：`PLAN_AI_TEACHING.md`
+- 标签设计：`PLAN_GROWTH_TAGS.md`
 
 ## 关键界面（MVP）
 - 启动页 / 级别选择页（N5–N1）
