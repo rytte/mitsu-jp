@@ -201,7 +201,7 @@ function buildExplainSystemPrompt() {
     '4) 语气友好、结论明确。',
     '5) 若 question_type 为 reorder_fill：先给出 options 的参考排序；若 has_target_slot=true 再解释“★”位置，否则解释多空之间的语法搭配关系。',
     '6) 若 question_type 为 kana_kanji_conversion：先指出“【xxx】”词形（汉字/假名），再说明应选对应读法或写法。',
-    '7) 若 question_type 为 single_blank_fill：按普通单空填空解析语法和语义依据。',
+    '7) 若 question_type 为 single_blank_fill：按普通单选填空解析语法和语义依据。',
   ].join('\n');
 }
 
@@ -231,7 +231,7 @@ function buildExplainUserPrompt(params: ExplainExamQuestionParams) {
         : '题型补充：这是多空排序/搭配题，先说明空格间语法关系，再解释当前正确选项为什么成立。'
       : questionType === 'kana_kanji_conversion'
       ? '题型补充：这是汉字/假名转换题，需根据“【xxx】”中的词形判断应选读音或写法。'
-      : '题型补充：这是单空填空题，直接对比选项并说明正确答案依据。',
+      : '题型补充：这是单选填空题，直接对比选项并说明正确答案依据。',
     JSON.stringify(payload, null, 2),
   ].join('\n');
 }

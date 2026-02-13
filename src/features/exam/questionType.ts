@@ -11,7 +11,7 @@ const INFO_MAP: Record<ExamQuestionType, QuestionTypeInfo> = {
     tip: '先把4个选项代入句子，当前作答位置是★。',
   },
   single_blank_fill: {
-    label: '单空填空',
+    label: '单选填空',
     tip: '从4个选项中选择最合适的一项填入空格。',
   },
   kana_kanji_conversion: {
