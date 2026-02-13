@@ -1,9 +1,11 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import PrimaryButton from '../components/PrimaryButton';
 import { generateExamQuizWithAi } from '../features/ai/service';
+import { loadAiTokenUsageStats } from '../features/ai/storage';
 import { SESSION_SIZE, sanitizeRawExamItems } from '../features/exam/examBank';
 import { MyStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
@@ -19,10 +21,47 @@ export default function AiHubScreen({ navigation }: Props) {
   const [selectedLevel, setSelectedLevel] = useState<BankLevel>('N5');
   const [loading, setLoading] = useState(false);
   const [lastInfo, setLastInfo] = useState('');
+  const [tokenUsage, setTokenUsage] = useState({
+    input_tokens: 0,
+    cached_input_tokens: 0,
+    output_tokens: 0,
+  });
 
   const buttonTitle = useMemo(() => {
     return loading ? 'AI 正在出题...' : `生成 ${selectedLevel} 题目并开始练习`;
   }, [loading, selectedLevel]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      void loadAiTokenUsageStats()
+        .then((stats) => {
+          if (!active) return;
+          setTokenUsage({
+            input_tokens: stats.input_tokens,
+            cached_input_tokens: stats.cached_input_tokens,
+            output_tokens: stats.output_tokens,
+          });
+        })
+        .catch(() => {
+          if (!active) return;
+          setTokenUsage({
+            input_tokens: 0,
+            cached_input_tokens: 0,
+            output_tokens: 0,
+          });
+        });
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
+  const formatToken = (value: number) => {
+    const safe = Number.isFinite(Number(value)) ? Number(value) : 0;
+    return safe.toLocaleString('zh-CN');
+  };
+  const totalTokens = tokenUsage.input_tokens + tokenUsage.cached_input_tokens + tokenUsage.output_tokens;
 
   const handleGenerateExam = async () => {
     setLoading(true);
@@ -76,6 +115,27 @@ export default function AiHubScreen({ navigation }: Props) {
         </View>
         <Text style={styles.heroTitle}>AI 学习中心</Text>
         <Text style={styles.heroSub}>你可以在这里使用 AI 对话训练和生题等功能。</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Tokens 消耗统计</Text>
+        <Text style={styles.tip}>累计统计输入 / 缓存 / 输出 Tokens。</Text>
+        <View style={styles.usageRow}>
+          <Text style={styles.usageLabel}>输入 Tokens</Text>
+          <Text style={styles.usageValue}>{formatToken(tokenUsage.input_tokens)}</Text>
+        </View>
+        <View style={styles.usageRow}>
+          <Text style={styles.usageLabel}>缓存 Tokens</Text>
+          <Text style={styles.usageValue}>{formatToken(tokenUsage.cached_input_tokens)}</Text>
+        </View>
+        <View style={styles.usageRow}>
+          <Text style={styles.usageLabel}>输出 Tokens</Text>
+          <Text style={styles.usageValue}>{formatToken(tokenUsage.output_tokens)}</Text>
+        </View>
+        <View style={styles.usageRow}>
+          <Text style={styles.usageLabel}>总 Tokens</Text>
+          <Text style={styles.usageValue}>{formatToken(totalTokens)}</Text>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -200,6 +260,24 @@ const styles = StyleSheet.create({
   linkText: {
     color: colors.primary,
     fontWeight: '600',
+  },
+  usageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: spacing.s,
+    marginTop: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  usageLabel: {
+    color: colors.muted,
+    fontSize: 13,
+  },
+  usageValue: {
+    color: colors.text,
+    fontWeight: '700',
+    fontSize: 14,
   },
   levelRow: {
     flexDirection: 'row',

@@ -8,6 +8,7 @@ import {
   TranslationFocus,
 } from '../../types';
 import { Platform } from 'react-native';
+import { addAiTokenUsageStats } from './storage';
 
 type GenerateExamQuizParams = {
   level: BankLevel;
@@ -448,6 +449,116 @@ function parseSseDataFrame(frame: string) {
   return dataLines.join('\n');
 }
 
+function toSafeNonNegativeInt(value: unknown) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return 0;
+  return Math.max(0, Math.floor(num));
+}
+
+function extractUsageFromPayload(payload: unknown) {
+  const data = payload as {
+    usage?: {
+      input_tokens?: number;
+      prompt_tokens?: number;
+      output_tokens?: number;
+      completion_tokens?: number;
+      cached_tokens?: number;
+      input_tokens_details?: { cached_tokens?: number };
+      prompt_tokens_details?: { cached_tokens?: number };
+    };
+    response?: {
+      usage?: {
+        input_tokens?: number;
+        prompt_tokens?: number;
+        output_tokens?: number;
+        completion_tokens?: number;
+        cached_tokens?: number;
+        input_tokens_details?: { cached_tokens?: number };
+        prompt_tokens_details?: { cached_tokens?: number };
+      };
+    };
+  };
+
+  const usage = data?.usage ?? data?.response?.usage;
+  if (!usage) return null;
+
+  const hasKnownField =
+    usage.input_tokens != null ||
+    usage.prompt_tokens != null ||
+    usage.output_tokens != null ||
+    usage.completion_tokens != null ||
+    usage.cached_tokens != null ||
+    usage.input_tokens_details?.cached_tokens != null ||
+    usage.prompt_tokens_details?.cached_tokens != null;
+
+  if (!hasKnownField) return null;
+
+  const inputTokens = toSafeNonNegativeInt(usage.input_tokens ?? usage.prompt_tokens);
+  const cachedInputTokens = toSafeNonNegativeInt(
+    usage.cached_tokens ?? usage.input_tokens_details?.cached_tokens ?? usage.prompt_tokens_details?.cached_tokens
+  );
+  const outputTokens = toSafeNonNegativeInt(usage.output_tokens ?? usage.completion_tokens);
+
+  return {
+    input_tokens: inputTokens,
+    cached_input_tokens: cachedInputTokens,
+    output_tokens: outputTokens,
+  };
+}
+
+function trackUsageSnapshot(snapshot: { input_tokens: number; cached_input_tokens: number; output_tokens: number } | null) {
+  if (!snapshot) return;
+  void addAiTokenUsageStats(snapshot).catch(() => {
+    // ignore usage persistence errors
+  });
+}
+
+function trackUsageFromPayload(payload: unknown) {
+  trackUsageSnapshot(extractUsageFromPayload(payload));
+}
+
+function trackUsageFromRawSse(raw: string) {
+  const normalized = raw.replace(/\r\n/g, '\n');
+  const frames = normalized.split('\n\n');
+  let found = false;
+  const best = {
+    input_tokens: 0,
+    cached_input_tokens: 0,
+    output_tokens: 0,
+  };
+
+  for (const frame of frames) {
+    const dataLine = parseSseDataFrame(frame);
+    if (!dataLine || dataLine === '[DONE]') continue;
+    try {
+      const payload = JSON.parse(dataLine) as unknown;
+      const usage = extractUsageFromPayload(payload);
+      if (!usage) continue;
+      found = true;
+      best.input_tokens = Math.max(best.input_tokens, usage.input_tokens);
+      best.cached_input_tokens = Math.max(best.cached_input_tokens, usage.cached_input_tokens);
+      best.output_tokens = Math.max(best.output_tokens, usage.output_tokens);
+    } catch {
+      // ignore non-JSON frames
+    }
+  }
+
+  if (found) {
+    trackUsageSnapshot(best);
+    return;
+  }
+
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      const payload = JSON.parse(trimmed) as unknown;
+      trackUsageFromPayload(payload);
+    } catch {
+      // ignore invalid JSON
+    }
+  }
+}
+
 function extractOutputTextFromSseRaw(raw: string): string {
   const normalized = raw.replace(/\r\n/g, '\n');
   const frames = normalized.split('\n\n');
@@ -584,6 +695,7 @@ function requestDictionaryViaXhrSse(params: {
         settleReject(new Error(`AI 辞典请求失败（${xhr.status}）：${rawText || xhr.statusText}`));
         return;
       }
+      trackUsageFromRawSse(rawText);
 
       if (streamState.buffer.trim()) {
         const trailingFrameState = {
@@ -766,6 +878,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
 
     if (!options.stream) {
       const payload = (await response.json()) as unknown;
+      trackUsageFromPayload(payload);
       const outputText = extractOutputText(payload);
       if (!outputText) {
         throw new Error('AI 未返回解释内容，请稍后重试');
@@ -776,6 +889,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
     const decoder = typeof TextDecoder === 'function' ? new TextDecoder() : null;
     if (!decoder) {
       const raw = await response.text();
+      trackUsageFromRawSse(raw);
       const outputText = extractOutputTextFromRaw(raw);
       if (!outputText) {
         throw new Error('当前环境不支持流式输出');
@@ -789,6 +903,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
     const reader = response.body?.getReader?.();
     if (!reader) {
       const raw = await response.text();
+      trackUsageFromRawSse(raw);
       const outputText = extractOutputTextFromRaw(raw);
       if (!outputText) {
         throw new Error('AI 未返回解释内容，请稍后重试');
@@ -842,6 +957,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
     if (!streamState.outputText.trim()) {
       const fallbackText = extractOutputTextFromRaw(rawText);
       if (fallbackText) {
+        trackUsageFromRawSse(rawText);
         options.onDelta?.(fallbackText);
         return fallbackText;
       }
@@ -850,6 +966,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
     if (!streamState.outputText.trim()) {
       throw new Error('AI 未返回解释内容，请稍后重试');
     }
+    trackUsageFromRawSse(rawText);
     return streamState.outputText;
   }
 
@@ -888,6 +1005,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
 
       const payload = (await response.json()) as unknown;
+      trackUsageFromPayload(payload);
       const outputText = extractOutputText(payload);
       if (!outputText) {
         throw new Error('AI 返回为空，请调整模型或稍后重试');
@@ -937,6 +1055,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
 
       const payload = (await response.json()) as unknown;
+      trackUsageFromPayload(payload);
       const outputText = extractOutputText(payload);
       if (!outputText) {
         throw new Error('AI 未返回解析内容，请稍后重试');
@@ -978,6 +1097,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
 
       const payload = (await response.json()) as unknown;
+      trackUsageFromPayload(payload);
       const outputText = extractOutputText(payload);
       if (!outputText) {
         throw new Error('AI 未返回开场内容，请稍后重试');
@@ -1028,6 +1148,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
 
       const payload = (await response.json()) as unknown;
+      trackUsageFromPayload(payload);
       const outputText = extractOutputText(payload);
       if (!outputText) {
         throw new Error('AI 未返回回复内容，请稍后重试');
@@ -1091,6 +1212,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
 
       const payload = (await response.json()) as unknown;
+      trackUsageFromPayload(payload);
       const outputText = extractOutputText(payload);
       if (!outputText) {
         throw new Error('AI 未返回批改结果，请稍后重试');
