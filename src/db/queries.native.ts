@@ -110,11 +110,18 @@ export async function getProgressMapByLevel(level: Level): Promise<Record<string
 }
 
 export async function saveProgress(stageId: string, correct: number, wrong: number, stars: number) {
+  const existing = await getFirst<{ stars: number }>(
+    'SELECT stars FROM progress WHERE stage_id = ? LIMIT 1',
+    [stageId]
+  );
+  const safeCurrentStars = Number.isFinite(Number(existing?.stars)) ? Number(existing?.stars) : 0;
+  const safeNextStars = Number.isFinite(Number(stars)) ? Number(stars) : 0;
+  const finalStars = Math.max(safeCurrentStars, safeNextStars);
   const now = Date.now();
   await run(
     `INSERT OR REPLACE INTO progress (id, stage_id, correct_count, wrong_count, last_played_at, stars)
      VALUES (?, ?, ?, ?, ?, ?);`,
-    [stageId, stageId, correct, wrong, now, stars]
+    [stageId, stageId, correct, wrong, now, finalStars]
   );
 }
 

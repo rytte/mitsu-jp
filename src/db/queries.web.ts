@@ -120,13 +120,19 @@ export async function getProgressMapByLevel(level: Level): Promise<Record<string
 
 export async function saveProgress(stageId: string, correct: number, wrong: number, stars: number) {
   const progressMap = loadProgressMap() as Record<string, Progress>;
+  const currentStars = Number(progressMap[stageId]?.stars ?? 0);
+  const nextStars = Number(stars ?? 0);
+  const finalStars = Math.max(
+    Number.isFinite(currentStars) ? currentStars : 0,
+    Number.isFinite(nextStars) ? nextStars : 0
+  );
   progressMap[stageId] = {
     id: stageId,
     stage_id: stageId,
     correct_count: correct,
     wrong_count: wrong,
     last_played_at: Date.now(),
-    stars,
+    stars: finalStars,
   };
   saveProgressMap(progressMap);
 }
