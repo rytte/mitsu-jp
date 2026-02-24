@@ -1,5 +1,5 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
@@ -190,6 +190,95 @@ const ROMAJI_ROWS = [
   ['', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ''],
   ['—', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '⌫'],
 ];
+const ROMAJI_KEY_HIT_SLOP = { top: 6, bottom: 8, left: 4, right: 4 } as const;
+const ROMAJI_KEY_PRESS_RETENTION = { top: 10, bottom: 14, left: 12, right: 12 } as const;
+
+type TypingState = {
+  inputValue: string;
+  romajiBuffer: string;
+};
+
+const EMPTY_TYPING: TypingState = { inputValue: '', romajiBuffer: '' };
+
+type RomajiKeyProps = {
+  letter: string;
+  isLast: boolean;
+  onLetterPress: (letter: string) => void;
+  onLongVowelPress: () => void;
+  onBackspacePress: () => void;
+  onClearPress: () => void;
+};
+
+const RomajiKey = memo(function RomajiKey({
+  letter,
+  isLast,
+  onLetterPress,
+  onLongVowelPress,
+  onBackspacePress,
+  onClearPress,
+}: RomajiKeyProps) {
+  const isLongVowel = letter === '—';
+  const isBackspace = letter === '⌫';
+  const isFunctionKey = isLongVowel || isBackspace;
+
+  const handlePressIn = () => {
+    if (!isFunctionKey) {
+      onLetterPress(letter);
+    }
+  };
+
+  const handlePress = () => {
+    if (isLongVowel) {
+      onLongVowelPress();
+      return;
+    }
+    if (isBackspace) {
+      onBackspacePress();
+    }
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPress={isFunctionKey ? handlePress : undefined}
+      onLongPress={isBackspace ? onClearPress : undefined}
+      delayLongPress={isBackspace ? 400 : undefined}
+      hitSlop={ROMAJI_KEY_HIT_SLOP}
+      pressRetentionOffset={ROMAJI_KEY_PRESS_RETENTION}
+      style={({ pressed }) => [
+        styles.romajiKey,
+        isFunctionKey ? styles.romajiKeyFunction : styles.romajiKeyLetter,
+        pressed ? (isFunctionKey ? styles.romajiKeyFunctionPressed : styles.romajiKeyLetterPressed) : null,
+        isBackspace ? styles.romajiKeyWide : null,
+        isLongVowel ? styles.romajiKeyWide : null,
+        !isLast ? styles.romajiKeyGap : null,
+        pressed ? styles.romajiKeyPressed : null,
+      ]}
+    >
+      {({ pressed }) => (
+        <>
+          {pressed ? (
+            <View pointerEvents="none" style={styles.keyBubbleWrap}>
+              <View style={styles.keyBubble}>
+                <Text style={styles.keyBubbleText}>{letter}</Text>
+                <View style={styles.keyBubbleCaret} />
+              </View>
+            </View>
+          ) : null}
+          <Text
+            style={[
+              styles.romajiKeyText,
+              isFunctionKey ? styles.romajiKeyTextFunction : styles.romajiKeyTextLetter,
+              pressed ? styles.romajiKeyTextPressed : null,
+            ]}
+          >
+            {letter}
+          </Text>
+        </>
+      )}
+    </Pressable>
+  );
+});
 
 function stripBoldTags(text: string) {
   if (!text) return '';
@@ -223,7 +312,7 @@ function splitTrailingRomajiPrefix(value: string) {
   return { base: value, buffer: '' };
 }
 
-function consumeRomaji(buffer: string) {
+function consumeRomaji(buffer: string, finalize = false) {
   let rest = buffer;
   let output = '';
 
@@ -253,6 +342,20 @@ function consumeRomaji(buffer: string) {
     }
 
     if (matched) continue;
+    if (rest[0] === 'n') {
+      if (rest.length === 1) {
+        if (finalize) {
+          output += 'ん';
+          rest = '';
+          continue;
+        }
+        break;
+      }
+      if (ROMAJI_PREFIXES.has(rest)) break;
+      output += 'ん';
+      rest = rest.slice(1);
+      continue;
+    }
     if (ROMAJI_PREFIXES.has(rest)) break;
 
     output += rest[0];
@@ -269,7 +372,7 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [items, setItems] = useState<QuizItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
-  const [inputValue, setInputValue] = useState('');
+  const [typingState, setTypingState] = useState<TypingState>(EMPTY_TYPING);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -277,8 +380,6 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [wordMap, setWordMap] = useState<Record<string, Word>>({});
   const [addedWordIds, setAddedWordIds] = useState<Set<string>>(new Set());
   const [addingWordId, setAddingWordId] = useState<string | null>(null);
-  const [romajiBuffer, setRomajiBuffer] = useState('');
-  const [activeKeyId, setActiveKeyId] = useState<string | null>(null);
   const lastAutoPlayedId = useRef<string | null>(null);
   const correctSoundRef = useRef<Audio.Sound | null>(null);
 
@@ -340,6 +441,7 @@ export default function QuizScreen({ navigation, route }: Props) {
     return Math.round(((currentIndex + 1) / items.length) * 100);
   }, [currentIndex, items.length]);
 
+  const { inputValue, romajiBuffer } = typingState;
   const displayInputValue = useMemo(() => `${inputValue}${romajiBuffer}`, [inputValue, romajiBuffer]);
   const answeredCorrectly = isCorrect === true;
 
@@ -403,69 +505,62 @@ export default function QuizScreen({ navigation, route }: Props) {
     speak(currentItem.audioText);
   }, [currentItem, settings.tts_rate]);
 
-  const commitRomajiBuffer = () => {
-    if (!romajiBuffer) return '';
-    let extra = '';
-    const consumed = consumeRomaji(romajiBuffer);
-    extra += consumed.output;
-    const remaining = consumed.buffer;
-    if (extra) {
-      setInputValue((prev) => prev + extra);
-    }
-    setRomajiBuffer(remaining);
-    return extra;
-  };
+  const handleLetterPress = useCallback(
+    (letter: string) => {
+      if (showResult) return;
+      setTypingState((prev) => {
+        const consumed = consumeRomaji(prev.romajiBuffer + letter);
+        return {
+          inputValue: `${prev.inputValue}${consumed.output}`,
+          romajiBuffer: consumed.buffer,
+        };
+      });
+    },
+    [showResult]
+  );
 
-  const appendRomaji = (letter: string) => {
+  const handleLongVowel = useCallback(() => {
     if (showResult) return;
-    setRomajiBuffer((prevBuffer) => {
-      const combined = prevBuffer + letter;
-      const consumed = consumeRomaji(combined);
-      if (consumed.output) {
-        setInputValue((prev) => prev + consumed.output);
-      }
-      return consumed.buffer;
+    setTypingState((prev) => {
+      const consumed = consumeRomaji(prev.romajiBuffer);
+      return {
+        inputValue: `${prev.inputValue}${consumed.output}ー`,
+        romajiBuffer: consumed.buffer,
+      };
     });
-  };
+  }, [showResult]);
 
-  const handleLongVowel = () => {
+  const handleBackspace = useCallback(() => {
     if (showResult) return;
-    commitRomajiBuffer();
-    setInputValue((prev) => prev + 'ー');
-  };
+    setTypingState((prev) => {
+      if (prev.romajiBuffer.length > 0) {
+        return { ...prev, romajiBuffer: prev.romajiBuffer.slice(0, -1) };
+      }
+      if (!prev.inputValue) return prev;
+      const removed = prev.inputValue.slice(-1);
+      let nextInput = prev.inputValue.slice(0, -1);
+      let nextBuffer = '';
+      if (isKanaChar(removed)) {
+        const split = splitTrailingRomajiPrefix(nextInput);
+        nextInput = split.base;
+        nextBuffer = split.buffer;
+      }
+      return {
+        inputValue: nextInput,
+        romajiBuffer: nextBuffer,
+      };
+    });
+  }, [showResult]);
 
-  const handleBackspace = () => {
+  const handleClearSpelling = useCallback(() => {
     if (showResult) return;
-    if (romajiBuffer.length > 0) {
-      setRomajiBuffer(romajiBuffer.slice(0, -1));
-      return;
-    }
-    if (!inputValue) return;
-    const removed = inputValue.slice(-1);
-    let nextInput = inputValue.slice(0, -1);
-    let nextBuffer = '';
-    if (isKanaChar(removed)) {
-      const split = splitTrailingRomajiPrefix(nextInput);
-      nextInput = split.base;
-      nextBuffer = split.buffer;
-    }
-    setInputValue(nextInput);
-    if (nextBuffer) setRomajiBuffer(nextBuffer);
-  };
-
-  const handleClearSpelling = () => {
-    if (showResult) return;
-    setInputValue('');
-    setRomajiBuffer('');
-  };
+    setTypingState({ inputValue: '', romajiBuffer: '' });
+  }, [showResult]);
 
   const handleSubmitSpelling = () => {
-    const consumed = consumeRomaji(romajiBuffer);
+    const consumed = consumeRomaji(romajiBuffer, true);
     const finalValue = `${inputValue}${consumed.output}${consumed.buffer}`;
-    if (consumed.output || consumed.buffer) {
-      setInputValue(finalValue);
-    }
-    setRomajiBuffer('');
+    setTypingState({ inputValue: finalValue, romajiBuffer: '' });
     handleAnswer(finalValue);
   };
 
@@ -498,8 +593,7 @@ export default function QuizScreen({ navigation, route }: Props) {
     }
     setCurrentIndex((prev) => prev + 1);
     setSelected(null);
-    setInputValue('');
-    setRomajiBuffer('');
+    setTypingState(EMPTY_TYPING);
     setShowResult(false);
     setIsCorrect(null);
   };
@@ -654,58 +748,16 @@ export default function QuizScreen({ navigation, route }: Props) {
                       );
                     }
 
-                    const isLongVowel = letter === '—';
-                    const isBackspace = letter === '⌫';
-                    const isFunctionKey = isLongVowel || isBackspace;
-
-                    const handlePress = () => {
-                      if (isLongVowel) {
-                        handleLongVowel();
-                        return;
-                      }
-                      if (isBackspace) {
-                        handleBackspace();
-                        return;
-                      }
-                      appendRomaji(letter);
-                    };
-
-                    const keyId = `${letter}-${rowIndex}-${index}`;
-                    const isActive = activeKeyId === keyId;
                     return (
-                      <Pressable
-                        key={keyId}
-                        onPressIn={() => setActiveKeyId(keyId)}
-                        onPressOut={() => setActiveKeyId((prev) => (prev === keyId ? null : prev))}
-                        onPress={handlePress}
-                        onLongPress={isBackspace ? handleClearSpelling : undefined}
-                        delayLongPress={isBackspace ? 400 : undefined}
-                        style={[
-                          styles.romajiKey,
-                          isFunctionKey ? styles.romajiKeyFunction : styles.romajiKeyLetter,
-                          isBackspace ? styles.romajiKeyWide : null,
-                          isLongVowel ? styles.romajiKeyWide : null,
-                          !isLast ? styles.romajiKeyGap : null,
-                          isActive ? styles.romajiKeyPressed : null,
-                        ]}
-                      >
-                        {isActive ? (
-                          <View pointerEvents="none" style={styles.keyBubbleWrap}>
-                            <View style={styles.keyBubble}>
-                              <Text style={styles.keyBubbleText}>{letter}</Text>
-                              <View style={styles.keyBubbleCaret} />
-                            </View>
-                          </View>
-                        ) : null}
-                        <Text
-                          style={[
-                            styles.romajiKeyText,
-                            isFunctionKey ? styles.romajiKeyTextFunction : styles.romajiKeyTextLetter,
-                          ]}
-                        >
-                          {letter}
-                        </Text>
-                      </Pressable>
+                      <RomajiKey
+                        key={`${letter}-${rowIndex}-${index}`}
+                        letter={letter}
+                        isLast={isLast}
+                        onLetterPress={handleLetterPress}
+                        onLongVowelPress={handleLongVowel}
+                        onBackspacePress={handleBackspace}
+                        onClearPress={handleClearSpelling}
+                      />
                     );
                   })}
                 </View>
@@ -1054,8 +1106,8 @@ const styles = StyleSheet.create({
   },
   keyboardTopPreviewText: {
     color: '#1f2937',
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '400',
   },
   keyboardTopSpacer: {
     flex: 0.4,
@@ -1102,6 +1154,11 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     position: 'relative',
     overflow: 'visible',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   romajiKeyLetter: {
     backgroundColor: '#ffffff',
@@ -1111,22 +1168,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f5f9',
     borderColor: '#cbd5e1',
   },
+  romajiKeyLetterPressed: {
+    backgroundColor: '#f3f6fb',
+  },
+  romajiKeyFunctionPressed: {
+    backgroundColor: '#e7edf5',
+  },
   romajiKeyPressed: {
     borderColor: colors.primary,
+    transform: [{ scale: 0.97 }],
+    shadowOpacity: 0.03,
+    shadowRadius: 1,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
   },
   romajiKeyText: {
-    fontSize: 20,
+    fontSize: 21,
   },
   romajiKeyTextLetter: {
     color: colors.text,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   romajiKeyTextFunction: {
     color: '#0f172a',
     fontWeight: '700',
   },
+  romajiKeyTextPressed: {
+    color: '#111827',
+  },
   romajiKeyGap: {
-    marginRight: Math.max(3, Math.floor(spacing.xs / 2)),
+    marginRight: 2,
   },
   romajiKeySpacer: {
     flex: 0.5,
