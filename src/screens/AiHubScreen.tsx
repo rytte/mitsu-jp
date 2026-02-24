@@ -175,23 +175,29 @@ export default function AiHubScreen({ navigation }: Props) {
       <View style={styles.heroCard}>
         <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>
-          <View style={styles.heroIconWrap}>
-            <Ionicons name="sparkles" size={16} color="#7c3aed" />
+          <View style={styles.heroTagWrap}>
+            <View style={styles.heroIconWrap}>
+              <Ionicons name="sparkles" size={16} color="#7c3aed" />
+            </View>
+            <Text style={styles.heroTag}>AI 工作台</Text>
           </View>
-          <Text style={styles.heroTag}>AI 工作台</Text>
         </View>
         <Text style={styles.heroTitle}>AI 学习中心</Text>
         <Text style={styles.heroSub}>你可以在这里使用 AI 场景对话和生题等功能。</Text>
-        <View style={styles.heroMetaRow}>
-          <View style={styles.heroMetaChip}>
-            <Text style={styles.heroMetaText}>4 阶段训练</Text>
+        <View style={styles.heroBottomRow}>
+          <View style={styles.heroMetaRow}>
+            <View style={styles.heroMetaChip}>
+              <Text style={styles.heroMetaText}>4 阶段训练</Text>
+            </View>
+            <View style={styles.heroMetaChip}>
+              <Text style={styles.heroMetaText}>N5-N1</Text>
+            </View>
           </View>
-          <View style={styles.heroMetaChip}>
-            <Text style={styles.heroMetaText}>N5-N1</Text>
-          </View>
-          <View style={styles.heroMetaChip}>
-            <Text style={styles.heroMetaText}>即点即练</Text>
-          </View>
+          <Pressable onPress={() => navigation.navigate('AiSettings')} style={styles.heroConfigEntry}>
+            <Ionicons name="settings-outline" size={14} color={colors.primary} />
+            <Text style={styles.heroConfigEntryText}>API 配置</Text>
+            <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+          </Pressable>
         </View>
       </View>
 
@@ -221,20 +227,6 @@ export default function AiHubScreen({ navigation }: Props) {
             </View>
           ))}
         </View>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
-            <Ionicons name="settings-outline" size={16} color={colors.text} />
-            <Text style={styles.sectionTitle}>配置</Text>
-          </View>
-          <Pressable onPress={() => navigation.navigate('AiSettings')} style={styles.linkBtn}>
-            <Text style={styles.linkText}>去配置 API</Text>
-            <Ionicons name="chevron-forward" size={14} color={colors.primary} />
-          </Pressable>
-        </View>
-        <Text style={styles.tip}>先完成 API 配置，再开始使用 AI 生题等功能。</Text>
       </View>
 
       <View style={styles.section}>
@@ -397,6 +389,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.s,
   },
+  heroTagWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   heroIconWrap: {
     width: 24,
     height: 24,
@@ -420,11 +416,17 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     color: colors.muted,
   },
+  heroBottomRow: {
+    marginTop: spacing.s,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   heroMetaRow: {
+    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.s,
-    marginTop: spacing.s,
   },
   heroMetaChip: {
     borderWidth: 1,
@@ -439,6 +441,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+  heroConfigEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: spacing.s,
+    gap: 2,
+  },
+  heroConfigEntryText: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
   section: {
     backgroundColor: colors.card,
     borderRadius: radius.l,
@@ -446,12 +458,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.m,
     marginBottom: spacing.m,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xs,
   },
   sectionTitle: {
     fontSize: 16,
