@@ -159,25 +159,25 @@ export default function MistakesScreen() {
   const showingWord = mode === 'word';
   const listEmpty = showingWord ? wordMistakes.length === 0 : grammarMistakes.length === 0;
 
+  const renderEmpty = () => (
+    <View style={styles.empty}>
+      <Text style={styles.emptyText}>暂无错题，继续加油！</Text>
+    </View>
+  );
+
   const renderScene = ({ route }: { route: { key: string } }) => {
     const isWord = route.key === 'word';
-    const data = isWord ? wordMistakes : grammarMistakes;
-    if (data.length === 0) {
+    if (isWord) {
+      if (wordMistakes.length === 0) {
+        return renderEmpty();
+      }
       return (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>暂无错题，继续加油！</Text>
-        </View>
-      );
-    }
-
-    return (
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) =>
-          isWord ? (() => {
-            const word = item as MistakeWord;
+        <FlatList
+          data={wordMistakes}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => {
+            const word = item;
             const isSelected = selectedWordIds.has(word.id);
             const handlePress = () => {
               if (wordSelecting) {
@@ -219,18 +219,31 @@ export default function MistakesScreen() {
                 )}
               </View>
             );
-          })() : (
-            <GrammarCard
-              grammar={item as MistakeGrammar}
-              compact={compactMode}
-              fontSizes={grammarFontSizes}
-              expanded={expandedIds.has((item as MistakeGrammar).id)}
-              disabled={!compactMode}
-              onPress={() => toggleExpanded((item as MistakeGrammar).id)}
-              footer={<Text style={styles.times}>错误次数：{(item as MistakeGrammar).wrong_times}</Text>}
-            />
-          )
-        }
+          }}
+        />
+      );
+    }
+
+    if (grammarMistakes.length === 0) {
+      return renderEmpty();
+    }
+
+    return (
+      <FlatList
+        data={grammarMistakes}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <GrammarCard
+            grammar={item}
+            compact={compactMode}
+            fontSizes={grammarFontSizes}
+            expanded={expandedIds.has(item.id)}
+            disabled={!compactMode}
+            onPress={() => toggleExpanded(item.id)}
+            footer={<Text style={styles.times}>错误次数：{item.wrong_times}</Text>}
+          />
+        )}
       />
     );
   };

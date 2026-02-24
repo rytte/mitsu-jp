@@ -52,10 +52,8 @@ export default function AiHubScreen({ navigation }: Props) {
   const topPadding = useScreenTopPadding({ mode: 'always-safe' });
   const [selectedLevel, setSelectedLevel] = useState<BankLevel>('N5');
   const [loading, setLoading] = useState(false);
-  const [lastInfo, setLastInfo] = useState('');
   const [selectedSentenceLevel, setSelectedSentenceLevel] = useState<BankLevel>('N5');
   const [sentenceLoading, setSentenceLoading] = useState(false);
-  const [lastSentenceInfo, setLastSentenceInfo] = useState('');
   const [tokenUsage, setTokenUsage] = useState({
     input_tokens: 0,
     cached_input_tokens: 0,
@@ -135,7 +133,6 @@ export default function AiHubScreen({ navigation }: Props) {
 
   const handleGenerateExam = async () => {
     setLoading(true);
-    setLastInfo('');
     try {
       const rawItems = await generateExamQuizWithAi(selectedLevel, SESSION_SIZE);
       const items = sanitizeRawExamItems(rawItems).slice(0, SESSION_SIZE);
@@ -145,7 +142,6 @@ export default function AiHubScreen({ navigation }: Props) {
       if (items.length < SESSION_SIZE) {
         throw new Error(`AI 仅返回 ${items.length} 题，未达到 ${SESSION_SIZE} 题要求，请重试`);
       }
-      setLastInfo(`已生成 ${items.length} 题，等级 ${selectedLevel}`);
       navigateToAiPractice('AiExamQuizPractice', { level: selectedLevel, aiItems: items });
     } catch (error) {
       Alert.alert('AI 生题失败', error instanceof Error ? error.message : String(error));
@@ -156,7 +152,6 @@ export default function AiHubScreen({ navigation }: Props) {
 
   const handleGenerateSentenceAssemble = async () => {
     setSentenceLoading(true);
-    setLastSentenceInfo('');
     try {
       const items = await generateSentenceAssembleWithAi(selectedSentenceLevel, SESSION_SIZE);
       if (!items.length) {
@@ -165,7 +160,6 @@ export default function AiHubScreen({ navigation }: Props) {
       if (items.length < SESSION_SIZE) {
         throw new Error(`AI 仅返回 ${items.length} 题，未达到 ${SESSION_SIZE} 题要求，请重试`);
       }
-      setLastSentenceInfo(`已生成 ${items.length} 题，等级 ${selectedSentenceLevel}`);
       navigateToAiPractice('AiSentenceAssemblePractice', { level: selectedSentenceLevel, aiItems: items });
     } catch (error) {
       Alert.alert('AI 连词成句生题失败', error instanceof Error ? error.message : String(error));
@@ -279,7 +273,6 @@ export default function AiHubScreen({ navigation }: Props) {
             tone="indigo"
             style={styles.moduleActionBtn}
           />
-          {lastSentenceInfo ? <Text style={styles.lastInfo}>{lastSentenceInfo}</Text> : null}
         </View>
 
         <View style={styles.systemCard}>
@@ -346,7 +339,6 @@ export default function AiHubScreen({ navigation }: Props) {
           tone="sky"
           style={styles.actionBtn}
         />
-        {lastInfo ? <Text style={styles.lastInfo}>{lastInfo}</Text> : null}
       </View>
 
     </ScrollView>
@@ -642,9 +634,5 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     marginTop: spacing.m,
-  },
-  lastInfo: {
-    marginTop: spacing.s,
-    color: colors.muted,
   },
 });

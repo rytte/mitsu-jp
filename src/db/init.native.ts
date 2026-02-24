@@ -12,6 +12,15 @@ function serializeExamples(word: Word) {
   return JSON.stringify(word.examples);
 }
 
+function toRequiredText(value: unknown): string {
+  return value == null ? '' : String(value);
+}
+
+function toNullableText(value: unknown): string | null {
+  if (value == null) return null;
+  return String(value);
+}
+
 let initPromise: Promise<void> | null = null;
 
 async function ensureColumn(table: string, column: string, definition: string) {
@@ -220,9 +229,9 @@ async function migrateWordsTable() {
   );
 
   for (const row of rows) {
-    const example = row.example ? String(row.example) : '';
-    const exampleCn = row.example_cn ? String(row.example_cn) : '';
-    let examples = hasExamples ? (row.examples as string | null) : null;
+    const example = toNullableText(row.example) ?? '';
+    const exampleCn = toNullableText(row.example_cn) ?? '';
+    let examples = hasExamples ? toNullableText(row.examples) : null;
     if ((!examples || examples === '') && (example || exampleCn)) {
       examples = JSON.stringify([
         {
@@ -235,16 +244,16 @@ async function migrateWordsTable() {
       `INSERT OR REPLACE INTO words_new (id, level, kana, kanji, meaning_cn, meaning_en, pos, pitch, examples, tags)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
-        row.id,
-        row.level,
-        row.kana,
-        row.kanji ?? null,
-        row.meaning_cn,
-        row.meaning_en,
-        row.pos ?? null,
-        row.pitch ?? null,
+        toRequiredText(row.id),
+        toRequiredText(row.level),
+        toRequiredText(row.kana),
+        toNullableText(row.kanji),
+        toRequiredText(row.meaning_cn),
+        toRequiredText(row.meaning_en),
+        toNullableText(row.pos),
+        toNullableText(row.pitch),
         examples ?? null,
-        row.tags ?? null,
+        toNullableText(row.tags),
       ]
     );
   }
@@ -258,7 +267,7 @@ async function backfillPitch(list: Word[]) {
   if (candidates.length === 0) return;
   for (const word of candidates) {
     await run('UPDATE words SET pitch = ? WHERE id = ? AND (pitch IS NULL OR pitch = "")', [
-      word.pitch,
+      word.pitch ?? null,
       word.id,
     ]);
   }

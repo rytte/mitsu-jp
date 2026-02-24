@@ -1177,6 +1177,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  keyboardPanel: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.s,
+  },
   keyboardTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
