@@ -68,6 +68,15 @@ export default function AiHubScreen({ navigation }: Props) {
     return safe.toLocaleString('zh-CN');
   };
   const totalTokens = tokenUsage.input_tokens + tokenUsage.cached_input_tokens + tokenUsage.output_tokens;
+  const usageItems = useMemo(
+    () => [
+      { key: 'input', label: '输入 Tokens', value: formatToken(tokenUsage.input_tokens), tone: 'blue' as const },
+      { key: 'cache', label: '缓存 Tokens', value: formatToken(tokenUsage.cached_input_tokens), tone: 'green' as const },
+      { key: 'output', label: '输出 Tokens', value: formatToken(tokenUsage.output_tokens), tone: 'orange' as const },
+      { key: 'total', label: '总 Tokens', value: formatToken(totalTokens), tone: 'slate' as const },
+    ],
+    [tokenUsage.cached_input_tokens, tokenUsage.input_tokens, tokenUsage.output_tokens, totalTokens]
+  );
 
   const navigateToAiPractice = (routeName: 'AiExamQuizPractice' | 'AiSentenceAssemblePractice', params: object) => {
     const navState = navigation.getState() as { routeNames?: string[] };
@@ -136,6 +145,7 @@ export default function AiHubScreen({ navigation }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
       <View style={styles.heroCard}>
+        <View style={styles.heroGlow} />
         <View style={styles.heroTopRow}>
           <View style={styles.heroIconWrap}>
             <Ionicons name="sparkles" size={16} color="#7c3aed" />
@@ -144,32 +154,53 @@ export default function AiHubScreen({ navigation }: Props) {
         </View>
         <Text style={styles.heroTitle}>AI 学习中心</Text>
         <Text style={styles.heroSub}>你可以在这里使用 AI 场景对话和生题等功能。</Text>
+        <View style={styles.heroMetaRow}>
+          <View style={styles.heroMetaChip}>
+            <Text style={styles.heroMetaText}>3 阶段训练</Text>
+          </View>
+          <View style={styles.heroMetaChip}>
+            <Text style={styles.heroMetaText}>N5-N1</Text>
+          </View>
+          <View style={styles.heroMetaChip}>
+            <Text style={styles.heroMetaText}>即点即练</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Tokens 消耗统计</Text>
-        <Text style={styles.tip}>累计统计输入 / 缓存 / 输出 Tokens。</Text>
-        <View style={styles.usageRow}>
-          <Text style={styles.usageLabel}>输入 Tokens</Text>
-          <Text style={styles.usageValue}>{formatToken(tokenUsage.input_tokens)}</Text>
+        <View style={styles.sectionTitleRow}>
+          <Ionicons name="stats-chart-outline" size={16} color={colors.text} />
+          <Text style={styles.sectionTitle}>Tokens 消耗统计</Text>
         </View>
-        <View style={styles.usageRow}>
-          <Text style={styles.usageLabel}>缓存 Tokens</Text>
-          <Text style={styles.usageValue}>{formatToken(tokenUsage.cached_input_tokens)}</Text>
-        </View>
-        <View style={styles.usageRow}>
-          <Text style={styles.usageLabel}>输出 Tokens</Text>
-          <Text style={styles.usageValue}>{formatToken(tokenUsage.output_tokens)}</Text>
-        </View>
-        <View style={styles.usageRow}>
-          <Text style={styles.usageLabel}>总 Tokens</Text>
-          <Text style={styles.usageValue}>{formatToken(totalTokens)}</Text>
+        <Text style={styles.tip}>累计统计输入 / 缓存 / 输出消耗。</Text>
+        <View style={styles.usageGrid}>
+          {usageItems.map((item) => (
+            <View
+              key={item.key}
+              style={[
+                styles.usageCard,
+                item.tone === 'blue'
+                  ? styles.usageCardBlue
+                  : item.tone === 'green'
+                  ? styles.usageCardGreen
+                  : item.tone === 'orange'
+                  ? styles.usageCardOrange
+                  : styles.usageCardSlate,
+              ]}
+            >
+              <Text style={styles.usageLabel}>{item.label}</Text>
+              <Text style={styles.usageValue}>{item.value}</Text>
+            </View>
+          ))}
         </View>
       </View>
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>配置</Text>
+          <View style={styles.sectionTitleRow}>
+            <Ionicons name="settings-outline" size={16} color={colors.text} />
+            <Text style={styles.sectionTitle}>配置</Text>
+          </View>
           <Pressable onPress={() => navigation.navigate('AiSettings')} style={styles.linkBtn}>
             <Text style={styles.linkText}>去配置 API</Text>
             <Ionicons name="chevron-forward" size={14} color={colors.primary} />
@@ -179,45 +210,85 @@ export default function AiHubScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>AI 连词成句</Text>
-        <Text style={styles.tip}>按等级生成词块，点击拼出正确日语句子并即时判题。</Text>
-        <View style={styles.levelRow}>
-          {LEVELS.map((level) => {
-            const active = level === selectedSentenceLevel;
-            return (
-              <Pressable
-                key={`sentence-${level}`}
-                onPress={() => setSelectedSentenceLevel(level)}
-                style={[styles.levelChip, active ? styles.levelChipActive : null]}
-              >
-                <Text style={[styles.levelChipText, active ? styles.levelChipTextActive : null]}>{level}</Text>
-              </Pressable>
-            );
-          })}
+        <View style={styles.systemHeader}>
+          <View style={styles.sectionTitleRow}>
+            <Ionicons name="layers-outline" size={16} color={colors.text} />
+            <Text style={styles.sectionTitle}>AI 日语表达能力训练</Text>
+          </View>
         </View>
-        <PrimaryButton
-          title={sentenceButtonTitle}
-          onPress={handleGenerateSentenceAssemble}
-          disabled={sentenceLoading}
-          style={styles.actionBtn}
-        />
-        {lastSentenceInfo ? <Text style={styles.lastInfo}>{lastSentenceInfo}</Text> : null}
+        <View style={styles.systemCard}>
+          <View style={styles.systemCardHead}>
+            <View style={[styles.stepBadge, styles.stepBadgeBlue]}>
+              <Text style={styles.stepBadgeText}>01</Text>
+            </View>
+            <View style={styles.systemCardMeta}>
+              <Text style={styles.systemCardTitle}>AI 连词成句</Text>
+              <Text style={styles.systemCardDesc}>先训练词序与基础句法，打稳句子结构感。</Text>
+            </View>
+          </View>
+          <View style={styles.levelRow}>
+            {LEVELS.map((level) => {
+              const active = level === selectedSentenceLevel;
+              return (
+                <Pressable
+                  key={`sentence-${level}`}
+                  onPress={() => setSelectedSentenceLevel(level)}
+                  style={[styles.levelChip, active ? styles.levelChipActive : null]}
+                >
+                  <Text style={[styles.levelChipText, active ? styles.levelChipTextActive : null]}>{level}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <PrimaryButton
+            title={sentenceButtonTitle}
+            onPress={handleGenerateSentenceAssemble}
+            disabled={sentenceLoading}
+            style={styles.moduleActionBtn}
+          />
+          {lastSentenceInfo ? <Text style={styles.lastInfo}>{lastSentenceInfo}</Text> : null}
+        </View>
+
+        <View style={styles.systemCard}>
+          <View style={styles.systemCardHead}>
+            <View style={[styles.stepBadge, styles.stepBadgeGreen]}>
+              <Text style={styles.stepBadgeText}>02</Text>
+            </View>
+            <View style={styles.systemCardMeta}>
+              <Text style={styles.systemCardTitle}>AI 翻译训练</Text>
+              <Text style={styles.systemCardDesc}>把句法能力迁移到双语表达，强化语义映射与准确性。</Text>
+            </View>
+          </View>
+          <PrimaryButton
+            title="进入翻译训练"
+            onPress={() => navigation.navigate('AiTranslationPractice')}
+            style={styles.moduleActionBtn}
+          />
+        </View>
+
+        <View style={[styles.systemCard, styles.systemCardLast]}>
+          <View style={styles.systemCardHead}>
+            <View style={[styles.stepBadge, styles.stepBadgeOrange]}>
+              <Text style={styles.stepBadgeText}>03</Text>
+            </View>
+            <View style={styles.systemCardMeta}>
+              <Text style={styles.systemCardTitle}>AI 场景对话</Text>
+              <Text style={styles.systemCardDesc}>在真实场景多轮输出，综合运用语法、词汇与语用策略。</Text>
+            </View>
+          </View>
+          <PrimaryButton
+            title="进入场景对话"
+            onPress={() => navigation.navigate('AiConversation')}
+            style={styles.moduleActionBtn}
+          />
+        </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>AI 翻译训练</Text>
-        <Text style={styles.tip}>支持汉译日、日译汉。汉译日可选词汇向或文法向，并显示词条/文法提示。</Text>
-        <PrimaryButton title="进入翻译训练" onPress={() => navigation.navigate('AiTranslationPractice')} style={styles.actionBtn} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>AI 场景对话</Text>
-        <Text style={styles.tip}>按场景进行多轮对话，获得实时纠错、提示和阶段评分。</Text>
-        <PrimaryButton title="进入场景对话" onPress={() => navigation.navigate('AiConversation')} style={styles.actionBtn} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>AI 生题</Text>
+        <View style={styles.sectionTitleRow}>
+          <Ionicons name="document-text-outline" size={16} color={colors.text} />
+          <Text style={styles.sectionTitle}>AI 生题</Text>
+        </View>
         <Text style={styles.tip}>按等级生成与真题结构一致的 4 选 1 题目。</Text>
         <View style={styles.levelRow}>
           {LEVELS.map((level) => {
@@ -257,6 +328,16 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.m,
     marginBottom: spacing.m,
+    overflow: 'hidden',
+  },
+  heroGlow: {
+    position: 'absolute',
+    top: -56,
+    right: -40,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: '#ede9fe',
   },
   heroTopRow: {
     flexDirection: 'row',
@@ -286,6 +367,25 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     color: colors.muted,
   },
+  heroMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.s,
+    marginTop: spacing.s,
+  },
+  heroMetaChip: {
+    borderWidth: 1,
+    borderColor: '#ddd6fe',
+    backgroundColor: '#f5f3ff',
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 4,
+  },
+  heroMetaText: {
+    color: '#5b21b6',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   section: {
     backgroundColor: colors.card,
     borderRadius: radius.l,
@@ -305,8 +405,74 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   tip: {
     color: colors.muted,
+    marginTop: 2,
+  },
+  systemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.s,
+  },
+  systemCard: {
+    marginTop: spacing.s,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: radius.m,
+    backgroundColor: '#fbfdff',
+    padding: spacing.s,
+  },
+  systemCardLast: {
+    marginBottom: spacing.xs,
+  },
+  systemCardHead: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  stepBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.s,
+    marginTop: 1,
+  },
+  stepBadgeBlue: {
+    backgroundColor: '#dbeafe',
+  },
+  stepBadgeGreen: {
+    backgroundColor: '#dcfce7',
+  },
+  stepBadgeOrange: {
+    backgroundColor: '#ffedd5',
+  },
+  stepBadgeText: {
+    color: '#111827',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  systemCardMeta: {
+    flex: 1,
+  },
+  systemCardTitle: {
+    color: colors.text,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  systemCardDesc: {
+    marginTop: 2,
+    color: colors.muted,
+    lineHeight: 20,
+    fontSize: 12,
+  },
+  moduleActionBtn: {
+    marginTop: spacing.s,
   },
   linkBtn: {
     flexDirection: 'row',
@@ -316,6 +482,36 @@ const styles = StyleSheet.create({
   linkText: {
     color: colors.primary,
     fontWeight: '600',
+  },
+  usageGrid: {
+    marginTop: spacing.s,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.s,
+  },
+  usageCard: {
+    width: '48%',
+    borderRadius: radius.m,
+    borderWidth: 1,
+    padding: spacing.s,
+    minHeight: 76,
+    justifyContent: 'space-between',
+  },
+  usageCardBlue: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#bfdbfe',
+  },
+  usageCardGreen: {
+    backgroundColor: '#ecfdf5',
+    borderColor: '#a7f3d0',
+  },
+  usageCardOrange: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fde68a',
+  },
+  usageCardSlate: {
+    backgroundColor: '#f8fafc',
+    borderColor: '#e2e8f0',
   },
   usageRow: {
     flexDirection: 'row',
@@ -327,13 +523,14 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   usageLabel: {
-    color: colors.muted,
-    fontSize: 13,
+    color: '#475569',
+    fontSize: 12,
   },
   usageValue: {
-    color: colors.text,
+    color: '#0f172a',
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 17,
+    marginTop: spacing.xs,
   },
   levelRow: {
     flexDirection: 'row',
