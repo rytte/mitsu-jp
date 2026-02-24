@@ -22,6 +22,7 @@ import AiHubScreen from '../screens/AiHubScreen';
 import AiSettingsScreen from '../screens/AiSettingsScreen';
 import AiConversationScreen from '../screens/AiConversationScreen';
 import AiTranslationPracticeScreen from '../screens/AiTranslationPracticeScreen';
+import AiSentenceAssemblePracticeScreen from '../screens/AiSentenceAssemblePracticeScreen';
 import KanaChartScreen from '../screens/KanaChartScreen';
 import VerbConjugationScreen from '../screens/VerbConjugationScreen';
 import KeigoChartScreen from '../screens/KeigoChartScreen';
@@ -112,6 +113,11 @@ function MyStackScreen() {
       <MyStack.Screen name="AiSettings" component={AiSettingsScreen} options={{ title: 'AI 配置' }} />
       <MyStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 对话训练' }} />
       <MyStack.Screen name="AiTranslationPractice" component={AiTranslationPracticeScreen} options={{ title: 'AI 翻译题' }} />
+      <MyStack.Screen
+        name="AiSentenceAssemblePractice"
+        component={AiSentenceAssemblePracticeScreen}
+        options={{ title: 'AI 连词成句' }}
+      />
       <MyStack.Screen name="ExamQuiz" component={ExamQuizScreen} options={{ title: '真题练习', headerShown: false }} />
       <MyStack.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} />
       <MyStack.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题本' }} />
@@ -137,6 +143,11 @@ function AiHubStackScreen() {
       <AiHubStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 对话训练' }} />
       <AiHubStack.Screen name="AiExamQuizPractice" component={AiExamQuizPracticeScreen} options={{ title: 'AI 练习' }} />
       <AiHubStack.Screen name="AiTranslationPractice" component={AiTranslationPracticeScreen} options={{ title: 'AI 翻译题' }} />
+      <AiHubStack.Screen
+        name="AiSentenceAssemblePractice"
+        component={AiSentenceAssemblePracticeScreen}
+        options={{ title: 'AI 连词成句' }}
+      />
     </AiHubStack.Navigator>
   );
 }

@@ -1,5 +1,5 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
-import { BankLevel, ExamQuizItem, Level } from '../types';
+import { AiSentenceAssembleItem, BankLevel, ExamQuizItem, Level } from '../types';
 
 export type LearnStackParamList = {
   LevelSelect: { skipAuto?: boolean } | undefined;
@@ -60,6 +60,7 @@ export type MyStackParamList = {
   AiSettings: undefined;
   AiConversation: undefined;
   AiTranslationPractice: undefined;
+  AiSentenceAssemblePractice: { level: BankLevel; aiItems: AiSentenceAssembleItem[] };
   Search: undefined;
   Mistakes: undefined;
   KanaChart: undefined;

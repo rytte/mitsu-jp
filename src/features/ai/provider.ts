@@ -1,8 +1,10 @@
 import {
+  AiSentenceAssembleItem,
   AiProviderConfig,
   BankLevel,
   ExamQuestionType,
   RawExamItem,
+  RawAiSentenceAssembleItem,
   TranslationDirection,
   TranslationEvalResult,
   TranslationFocus,
@@ -11,6 +13,11 @@ import { Platform } from 'react-native';
 import { addAiTokenUsageStats } from './storage';
 
 type GenerateExamQuizParams = {
+  level: BankLevel;
+  count: number;
+};
+
+type GenerateSentenceAssembleParams = {
   level: BankLevel;
   count: number;
 };
@@ -88,6 +95,7 @@ export type ConversationTurnResult = {
 
 export type AiQuizProvider = {
   generateExamQuiz: (params: GenerateExamQuizParams) => Promise<RawExamItem[]>;
+  generateSentenceAssemble: (params: GenerateSentenceAssembleParams) => Promise<AiSentenceAssembleItem[]>;
   explainExamQuestion: (params: ExplainExamQuestionParams) => Promise<string>;
   startConversation: (params: StartConversationParams) => Promise<ConversationTurnResult>;
   replyConversation: (params: ReplyConversationParams) => Promise<ConversationTurnResult>;
@@ -132,6 +140,44 @@ const RESPONSES_SCHEMA = {
               type: 'integer',
               minimum: 1,
               maximum: 4,
+            },
+          },
+        },
+      },
+    },
+  },
+  strict: true,
+} as const;
+
+const SENTENCE_ASSEMBLE_SCHEMA = {
+  type: 'json_schema',
+  name: 'sentence_assemble_items_schema',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['items'],
+    properties: {
+      items: {
+        type: 'array',
+        minItems: 1,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['id', 'prompt', 'tokens', 'answer_tokens'],
+          properties: {
+            id: { type: 'string', minLength: 1 },
+            prompt: { type: 'string', minLength: 1 },
+            tokens: {
+              type: 'array',
+              minItems: 4,
+              maxItems: 10,
+              items: { type: 'string', minLength: 1 },
+            },
+            answer_tokens: {
+              type: 'array',
+              minItems: 4,
+              maxItems: 10,
+              items: { type: 'string', minLength: 1 },
             },
           },
         },
@@ -233,6 +279,33 @@ function buildUserPrompt(level: BankLevel, count: number) {
     '- Keep stems concise for mobile reading.',
     '- Each question must have exactly one correct answer.',
     '- Use id format ai-LEVEL-INDEX, e.g. ai-N5-1.',
+  ].join('\n');
+}
+
+function buildSentenceAssembleSystemPrompt() {
+  return [
+    'You are a JLPT sentence-assembly item generator for Japanese learners.',
+    'Produce machine-readable sentence assembly items for a mobile app.',
+    'Hard constraints:',
+    '1) Output must strictly follow the JSON Schema.',
+    '2) Each item must have exactly one valid answer order.',
+    '3) tokens and answer_tokens must contain the same elements and length.',
+    '4) Do not include duplicate tokens in a single item.',
+    '5) tokens must be shuffled and should not be in the same order as answer_tokens.',
+    '6) Use natural Japanese sentence chunks (particles can be attached to nearby words).',
+    '7) prompt should be concise and in Chinese for learners.',
+    '8) Do not output explanations, markdown, comments, or extra fields.',
+  ].join('\n');
+}
+
+function buildSentenceAssembleUserPrompt(level: BankLevel, count: number) {
+  return [
+    `Generate ${count} JLPT ${level} sentence-assembly items.`,
+    `Difficulty guide: ${LEVEL_GUIDE[level]}`,
+    'Style requirements:',
+    '- Focus on practical, natural Japanese sentences.',
+    '- Keep item length mobile-friendly (4-10 chunks).',
+    '- Use id format assemble-LEVEL-INDEX, e.g. assemble-N5-1.',
   ].join('\n');
 }
 
@@ -757,6 +830,74 @@ function sanitizeItems(rawItems: RawExamItem[]) {
     .filter(Boolean) as RawExamItem[];
 }
 
+function arrayEquals(left: string[], right: string[]) {
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i += 1) {
+    if (left[i] !== right[i]) return false;
+  }
+  return true;
+}
+
+function shuffleTextArray(items: string[]) {
+  const next = items.slice();
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = next[i];
+    next[i] = next[j];
+    next[j] = tmp;
+  }
+  return next;
+}
+
+function hasSameUniqueTokens(tokens: string[], answerTokens: string[]) {
+  if (tokens.length !== answerTokens.length) return false;
+  const tokenSet = new Set(tokens);
+  const answerSet = new Set(answerTokens);
+  if (tokenSet.size !== tokens.length || answerSet.size !== answerTokens.length) {
+    return false;
+  }
+  if (tokenSet.size !== answerSet.size) return false;
+  for (const token of answerSet) {
+    if (!tokenSet.has(token)) return false;
+  }
+  return true;
+}
+
+function sanitizeSentenceAssembleItems(rawItems: RawAiSentenceAssembleItem[]) {
+  return rawItems
+    .map((item, index) => {
+      const prompt = String(item.prompt ?? '').trim();
+      const tokens = Array.isArray(item.tokens) ? item.tokens.map((token) => String(token).trim()).filter(Boolean) : [];
+      const answerTokens = Array.isArray(item.answer_tokens)
+        ? item.answer_tokens.map((token) => String(token).trim()).filter(Boolean)
+        : [];
+
+      if (!prompt) return null;
+      if (tokens.length < 4 || tokens.length > 10) return null;
+      if (answerTokens.length !== tokens.length) return null;
+      if (!hasSameUniqueTokens(tokens, answerTokens)) return null;
+
+      let shuffledTokens = tokens.slice();
+      if (arrayEquals(shuffledTokens, answerTokens)) {
+        for (let i = 0; i < 5; i += 1) {
+          const candidate = shuffleTextArray(answerTokens);
+          if (!arrayEquals(candidate, answerTokens)) {
+            shuffledTokens = candidate;
+            break;
+          }
+        }
+      }
+
+      return {
+        id: String(item.id || `assemble-${index + 1}`),
+        prompt,
+        tokens: shuffledTokens,
+        answerTokens,
+      } satisfies AiSentenceAssembleItem;
+    })
+    .filter(Boolean) as AiSentenceAssembleItem[];
+}
+
 function normalizeConversationTurn(payload: unknown): ConversationTurnResult {
   const data = payload as {
     assistant_reply_ja?: string;
@@ -1024,6 +1165,58 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       const items = sanitizeItems(Array.isArray(parsed?.items) ? parsed.items : []);
       if (!items.length) {
         throw new Error('AI 返回题目未通过校验，请重试');
+      }
+      return items;
+    },
+    async generateSentenceAssemble({ level, count }: GenerateSentenceAssembleParams) {
+      ensureConfigReady();
+
+      const response = await fetch(`${baseUrl}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: [
+            {
+              role: 'system',
+              content: [{ type: 'input_text', text: buildSentenceAssembleSystemPrompt() }],
+            },
+            {
+              role: 'user',
+              content: [{ type: 'input_text', text: buildSentenceAssembleUserPrompt(level, count) }],
+            },
+          ],
+          max_output_tokens: 4000,
+          stream: false,
+          text: {
+            format: SENTENCE_ASSEMBLE_SCHEMA,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`AI 请求失败（${response.status}）：${errText || response.statusText}`);
+      }
+
+      const outputText = await extractOutputTextFromHttpResponse(response);
+      if (!outputText) {
+        throw new Error('AI 返回为空，请调整模型或稍后重试');
+      }
+
+      let parsed: { items?: RawAiSentenceAssembleItem[] } | null = null;
+      try {
+        parsed = JSON.parse(outputText) as { items?: RawAiSentenceAssembleItem[] };
+      } catch {
+        throw new Error('AI 返回不是有效 JSON，请调整模型或 Base URL');
+      }
+
+      const items = sanitizeSentenceAssembleItems(Array.isArray(parsed?.items) ? parsed.items : []);
+      if (!items.length) {
+        throw new Error('AI 返回连词成句题未通过校验，请重试');
       }
       return items;
     },

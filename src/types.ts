@@ -30,6 +30,20 @@ export type ExamQuizItem = {
   questionType?: ExamQuestionType;
 };
 
+export type RawAiSentenceAssembleItem = {
+  id?: string;
+  prompt?: string;
+  tokens?: string[];
+  answer_tokens?: string[];
+};
+
+export type AiSentenceAssembleItem = {
+  id: string;
+  prompt: string;
+  tokens: string[];
+  answerTokens: string[];
+};
+
 export type AiProviderConfig = {
   provider_id: string;
   provider_label: string;

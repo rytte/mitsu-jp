@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import PrimaryButton from '../components/PrimaryButton';
-import { generateExamQuizWithAi } from '../features/ai/service';
+import { generateExamQuizWithAi, generateSentenceAssembleWithAi } from '../features/ai/service';
 import { loadAiTokenUsageStats } from '../features/ai/storage';
 import { SESSION_SIZE, sanitizeRawExamItems } from '../features/exam/examBank';
 import { MyStackParamList } from '../navigation/types';
@@ -21,6 +21,9 @@ export default function AiHubScreen({ navigation }: Props) {
   const [selectedLevel, setSelectedLevel] = useState<BankLevel>('N5');
   const [loading, setLoading] = useState(false);
   const [lastInfo, setLastInfo] = useState('');
+  const [selectedSentenceLevel, setSelectedSentenceLevel] = useState<BankLevel>('N5');
+  const [sentenceLoading, setSentenceLoading] = useState(false);
+  const [lastSentenceInfo, setLastSentenceInfo] = useState('');
   const [tokenUsage, setTokenUsage] = useState({
     input_tokens: 0,
     cached_input_tokens: 0,
@@ -30,6 +33,9 @@ export default function AiHubScreen({ navigation }: Props) {
   const buttonTitle = useMemo(() => {
     return loading ? 'AI 正在出题...' : `生成 ${selectedLevel} 题目并开始练习`;
   }, [loading, selectedLevel]);
+  const sentenceButtonTitle = useMemo(() => {
+    return sentenceLoading ? 'AI 正在出题...' : `生成 ${selectedSentenceLevel} 连词成句并开始练习`;
+  }, [selectedSentenceLevel, sentenceLoading]);
 
   useFocusEffect(
     useCallback(() => {
@@ -63,6 +69,29 @@ export default function AiHubScreen({ navigation }: Props) {
   };
   const totalTokens = tokenUsage.input_tokens + tokenUsage.cached_input_tokens + tokenUsage.output_tokens;
 
+  const navigateToAiPractice = (routeName: 'AiExamQuizPractice' | 'AiSentenceAssemblePractice', params: object) => {
+    const navState = navigation.getState() as { routeNames?: string[] };
+    const routeNames = navState.routeNames ?? [];
+    const navAny = navigation as any;
+
+    // 1) 当前容器可直达 AI 练习页（MyStack）时直接跳转
+    if (routeNames.includes(routeName)) {
+      navAny.navigate(routeName, params);
+      return;
+    }
+
+    // 2) 当前容器是 Tab 时，兜底走 MyStack 内的对应练习页
+    if (routeNames.includes('My')) {
+      navAny.navigate('My', {
+        screen: routeName,
+        params,
+      });
+      return;
+    }
+
+    throw new Error('无法定位 AI 练习路由，请检查导航配置');
+  };
+
   const handleGenerateExam = async () => {
     setLoading(true);
     setLastInfo('');
@@ -76,31 +105,31 @@ export default function AiHubScreen({ navigation }: Props) {
         throw new Error(`AI 仅返回 ${items.length} 题，未达到 ${SESSION_SIZE} 题要求，请重试`);
       }
       setLastInfo(`已生成 ${items.length} 题，等级 ${selectedLevel}`);
-      const practiceParams = { level: selectedLevel, aiItems: items };
-      const navState = navigation.getState() as { routeNames?: string[] };
-      const routeNames = navState.routeNames ?? [];
-      const navAny = navigation as any;
-
-      // 1) 当前容器可直达 AI 练习页（MyStack）时直接跳转
-      if (routeNames.includes('AiExamQuizPractice')) {
-        navAny.navigate('AiExamQuizPractice', practiceParams);
-        return;
-      }
-
-      // 2) 当前容器是 Tab 时，兜底走 MyStack 内的 AI 练习页
-      if (routeNames.includes('My')) {
-        navAny.navigate('My', {
-          screen: 'AiExamQuizPractice',
-          params: practiceParams,
-        });
-        return;
-      }
-
-      throw new Error('无法定位 AI 练习路由，请检查导航配置');
+      navigateToAiPractice('AiExamQuizPractice', { level: selectedLevel, aiItems: items });
     } catch (error) {
       Alert.alert('AI 生题失败', error instanceof Error ? error.message : String(error));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateSentenceAssemble = async () => {
+    setSentenceLoading(true);
+    setLastSentenceInfo('');
+    try {
+      const items = await generateSentenceAssembleWithAi(selectedSentenceLevel, SESSION_SIZE);
+      if (!items.length) {
+        throw new Error('AI 返回题目为空或校验失败');
+      }
+      if (items.length < SESSION_SIZE) {
+        throw new Error(`AI 仅返回 ${items.length} 题，未达到 ${SESSION_SIZE} 题要求，请重试`);
+      }
+      setLastSentenceInfo(`已生成 ${items.length} 题，等级 ${selectedSentenceLevel}`);
+      navigateToAiPractice('AiSentenceAssemblePractice', { level: selectedSentenceLevel, aiItems: items });
+    } catch (error) {
+      Alert.alert('AI 连词成句生题失败', error instanceof Error ? error.message : String(error));
+    } finally {
+      setSentenceLoading(false);
     }
   };
 
@@ -180,6 +209,32 @@ export default function AiHubScreen({ navigation }: Props) {
         </View>
         <PrimaryButton title={buttonTitle} onPress={handleGenerateExam} disabled={loading} style={styles.actionBtn} />
         {lastInfo ? <Text style={styles.lastInfo}>{lastInfo}</Text> : null}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>AI 连词成句题</Text>
+        <Text style={styles.tip}>按等级生成词块，点击拼出正确日语句子并即时判题。</Text>
+        <View style={styles.levelRow}>
+          {LEVELS.map((level) => {
+            const active = level === selectedSentenceLevel;
+            return (
+              <Pressable
+                key={`sentence-${level}`}
+                onPress={() => setSelectedSentenceLevel(level)}
+                style={[styles.levelChip, active ? styles.levelChipActive : null]}
+              >
+                <Text style={[styles.levelChipText, active ? styles.levelChipTextActive : null]}>{level}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <PrimaryButton
+          title={sentenceButtonTitle}
+          onPress={handleGenerateSentenceAssemble}
+          disabled={sentenceLoading}
+          style={styles.actionBtn}
+        />
+        {lastSentenceInfo ? <Text style={styles.lastInfo}>{lastSentenceInfo}</Text> : null}
       </View>
     </ScrollView>
   );
