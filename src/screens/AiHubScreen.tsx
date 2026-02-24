@@ -1,9 +1,8 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import PrimaryButton from '../components/PrimaryButton';
 import { generateExamQuizWithAi, generateSentenceAssembleWithAi } from '../features/ai/service';
 import { loadAiTokenUsageStats } from '../features/ai/storage';
 import { SESSION_SIZE, sanitizeRawExamItems } from '../features/exam/examBank';
@@ -15,6 +14,39 @@ import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 type Props = NativeStackScreenProps<MyStackParamList, 'AiHub'>;
 
 const LEVELS: BankLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
+type HubActionTone = 'indigo' | 'teal' | 'amber' | 'sky';
+
+type HubActionButtonProps = {
+  title: string;
+  tone: HubActionTone;
+  onPress: () => void;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+};
+
+function HubActionButton({ title, tone, onPress, disabled, style }: HubActionButtonProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.hubActionBtn,
+        tone === 'indigo'
+          ? styles.hubActionBtnIndigo
+          : tone === 'teal'
+          ? styles.hubActionBtnTeal
+          : tone === 'amber'
+          ? styles.hubActionBtnAmber
+          : styles.hubActionBtnSky,
+        pressed && !disabled ? styles.hubActionBtnPressed : null,
+        disabled ? styles.hubActionBtnDisabled : null,
+        style,
+      ]}
+    >
+      <Text style={styles.hubActionTitle}>{title}</Text>
+    </Pressable>
+  );
+}
 
 export default function AiHubScreen({ navigation }: Props) {
   const topPadding = useScreenTopPadding({ mode: 'always-safe' });
@@ -240,10 +272,11 @@ export default function AiHubScreen({ navigation }: Props) {
               );
             })}
           </View>
-          <PrimaryButton
+          <HubActionButton
             title={sentenceButtonTitle}
             onPress={handleGenerateSentenceAssemble}
             disabled={sentenceLoading}
+            tone="indigo"
             style={styles.moduleActionBtn}
           />
           {lastSentenceInfo ? <Text style={styles.lastInfo}>{lastSentenceInfo}</Text> : null}
@@ -259,9 +292,10 @@ export default function AiHubScreen({ navigation }: Props) {
               <Text style={styles.systemCardDesc}>把句法能力迁移到双语表达，强化语义映射与准确性。</Text>
             </View>
           </View>
-          <PrimaryButton
+          <HubActionButton
             title="进入翻译训练"
             onPress={() => navigation.navigate('AiTranslationPractice')}
+            tone="teal"
             style={styles.moduleActionBtn}
           />
         </View>
@@ -276,9 +310,10 @@ export default function AiHubScreen({ navigation }: Props) {
               <Text style={styles.systemCardDesc}>在真实场景多轮输出，综合运用语法、词汇与语用策略。</Text>
             </View>
           </View>
-          <PrimaryButton
+          <HubActionButton
             title="进入场景对话"
             onPress={() => navigation.navigate('AiConversation')}
+            tone="amber"
             style={styles.moduleActionBtn}
           />
         </View>
@@ -304,7 +339,13 @@ export default function AiHubScreen({ navigation }: Props) {
             );
           })}
         </View>
-        <PrimaryButton title={buttonTitle} onPress={handleGenerateExam} disabled={loading} style={styles.actionBtn} />
+        <HubActionButton
+          title={buttonTitle}
+          onPress={handleGenerateExam}
+          disabled={loading}
+          tone="sky"
+          style={styles.actionBtn}
+        />
         {lastInfo ? <Text style={styles.lastInfo}>{lastInfo}</Text> : null}
       </View>
 
@@ -473,6 +514,48 @@ const styles = StyleSheet.create({
   },
   moduleActionBtn: {
     marginTop: spacing.s,
+  },
+  hubActionBtn: {
+    borderRadius: radius.m,
+    borderWidth: 1,
+    minHeight: 32,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  hubActionBtnIndigo: {
+    backgroundColor: '#3656d4',
+    borderColor: '#2f49b8',
+  },
+  hubActionBtnTeal: {
+    backgroundColor: '#0f766e',
+    borderColor: '#0d645d',
+  },
+  hubActionBtnAmber: {
+    backgroundColor: '#b45309',
+    borderColor: '#92400e',
+  },
+  hubActionBtnSky: {
+    backgroundColor: '#0c7bb8',
+    borderColor: '#0369a1',
+  },
+  hubActionBtnPressed: {
+    opacity: 0.88,
+  },
+  hubActionBtnDisabled: {
+    opacity: 0.55,
+  },
+  hubActionTitle: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 13,
+    flexShrink: 1,
   },
   linkBtn: {
     flexDirection: 'row',
