@@ -166,7 +166,7 @@ export async function generateTranslationPracticeItems(params: {
   }
 
   if (selected.length < count) {
-    throw new Error(`可用翻译题不足：仅找到 ${selected.length} 题，请调整等级或方向后重试`);
+    throw new Error(`可用翻译训练内容不足：仅找到 ${selected.length} 题，请调整等级或方向后重试`);
   }
 
   return selected.slice(0, count);

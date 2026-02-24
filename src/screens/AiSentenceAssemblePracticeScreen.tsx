@@ -153,7 +153,7 @@ export default function AiSentenceAssemblePracticeScreen({ navigation, route }: 
   if (!currentItem) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>AI 连词成句题单为空，暂无可练习题目</Text>
+        <Text style={styles.loadingText}>AI 连词成句练习为空，暂无可练习内容</Text>
         <PrimaryButton title="返回 AI 学习中心" onPress={() => navigation.goBack()} />
       </View>
     );

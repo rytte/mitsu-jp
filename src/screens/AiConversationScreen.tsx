@@ -207,9 +207,9 @@ export default function AiConversationScreen() {
             <View style={styles.heroIconWrap}>
               <Ionicons name="chatbubbles-outline" size={16} color="#0f766e" />
             </View>
-            <Text style={styles.heroTag}>对话训练</Text>
+            <Text style={styles.heroTag}>场景对话</Text>
           </View>
-          <Text style={styles.heroTitle}>AI 对话训练</Text>
+          <Text style={styles.heroTitle}>AI 场景对话</Text>
           <Text style={styles.heroSub}>选择场景后开始对话，AI 会实时给你纠错和下一句提示。</Text>
         </View>
 
@@ -239,7 +239,7 @@ export default function AiConversationScreen() {
               </Pressable>
             );
           })}
-          <PrimaryButton title={loading ? '启动中...' : '开始对话训练'} onPress={handleStart} disabled={loading} style={styles.startBtn} />
+          <PrimaryButton title={loading ? '启动中...' : '开始场景对话'} onPress={handleStart} disabled={loading} style={styles.startBtn} />
         </View>
 
         {error ? (

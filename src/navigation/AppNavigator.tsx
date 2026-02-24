@@ -111,8 +111,8 @@ function MyStackScreen() {
       <MyStack.Screen name="AiHub" component={AiHubScreen} options={{ title: 'AI 学习中心' }} />
       <MyStack.Screen name="AiExamQuizPractice" component={AiExamQuizPracticeScreen} options={{ title: 'AI 练习' }} />
       <MyStack.Screen name="AiSettings" component={AiSettingsScreen} options={{ title: 'AI 配置' }} />
-      <MyStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 对话训练' }} />
-      <MyStack.Screen name="AiTranslationPractice" component={AiTranslationPracticeScreen} options={{ title: 'AI 翻译题' }} />
+      <MyStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 场景对话' }} />
+      <MyStack.Screen name="AiTranslationPractice" component={AiTranslationPracticeScreen} options={{ title: 'AI 翻译训练' }} />
       <MyStack.Screen
         name="AiSentenceAssemblePractice"
         component={AiSentenceAssemblePracticeScreen}
@@ -140,9 +140,9 @@ function AiHubStackScreen() {
     >
       <AiHubStack.Screen name="AiHub" component={AiHubScreen} options={{ title: 'AI 学习中心', headerShown: false }} />
       <AiHubStack.Screen name="AiSettings" component={AiSettingsScreen} options={{ title: 'AI 配置' }} />
-      <AiHubStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 对话训练' }} />
+      <AiHubStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 场景对话' }} />
       <AiHubStack.Screen name="AiExamQuizPractice" component={AiExamQuizPracticeScreen} options={{ title: 'AI 练习' }} />
-      <AiHubStack.Screen name="AiTranslationPractice" component={AiTranslationPracticeScreen} options={{ title: 'AI 翻译题' }} />
+      <AiHubStack.Screen name="AiTranslationPractice" component={AiTranslationPracticeScreen} options={{ title: 'AI 翻译训练' }} />
       <AiHubStack.Screen
         name="AiSentenceAssemblePractice"
         component={AiSentenceAssemblePracticeScreen}

@@ -356,7 +356,7 @@ function buildExplainUserPrompt(params: ExplainExamQuestionParams) {
 
 function buildConversationSystemPrompt() {
   return [
-    '你是日语会话教练，正在进行 JLPT 分级对话训练。',
+    '你是日语会话教练，正在进行 JLPT 分级场景对话。',
     '你需要扮演场景中的对话角色，并提供学习反馈。',
     '严格遵守：',
     '1) assistant_reply_ja 用自然日语，长度 1-2 句。',
@@ -371,7 +371,7 @@ function buildConversationSystemPrompt() {
 
 function buildConversationStartUserPrompt(params: StartConversationParams) {
   return [
-    '请开始一段新的日语对话训练。',
+    '请开始一段新的日语场景对话。',
     `等级：${params.level}`,
     `场景：${params.scenarioTitle}`,
     `场景说明：${params.scenarioDescription}`,
@@ -1216,7 +1216,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
 
       const items = sanitizeSentenceAssembleItems(Array.isArray(parsed?.items) ? parsed.items : []);
       if (!items.length) {
-        throw new Error('AI 返回连词成句题未通过校验，请重试');
+        throw new Error('AI 返回连词成句未通过校验，请重试');
       }
       return items;
     },

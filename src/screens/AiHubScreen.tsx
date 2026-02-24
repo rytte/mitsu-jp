@@ -143,7 +143,7 @@ export default function AiHubScreen({ navigation }: Props) {
           <Text style={styles.heroTag}>AI 工作台</Text>
         </View>
         <Text style={styles.heroTitle}>AI 学习中心</Text>
-        <Text style={styles.heroSub}>你可以在这里使用 AI 对话训练和生题等功能。</Text>
+        <Text style={styles.heroSub}>你可以在这里使用 AI 场景对话和生题等功能。</Text>
       </View>
 
       <View style={styles.section}>
@@ -179,40 +179,7 @@ export default function AiHubScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>AI 对话训练</Text>
-        <Text style={styles.tip}>按场景进行多轮对话，获得实时纠错、提示和阶段评分。</Text>
-        <PrimaryButton title="进入对话训练" onPress={() => navigation.navigate('AiConversation')} style={styles.actionBtn} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>AI 翻译题</Text>
-        <Text style={styles.tip}>支持汉译日、日译汉。汉译日可选词汇向或文法向，并显示词条/文法提示。</Text>
-        <PrimaryButton title="进入翻译练习" onPress={() => navigation.navigate('AiTranslationPractice')} style={styles.actionBtn} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>AI 生题</Text>
-        <Text style={styles.tip}>按等级生成与真题结构一致的 4 选 1 题目。</Text>
-        <View style={styles.levelRow}>
-          {LEVELS.map((level) => {
-            const active = level === selectedLevel;
-            return (
-              <Pressable
-                key={level}
-                onPress={() => setSelectedLevel(level)}
-                style={[styles.levelChip, active ? styles.levelChipActive : null]}
-              >
-                <Text style={[styles.levelChipText, active ? styles.levelChipTextActive : null]}>{level}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-        <PrimaryButton title={buttonTitle} onPress={handleGenerateExam} disabled={loading} style={styles.actionBtn} />
-        {lastInfo ? <Text style={styles.lastInfo}>{lastInfo}</Text> : null}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>AI 连词成句题</Text>
+        <Text style={styles.sectionTitle}>AI 连词成句</Text>
         <Text style={styles.tip}>按等级生成词块，点击拼出正确日语句子并即时判题。</Text>
         <View style={styles.levelRow}>
           {LEVELS.map((level) => {
@@ -236,6 +203,40 @@ export default function AiHubScreen({ navigation }: Props) {
         />
         {lastSentenceInfo ? <Text style={styles.lastInfo}>{lastSentenceInfo}</Text> : null}
       </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>AI 翻译训练</Text>
+        <Text style={styles.tip}>支持汉译日、日译汉。汉译日可选词汇向或文法向，并显示词条/文法提示。</Text>
+        <PrimaryButton title="进入翻译训练" onPress={() => navigation.navigate('AiTranslationPractice')} style={styles.actionBtn} />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>AI 场景对话</Text>
+        <Text style={styles.tip}>按场景进行多轮对话，获得实时纠错、提示和阶段评分。</Text>
+        <PrimaryButton title="进入场景对话" onPress={() => navigation.navigate('AiConversation')} style={styles.actionBtn} />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>AI 生题</Text>
+        <Text style={styles.tip}>按等级生成与真题结构一致的 4 选 1 题目。</Text>
+        <View style={styles.levelRow}>
+          {LEVELS.map((level) => {
+            const active = level === selectedLevel;
+            return (
+              <Pressable
+                key={level}
+                onPress={() => setSelectedLevel(level)}
+                style={[styles.levelChip, active ? styles.levelChipActive : null]}
+              >
+                <Text style={[styles.levelChipText, active ? styles.levelChipTextActive : null]}>{level}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <PrimaryButton title={buttonTitle} onPress={handleGenerateExam} disabled={loading} style={styles.actionBtn} />
+        {lastInfo ? <Text style={styles.lastInfo}>{lastInfo}</Text> : null}
+      </View>
+
     </ScrollView>
   );
 }
