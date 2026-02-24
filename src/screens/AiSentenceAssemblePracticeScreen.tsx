@@ -12,6 +12,25 @@ import { shuffle } from '../utils/random';
 type Props = NativeStackScreenProps<MyStackParamList, 'AiSentenceAssemblePractice'>;
 type TokenPiece = { id: string; text: string };
 
+function stripSentenceAssemblePromptPrefix(prompt: string) {
+  let text = prompt.trim();
+  if (!text) return text;
+
+  const prefixPatterns = [
+    /^(?:请)?把词块(?:按正确顺序)?(?:排成|组成)(?:正确|完整|通顺)?句子[：:，,\s]*/u,
+    /^(?:请)?把句子(?:拼好|拼完整|补全|还原)(?:即可)?[：:，,\s]*/u,
+    /^(?:请)?将(?:下列|下面|以下)?词块(?:按正确顺序)?(?:组成|排列成)(?:正确|完整|通顺)?句子[：:，,\s]*/u,
+    /^(?:连词成句|句子重组|词块重组|词语重组)[：:，,\s]*/u,
+    /^(?:题干|提示|要求)\s*[：:]\s*/u,
+  ];
+
+  for (const pattern of prefixPatterns) {
+    text = text.replace(pattern, '').trim();
+  }
+
+  return text.replace(/^[“"「『\s]+|[”"」』\s]+$/gu, '').trim();
+}
+
 function buildItems(aiItems: AiSentenceAssembleItem[]) {
   return aiItems.slice(0, Math.min(SESSION_SIZE, aiItems.length));
 }
@@ -34,6 +53,7 @@ export default function AiSentenceAssemblePracticeScreen({ navigation, route }: 
   const [aiRegenerateError, setAiRegenerateError] = useState('');
 
   const currentItem = items[currentIndex];
+  const promptText = useMemo(() => stripSentenceAssemblePromptPrefix(currentItem?.prompt ?? ''), [currentItem?.prompt]);
   const sessionSize = Math.min(SESSION_SIZE, aiItems.length);
   const progressText = useMemo(() => {
     if (!items.length) return '';
@@ -170,7 +190,7 @@ export default function AiSentenceAssemblePracticeScreen({ navigation, route }: 
         <View style={styles.questionTypeChip}>
           <Text style={styles.questionTypeChipText}>题型：连词成句</Text>
         </View>
-        <Text style={styles.prompt}>{currentItem.prompt}</Text>
+        {promptText ? <Text style={styles.prompt}>{promptText}</Text> : null}
 
         <Text style={styles.sectionLabel}>你的句子</Text>
         <View style={styles.tokenWrap}>
@@ -280,16 +300,19 @@ const styles = StyleSheet.create({
   },
   prompt: {
     marginTop: spacing.s,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: colors.text,
     lineHeight: 28,
+    letterSpacing: 0.2,
   },
   sectionLabel: {
     marginTop: spacing.m,
     marginBottom: spacing.xs,
-    color: colors.text,
-    fontWeight: '700',
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.6,
   },
   poolLabel: {
     marginTop: spacing.s,

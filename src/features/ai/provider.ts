@@ -293,7 +293,7 @@ function buildSentenceAssembleSystemPrompt() {
     '4) Do not include duplicate tokens in a single item.',
     '5) tokens must be shuffled and should not be in the same order as answer_tokens.',
     '6) Use natural Japanese sentence chunks (particles can be attached to nearby words).',
-    '7) prompt should be concise and in Chinese for learners.',
+    '7) prompt should be concise and in Chinese for learners, and must only contain clue text (no instruction prefixes like "把词块排成正确句子" or "请把句子拼好").',
     '8) Do not output explanations, markdown, comments, or extra fields.',
   ].join('\n');
 }
