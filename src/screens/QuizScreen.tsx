@@ -1,6 +1,6 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
@@ -640,7 +640,7 @@ export default function QuizScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <View style={styles.topSection}>
         <View style={styles.header}>
           <View>
             <Text style={styles.headerTitle}>第 {stageIndex} 关</Text>
@@ -654,63 +654,159 @@ export default function QuizScreen({ navigation, route }: Props) {
           <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
         </View>
 
-        <View style={styles.card}>
-          {(currentItem.type === 'mcq_ja_to_cn' || currentItem.type === 'mcq_cn_to_ja') && (
-            <>
-              <Text style={styles.prompt}>{currentItem.prompt}</Text>
-              <Text style={styles.subPrompt}>
-                {currentItem.type === 'mcq_ja_to_cn' ? `请选择正确的${meaningLabel}释义` : '请选择正确的日语单词'}
-              </Text>
-            </>
-          )}
+        <View style={styles.topBody}>
+          <ScrollView
+            style={styles.topScroll}
+            contentContainerStyle={styles.topScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.card}>
+              {(currentItem.type === 'mcq_ja_to_cn' || currentItem.type === 'mcq_cn_to_ja') && (
+                <>
+                  <Text style={styles.prompt}>{currentItem.prompt}</Text>
+                </>
+              )}
 
-          {currentItem.type === 'listening' && (
-            <>
-              <Text style={styles.prompt}>听力选择</Text>
-              <Text style={styles.subPrompt}>点击播放发音后在下方选择正确答案</Text>
-              <PrimaryButton
-                title="播放发音"
-                onPress={() => speak(currentItem.audioText)}
-                style={styles.speakButton}
-              />
-            </>
-          )}
+              {currentItem.type === 'listening' && (
+                <>
+                  <View style={styles.listeningRow}>
+                    <Text style={[styles.prompt, styles.listeningPrompt]}>听力选择</Text>
+                    <Pressable
+                      onPress={() => speak(currentItem.audioText)}
+                      accessibilityRole="button"
+                      accessibilityLabel="播放发音"
+                      style={({ pressed }) => [styles.speakIconButton, pressed ? styles.speakIconButtonPressed : null]}
+                    >
+                      <Ionicons name="volume-high" size={20} color="#fff" />
+                    </Pressable>
+                  </View>
+                </>
+              )}
 
-          {currentItem.type === 'spelling' && (
-            <>
-              <Text style={styles.prompt}>{currentItem.prompt}</Text>
-              <Text style={styles.subPrompt}>请输入假名拼写（罗马音输入）</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="点击下方键盘输入罗马音"
-                value={displayInputValue}
-                editable={false}
-                showSoftInputOnFocus={false}
-                caretHidden
-              />
-            </>
-          )}
-
+              {currentItem.type === 'spelling' && (
+                <>
+                  <TextInput
+                    style={styles.input}
+                    placeholder=""
+                    value={displayInputValue}
+                    editable={false}
+                    showSoftInputOnFocus={false}
+                    caretHidden
+                  />
+                  <Text style={[styles.prompt, styles.promptSpelling]}>{currentItem.prompt}</Text>
+                </>
+              )}
+            </View>
+          </ScrollView>
         </View>
       </View>
 
-      <View style={styles.actions}>
-        {isOptionQuiz && !showResult && (
-          <View style={styles.optionList}>
-            {currentItem.options.map((option, index) => (
-              <OptionButton
-                key={`${option}-${index}`}
-                title={option}
-                selected={selected === option}
-                correct={showResult ? option === currentItem.answer : null}
-                onPress={() => handleAnswer(option)}
-              />
-            ))}
-          </View>
-        )}
+      <View style={styles.divider} />
+
+      <View style={styles.bottomSection}>
+        <View style={styles.bottomBody}>
+          <ScrollView
+            style={styles.bottomScroll}
+            contentContainerStyle={styles.bottomScrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {isOptionQuiz && !showResult && (
+              <View style={styles.optionList}>
+                {currentItem.options.map((option, index) => (
+                  <OptionButton
+                    key={`${option}-${index}`}
+                    title={option}
+                    selected={selected === option}
+                    correct={showResult ? option === currentItem.answer : null}
+                    onPress={() => handleAnswer(option)}
+                  />
+                ))}
+              </View>
+            )}
+
+            {showResult && answerWord ? (
+              <View style={styles.answerCard}>
+                <View style={styles.resultRow}>
+                  <Text style={[styles.resultText, answeredCorrectly ? styles.correct : styles.wrong]}>
+                    {answeredCorrectly ? '回答正确！' : '回答错误'}
+                  </Text>
+                  <Pressable
+                    onPress={handleToggleAnswerWordVocab}
+                    disabled={answerWordAdding}
+                    style={({ pressed }) => [
+                      styles.vocabIconBtn,
+                      answerWordAdded ? styles.vocabIconBtnAdded : null,
+                      answerWordAdding ? styles.vocabIconBtnDisabled : null,
+                      pressed && !answerWordAdding ? styles.vocabIconBtnPressed : null,
+                    ]}
+                  >
+                    <Ionicons
+                      name={answerWordAdded ? 'bookmark' : 'bookmark-outline'}
+                      size={16}
+                      color={answerWordAdded ? '#047857' : colors.primary}
+                    />
+                  </Pressable>
+                </View>
+                <View style={styles.answerHeader}>
+                  <View style={styles.answerHeadText}>
+                    {answerWord.kanji ? <Text style={styles.answerReading}>{answerWord.kana}</Text> : null}
+                    <Text style={styles.answerWord}>{answerWord.kanji ?? answerWord.kana}</Text>
+                  </View>
+                  {(() => {
+                    const metaItems: string[] = [];
+                    const posText = (answerWord.pos ?? '').trim();
+                    const pitchText = (answerWord.pitch ?? '').trim();
+                    if (posText) metaItems.push(posText);
+                    if (pitchText) metaItems.push(pitchText);
+                    if (!metaItems.length) return null;
+                    return (
+                      <View style={styles.answerMetaRow}>
+                        {metaItems.map((item, index) => (
+                          <View key={`${item}-${index}`} style={[styles.answerMetaChip, index > 0 ? styles.answerMetaGap : null]}>
+                            <Text style={styles.answerMetaText}>{item}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    );
+                  })()}
+                </View>
+                <View style={styles.answerMeaningRow}>
+                  <View style={styles.answerMeaningTag}>
+                    <Text style={styles.answerMeaningTagText}>释义</Text>
+                  </View>
+                  <Text style={styles.answerMeaning}>{getMeaning(answerWord, settings.meaning_language)}</Text>
+                </View>
+                {(() => {
+                  const example = answerWord.examples?.[0];
+                  const exampleRaw = stripBoldTags((example?.ja_furigana ?? example?.ja ?? '').trim());
+                  const exampleJa = settings.show_example_furigana ? exampleRaw : stripFuriganaBrackets(exampleRaw);
+                  const exampleCn = (example?.zh_cn ?? '').trim();
+                  if (!exampleJa && !exampleCn) return null;
+                  return (
+                    <View style={styles.answerExample}>
+                      {exampleJa ? <Text style={styles.answerExampleJa}>{exampleJa}</Text> : null}
+                      {exampleCn ? <Text style={styles.answerExampleCn}>{exampleCn}</Text> : null}
+                    </View>
+                  );
+                })()}
+              </View>
+            ) : null}
+
+            {showResult && !answerWord ? (
+              <View style={styles.answerFallback}>
+                <Text style={[styles.resultText, answeredCorrectly ? styles.correct : styles.wrong]}>
+                  {answeredCorrectly ? '回答正确！' : '回答错误'}
+                </Text>
+                <Text style={styles.answerLabel}>正确答案</Text>
+                <Text style={styles.answerText}>{currentItem.answer}</Text>
+              </View>
+            ) : null}
+          </ScrollView>
+        </View>
 
         {currentItem.type === 'spelling' && !showResult && (
-          <>
+          <View style={styles.keyboardPanel}>
             <View style={styles.keyboardTopRow}>
               <Pressable
                 onPress={displayInputValue ? handleSubmitSpelling : undefined}
@@ -763,82 +859,8 @@ export default function QuizScreen({ navigation, route }: Props) {
                 </View>
               ))}
             </View>
-          </>
+          </View>
         )}
-
-        {showResult && answerWord ? (
-          <View style={styles.answerCard}>
-            <View style={styles.resultRow}>
-              <Text style={[styles.resultText, answeredCorrectly ? styles.correct : styles.wrong]}>
-                {answeredCorrectly ? '回答正确！' : '回答错误'}
-              </Text>
-              <Pressable
-                onPress={handleToggleAnswerWordVocab}
-                disabled={answerWordAdding}
-                style={({ pressed }) => [
-                  styles.vocabIconBtn,
-                  answerWordAdded ? styles.vocabIconBtnAdded : null,
-                  answerWordAdding ? styles.vocabIconBtnDisabled : null,
-                  pressed && !answerWordAdding ? styles.vocabIconBtnPressed : null,
-                ]}
-              >
-                <Ionicons
-                  name={answerWordAdded ? 'bookmark' : 'bookmark-outline'}
-                  size={16}
-                  color={answerWordAdded ? '#047857' : colors.primary}
-                />
-              </Pressable>
-            </View>
-            <Text style={styles.answerLabel}>正确答案</Text>
-            <View style={styles.answerHeader}>
-              <View style={styles.answerHeadText}>
-                <Text style={styles.answerWord}>{answerWord.kanji ?? answerWord.kana}</Text>
-                {answerWord.kanji ? <Text style={styles.answerReading}>{answerWord.kana}</Text> : null}
-              </View>
-              {(() => {
-                const metaItems: string[] = [];
-                const posText = (answerWord.pos ?? '').trim();
-                const pitchText = (answerWord.pitch ?? '').trim();
-                if (posText) metaItems.push(posText);
-                if (pitchText) metaItems.push(pitchText);
-                if (!metaItems.length) return null;
-                return (
-                  <View style={styles.answerMetaRow}>
-                    {metaItems.map((item, index) => (
-                      <View key={`${item}-${index}`} style={[styles.answerMetaChip, index > 0 ? styles.answerMetaGap : null]}>
-                        <Text style={styles.answerMetaText}>{item}</Text>
-                      </View>
-                    ))}
-                  </View>
-                );
-              })()}
-            </View>
-            <Text style={styles.answerMeaning}>{getMeaning(answerWord, settings.meaning_language)}</Text>
-            {(() => {
-              const example = answerWord.examples?.[0];
-              const exampleRaw = stripBoldTags((example?.ja_furigana ?? example?.ja ?? '').trim());
-              const exampleJa = settings.show_example_furigana ? exampleRaw : stripFuriganaBrackets(exampleRaw);
-              const exampleCn = (example?.zh_cn ?? '').trim();
-              if (!exampleJa && !exampleCn) return null;
-              return (
-                <View style={styles.answerExample}>
-                  {exampleJa ? <Text style={styles.answerExampleJa}>{exampleJa}</Text> : null}
-                  {exampleCn ? <Text style={styles.answerExampleCn}>{exampleCn}</Text> : null}
-                </View>
-              );
-            })()}
-          </View>
-        ) : null}
-
-        {showResult && !answerWord ? (
-          <View style={styles.answerFallback}>
-            <Text style={[styles.resultText, answeredCorrectly ? styles.correct : styles.wrong]}>
-              {answeredCorrectly ? '回答正确！' : '回答错误'}
-            </Text>
-            <Text style={styles.answerLabel}>正确答案</Text>
-            <Text style={styles.answerText}>{currentItem.answer}</Text>
-          </View>
-        ) : null}
 
         {showResult && (
           <PrimaryButton
@@ -868,8 +890,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     padding: spacing.m,
   },
-  content: {
+  topSection: {
+    flex: 42,
+    minHeight: 0,
+  },
+  topBody: {
     flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+  },
+  topScroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+  topScrollContent: {
+    paddingBottom: spacing.s,
+    flexGrow: 1,
+    justifyContent: 'flex-end',
   },
   header: {
     marginBottom: spacing.m,
@@ -922,24 +959,50 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: spacing.s,
   },
+  promptSpelling: {
+    fontSize: 17,
+  },
   subPrompt: {
     color: colors.muted,
     marginBottom: spacing.m,
   },
   input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.m,
-    padding: spacing.m,
+    borderBottomWidth: 2,
+    borderBottomColor: '#94a3b8',
+    paddingVertical: spacing.s,
+    paddingHorizontal: 0,
     marginBottom: spacing.m,
-    fontSize: 16,
-    backgroundColor: '#fff',
+    fontSize: 20,
+    color: colors.text,
+    backgroundColor: 'transparent',
   },
-  speakButton: {
-    width: '100%',
-    minHeight: 44,
+  speakIconButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
+    borderColor: '#1e40af',
+    backgroundColor: '#2563eb',
+    alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.m,
+    shadowColor: '#1e3a8a',
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  speakIconButtonPressed: {
+    backgroundColor: '#1d4ed8',
+  },
+  listeningRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  listeningPrompt: {
+    marginBottom: 0,
+    marginRight: spacing.s,
+    flexShrink: 1,
   },
   resultRow: {
     flexDirection: 'row',
@@ -957,15 +1020,30 @@ const styles = StyleSheet.create({
   wrong: {
     color: colors.danger,
   },
-  actions: {
-    marginTop: 'auto',
-    paddingTop: spacing.m,
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.m,
+  },
+  bottomSection: {
+    flex: 58,
+    minHeight: 0,
+    overflow: 'hidden',
+  },
+  bottomBody: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+  },
+  bottomScroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+  bottomScrollContent: {
     paddingBottom: spacing.s,
-    borderTopWidth: 1,
-    borderColor: colors.border,
   },
   optionList: {
-    marginBottom: spacing.s,
+    paddingBottom: spacing.xs,
   },
   answerCard: {
     backgroundColor: colors.card,
@@ -997,15 +1075,18 @@ const styles = StyleSheet.create({
   answerHeadText: {
     flex: 1,
     paddingRight: spacing.s,
+    paddingLeft: spacing.xs,
   },
   answerWord: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '400',
     color: colors.text,
   },
   answerReading: {
-    marginTop: spacing.xs,
-    color: colors.muted,
+    marginBottom: spacing.xs,
+    fontSize: 24,
+    fontWeight: '400',
+    color: colors.text,
   },
   answerMetaRow: {
     flexDirection: 'row',
@@ -1032,9 +1113,30 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: '600',
   },
+  answerMeaningRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: spacing.s,
+  },
+  answerMeaningTag: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderRadius: radius.s,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: spacing.xs,
+    marginTop: 2,
+  },
+  answerMeaningTagText: {
+    fontSize: 10,
+    color: colors.muted,
+    fontWeight: '500',
+  },
   answerMeaning: {
     color: colors.text,
-    marginBottom: spacing.s,
+    flex: 1,
+    lineHeight: 21,
   },
   vocabIconBtn: {
     width: 30,
@@ -1138,7 +1240,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   romajiGrid: {
-    marginBottom: spacing.s,
+    marginBottom: spacing.xs,
   },
   romajiRow: {
     flexDirection: 'row',
@@ -1250,6 +1352,7 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 48,
     justifyContent: 'center',
+    marginTop: spacing.s,
   },
   buttonSpacing: {
     marginBottom: spacing.xs,
