@@ -60,6 +60,7 @@ export type MyStackParamList = {
   AiSettings: undefined;
   AiConversation: undefined;
   AiTranslationPractice: undefined;
+  AiWritingPractice: undefined;
   AiSentenceAssemblePractice: { level: BankLevel; aiItems: AiSentenceAssembleItem[] };
   Search: undefined;
   Mistakes: undefined;

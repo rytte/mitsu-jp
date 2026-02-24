@@ -1,11 +1,15 @@
 import {
   AiSentenceAssembleItem,
+  AiWritingTask,
   BankLevel,
   ExamQuestionType,
   RawExamItem,
   TranslationDirection,
   TranslationEvalResult,
   TranslationFocus,
+  WritingEvalResult,
+  WritingPurpose,
+  WritingRegister,
 } from '../../types';
 import { DEFAULT_AI_PROVIDER_CONFIG } from './constants';
 import { ConversationTurnResult, createResponsesProvider } from './provider';
@@ -90,6 +94,21 @@ export async function generateSentenceAssembleWithAi(level: BankLevel, count: nu
   return provider.generateSentenceAssemble({ level, count });
 }
 
+export async function generateWritingTasksWithAi(params: {
+  level: BankLevel;
+  count: number;
+  purpose?: WritingPurpose;
+  scenario?: string;
+  register?: WritingRegister;
+}): Promise<AiWritingTask[]> {
+  const config = await loadAiProviderConfig();
+  if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
+    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+  }
+  const provider = createResponsesProvider(config);
+  return provider.generateWritingTasks(params);
+}
+
 export async function askDictionaryStreamWithAi(params: {
   entry: string;
   followUp?: string;
@@ -119,4 +138,16 @@ export async function evaluateTranslationAnswerWithAi(params: {
   }
   const provider = createResponsesProvider(config);
   return provider.evaluateTranslationAnswer(params);
+}
+
+export async function evaluateWritingAnswerWithAi(params: {
+  task: AiWritingTask;
+  userAnswer: string;
+}): Promise<WritingEvalResult> {
+  const config = await loadAiProviderConfig();
+  if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
+    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+  }
+  const provider = createResponsesProvider(config);
+  return provider.evaluateWritingAnswer(params);
 }

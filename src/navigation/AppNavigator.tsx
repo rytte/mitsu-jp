@@ -22,6 +22,7 @@ import AiHubScreen from '../screens/AiHubScreen';
 import AiSettingsScreen from '../screens/AiSettingsScreen';
 import AiConversationScreen from '../screens/AiConversationScreen';
 import AiTranslationPracticeScreen from '../screens/AiTranslationPracticeScreen';
+import AiWritingPracticeScreen from '../screens/AiWritingPracticeScreen';
 import AiSentenceAssemblePracticeScreen from '../screens/AiSentenceAssemblePracticeScreen';
 import KanaChartScreen from '../screens/KanaChartScreen';
 import VerbConjugationScreen from '../screens/VerbConjugationScreen';
@@ -113,6 +114,7 @@ function MyStackScreen() {
       <MyStack.Screen name="AiSettings" component={AiSettingsScreen} options={{ title: 'AI 配置' }} />
       <MyStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 场景对话' }} />
       <MyStack.Screen name="AiTranslationPractice" component={AiTranslationPracticeScreen} options={{ title: 'AI 翻译训练' }} />
+      <MyStack.Screen name="AiWritingPractice" component={AiWritingPracticeScreen} options={{ title: 'AI 写作达意' }} />
       <MyStack.Screen
         name="AiSentenceAssemblePractice"
         component={AiSentenceAssemblePracticeScreen}
@@ -143,6 +145,7 @@ function AiHubStackScreen() {
       <AiHubStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 场景对话' }} />
       <AiHubStack.Screen name="AiExamQuizPractice" component={AiExamQuizPracticeScreen} options={{ title: 'AI 练习' }} />
       <AiHubStack.Screen name="AiTranslationPractice" component={AiTranslationPracticeScreen} options={{ title: 'AI 翻译训练' }} />
+      <AiHubStack.Screen name="AiWritingPractice" component={AiWritingPracticeScreen} options={{ title: 'AI 写作达意' }} />
       <AiHubStack.Screen
         name="AiSentenceAssemblePractice"
         component={AiSentenceAssemblePracticeScreen}

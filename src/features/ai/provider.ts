@@ -1,13 +1,18 @@
 import {
   AiSentenceAssembleItem,
+  AiWritingTask,
   AiProviderConfig,
   BankLevel,
   ExamQuestionType,
+  RawAiWritingTask,
   RawExamItem,
   RawAiSentenceAssembleItem,
   TranslationDirection,
   TranslationEvalResult,
   TranslationFocus,
+  WritingEvalResult,
+  WritingPurpose,
+  WritingRegister,
 } from '../../types';
 import { Platform } from 'react-native';
 import { addAiTokenUsageStats } from './storage';
@@ -20,6 +25,14 @@ type GenerateExamQuizParams = {
 type GenerateSentenceAssembleParams = {
   level: BankLevel;
   count: number;
+};
+
+type GenerateWritingTasksParams = {
+  level: BankLevel;
+  count: number;
+  purpose?: WritingPurpose;
+  scenario?: string;
+  register?: WritingRegister;
 };
 
 type ExplainExamQuestionParams = {
@@ -79,6 +92,11 @@ type EvaluateTranslationAnswerParams = {
   userAnswer: string;
 };
 
+type EvaluateWritingAnswerParams = {
+  task: AiWritingTask;
+  userAnswer: string;
+};
+
 export type ConversationTurnResult = {
   assistantReplyJa: string;
   assistantReplyZh: string;
@@ -96,12 +114,14 @@ export type ConversationTurnResult = {
 export type AiQuizProvider = {
   generateExamQuiz: (params: GenerateExamQuizParams) => Promise<RawExamItem[]>;
   generateSentenceAssemble: (params: GenerateSentenceAssembleParams) => Promise<AiSentenceAssembleItem[]>;
+  generateWritingTasks: (params: GenerateWritingTasksParams) => Promise<AiWritingTask[]>;
   explainExamQuestion: (params: ExplainExamQuestionParams) => Promise<string>;
   startConversation: (params: StartConversationParams) => Promise<ConversationTurnResult>;
   replyConversation: (params: ReplyConversationParams) => Promise<ConversationTurnResult>;
   askDictionary: (params: AskDictionaryParams) => Promise<string>;
   askDictionaryStream: (params: AskDictionaryStreamParams) => Promise<string>;
   evaluateTranslationAnswer: (params: EvaluateTranslationAnswerParams) => Promise<TranslationEvalResult>;
+  evaluateWritingAnswer: (params: EvaluateWritingAnswerParams) => Promise<WritingEvalResult>;
 };
 
 const LEVEL_GUIDE: Record<BankLevel, string> = {
@@ -110,6 +130,19 @@ const LEVEL_GUIDE: Record<BankLevel, string> = {
   N3: '中级：生活和学习场景，兼顾常见语法与词义辨析。',
   N4: '初中级：基础句型和常见生活词汇，难度适中。',
   N5: '初级：最常见基础词汇和句型，句子短而清晰。',
+};
+
+const WRITING_PURPOSE_LABEL: Record<WritingPurpose, string> = {
+  request: '请求',
+  apology: '道歉',
+  invitation: '邀请',
+  consultation: '咨询',
+  report: '汇报',
+};
+
+const WRITING_REGISTER_LABEL: Record<WritingRegister, string> = {
+  polite: 'です・ます体',
+  plain: '普通体',
 };
 
 const RESPONSES_SCHEMA = {
@@ -249,6 +282,126 @@ const TRANSLATION_EVAL_SCHEMA = {
         items: { type: 'string' },
       },
       feedback_cn: { type: 'string', minLength: 1 },
+    },
+  },
+  strict: true,
+} as const;
+
+const WRITING_TASK_SCHEMA = {
+  type: 'json_schema',
+  name: 'writing_task_schema',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['items'],
+    properties: {
+      items: {
+        type: 'array',
+        minItems: 1,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: [
+            'id',
+            'scenario',
+            'purpose',
+            'audience',
+            'register',
+            'prompt_cn',
+            'must_include',
+            'min_sentences',
+            'max_sentences',
+            'min_chars',
+            'max_chars',
+          ],
+          properties: {
+            id: { type: 'string', minLength: 1 },
+            scenario: { type: 'string', minLength: 1 },
+            purpose: { type: 'string', minLength: 1 },
+            audience: { type: 'string', minLength: 1 },
+            register: { type: 'string', enum: ['polite', 'plain'] },
+            prompt_cn: { type: 'string', minLength: 1 },
+            must_include: {
+              type: 'array',
+              minItems: 2,
+              maxItems: 4,
+              items: { type: 'string', minLength: 1 },
+            },
+            min_sentences: { type: 'integer', minimum: 2, maximum: 8 },
+            max_sentences: { type: 'integer', minimum: 2, maximum: 8 },
+            min_chars: { type: 'integer', minimum: 20, maximum: 300 },
+            max_chars: { type: 'integer', minimum: 20, maximum: 320 },
+          },
+        },
+      },
+    },
+  },
+  strict: true,
+} as const;
+
+const WRITING_EVAL_SCHEMA = {
+  type: 'json_schema',
+  name: 'writing_eval_schema',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: [
+      'score',
+      'level',
+      'goal_achieved',
+      'dimension_scores',
+      'must_include_check',
+      'errors',
+      'feedback_cn',
+      'better_answer',
+      'next_action_cn',
+    ],
+    properties: {
+      score: { type: 'integer', minimum: 0, maximum: 100 },
+      level: { type: 'string', enum: ['excellent', 'pass', 'retry'] },
+      goal_achieved: { type: 'boolean' },
+      dimension_scores: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['task', 'grammar', 'vocab', 'coherence', 'register'],
+        properties: {
+          task: { type: 'integer', minimum: 0, maximum: 35 },
+          grammar: { type: 'integer', minimum: 0, maximum: 25 },
+          vocab: { type: 'integer', minimum: 0, maximum: 20 },
+          coherence: { type: 'integer', minimum: 0, maximum: 10 },
+          register: { type: 'integer', minimum: 0, maximum: 10 },
+        },
+      },
+      must_include_check: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['point', 'covered', 'comment_cn'],
+          properties: {
+            point: { type: 'string', minLength: 1 },
+            covered: { type: 'boolean' },
+            comment_cn: { type: 'string', minLength: 1 },
+          },
+        },
+      },
+      errors: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['fragment', 'type', 'suggestion', 'reason_cn'],
+          properties: {
+            fragment: { type: 'string', minLength: 1 },
+            type: { type: 'string', minLength: 1 },
+            suggestion: { type: 'string', minLength: 1 },
+            reason_cn: { type: 'string', minLength: 1 },
+          },
+        },
+      },
+      feedback_cn: { type: 'string', minLength: 1 },
+      better_answer: { type: 'string', minLength: 1 },
+      next_action_cn: { type: 'string', minLength: 1 },
     },
   },
   strict: true,
@@ -464,6 +617,83 @@ function buildTranslationEvalUserPrompt(params: EvaluateTranslationAnswerParams)
     '请根据以下信息进行翻译批改：',
     JSON.stringify(payload, null, 2),
   ].join('\n');
+}
+
+function getWritingRangeByLevel(level: BankLevel) {
+  if (level === 'N5') {
+    return { minSentences: 2, maxSentences: 3, minChars: 25, maxChars: 60 };
+  }
+  if (level === 'N4') {
+    return { minSentences: 3, maxSentences: 4, minChars: 40, maxChars: 90 };
+  }
+  if (level === 'N3') {
+    return { minSentences: 4, maxSentences: 5, minChars: 70, maxChars: 130 };
+  }
+  if (level === 'N2') {
+    return { minSentences: 5, maxSentences: 6, minChars: 100, maxChars: 180 };
+  }
+  return { minSentences: 6, maxSentences: 8, minChars: 140, maxChars: 260 };
+}
+
+function buildWritingTaskSystemPrompt() {
+  return [
+    '你是日语写作训练出题老师，需要为学习者生成“带明确目的的短文写作题”。',
+    '请严格遵守：',
+    '1) 仅输出符合 JSON Schema 的内容，不要 Markdown。',
+    '2) 每题必须给出：场景、目的、对象、文体、中文题干、必须覆盖点、句数与字数范围。',
+    '3) prompt_cn 必须清晰指向“达成某个沟通目的”，不能只有泛泛写作。',
+    '4) must_include 只写关键信息点，2-4 条，短句表达。',
+    '5) register 只能是 polite 或 plain。',
+    '6) 题目语义自然，贴近日常/学习/工作场景，不要重复。',
+  ].join('\n');
+}
+
+function buildWritingTaskUserPrompt(params: GenerateWritingTasksParams) {
+  const range = getWritingRangeByLevel(params.level);
+  const purpose = WRITING_PURPOSE_LABEL[params.purpose ?? 'request'];
+  const register = WRITING_REGISTER_LABEL[params.register ?? 'polite'];
+  return [
+    `请生成 ${params.count} 道 JLPT ${params.level} 写作训练题。`,
+    `难度参考：${LEVEL_GUIDE[params.level]}`,
+    `写作目的偏好：${purpose}`,
+    `文体偏好：${register}`,
+    params.scenario?.trim() ? `场景偏好：${params.scenario.trim()}` : '场景偏好：不限，请覆盖多样生活场景',
+    `句数范围：${range.minSentences}-${range.maxSentences} 句`,
+    `字数范围：${range.minChars}-${range.maxChars} 字（按日语字符数估计）`,
+    'ID 格式：writing-LEVEL-INDEX，例如 writing-N4-1。',
+  ].join('\n');
+}
+
+function buildWritingEvalSystemPrompt() {
+  return [
+    '你是日语写作批改老师，请对学习者短文进行严格、可执行的中文反馈。',
+    '请严格遵守：',
+    '1) 仅输出符合 JSON Schema 的内容，不要 Markdown。',
+    '2) 总分 100，维度分数必须对应：task 35、grammar 25、vocab 20、coherence 10、register 10。',
+    '3) level 仅可为 excellent / pass / retry。',
+    '4) goal_achieved 仅在核心沟通目的达成且关键信息覆盖时为 true。',
+    '5) must_include_check 必须逐条评估题目要求是否覆盖。',
+    '6) errors 仅保留关键错误，优先高影响问题。',
+    '7) better_answer 给出可直接参考的优化短文。',
+    '8) next_action_cn 给出一句下一步训练建议。',
+  ].join('\n');
+}
+
+function buildWritingEvalUserPrompt(params: EvaluateWritingAnswerParams) {
+  const task = params.task;
+  const payload = {
+    level: task.level,
+    scenario: task.scenario,
+    purpose: task.purpose,
+    audience: task.audience,
+    register: task.register,
+    prompt_cn: task.promptCn,
+    must_include: task.mustInclude,
+    sentence_range: [task.minSentences, task.maxSentences],
+    char_range: [task.minChars, task.maxChars],
+    user_answer: params.userAnswer,
+  };
+  return ['请根据以下写作题与学习者答案进行批改：', JSON.stringify(payload, null, 2)].join('\n');
 }
 
 function normalizeBaseUrl(baseUrl: string) {
@@ -898,6 +1128,57 @@ function sanitizeSentenceAssembleItems(rawItems: RawAiSentenceAssembleItem[]) {
     .filter(Boolean) as AiSentenceAssembleItem[];
 }
 
+function normalizeWritingRegister(value: unknown, fallback: WritingRegister): WritingRegister {
+  return value === 'plain' || value === 'polite' ? value : fallback;
+}
+
+function clampInt(value: unknown, min: number, max: number, fallback: number) {
+  const next = Number.isFinite(Number(value)) ? Math.floor(Number(value)) : fallback;
+  return Math.max(min, Math.min(max, next));
+}
+
+function sanitizeWritingTasks(
+  rawItems: RawAiWritingTask[],
+  params: { level: BankLevel; purpose: WritingPurpose; scenario?: string; register: WritingRegister }
+) {
+  const range = getWritingRangeByLevel(params.level);
+  return rawItems
+    .map((item, index) => {
+      const scenario = String(item.scenario ?? '').trim() || params.scenario?.trim() || '日常生活';
+      const purpose = String(item.purpose ?? '').trim() || WRITING_PURPOSE_LABEL[params.purpose];
+      const audience = String(item.audience ?? '').trim() || '对方';
+      const promptCn = String(item.prompt_cn ?? '').trim();
+      const register = normalizeWritingRegister(item.register, params.register);
+      const mustInclude = Array.isArray(item.must_include)
+        ? item.must_include.map((point) => String(point ?? '').trim()).filter(Boolean)
+        : [];
+
+      if (!promptCn) return null;
+      if (mustInclude.length < 2) return null;
+
+      const minSentences = clampInt(item.min_sentences, range.minSentences, range.maxSentences, range.minSentences);
+      const maxSentences = clampInt(item.max_sentences, minSentences, range.maxSentences, range.maxSentences);
+      const minChars = clampInt(item.min_chars, range.minChars, range.maxChars, range.minChars);
+      const maxChars = clampInt(item.max_chars, minChars, range.maxChars, range.maxChars);
+
+      return {
+        id: String(item.id || `writing-${params.level}-${index + 1}`),
+        level: params.level,
+        scenario,
+        purpose,
+        audience,
+        register,
+        promptCn,
+        mustInclude: mustInclude.slice(0, 4),
+        minSentences,
+        maxSentences,
+        minChars,
+        maxChars,
+      } satisfies AiWritingTask;
+    })
+    .filter(Boolean) as AiWritingTask[];
+}
+
 function normalizeConversationTurn(payload: unknown): ConversationTurnResult {
   const data = payload as {
     assistant_reply_ja?: string;
@@ -953,6 +1234,81 @@ function normalizeTranslationEvalResult(payload: unknown): TranslationEvalResult
     betterAnswer: data.better_answer == null ? undefined : String(data.better_answer).trim(),
     errors,
     feedbackCn: String(data.feedback_cn ?? '').trim(),
+  };
+}
+
+function normalizeWritingEvalResult(payload: unknown): WritingEvalResult {
+  const data = payload as {
+    score?: number;
+    level?: 'excellent' | 'pass' | 'retry';
+    goal_achieved?: boolean;
+    dimension_scores?: {
+      task?: number;
+      grammar?: number;
+      vocab?: number;
+      coherence?: number;
+      register?: number;
+    };
+    must_include_check?: unknown;
+    errors?: unknown;
+    feedback_cn?: string;
+    better_answer?: string;
+    next_action_cn?: string;
+  };
+
+  const level = data.level === 'excellent' || data.level === 'pass' || data.level === 'retry' ? data.level : 'retry';
+  const score = Number.isFinite(Number(data.score)) ? Number(data.score) : 0;
+  const dimensions = data.dimension_scores ?? {};
+  const mustIncludeCheck = Array.isArray(data.must_include_check)
+    ? data.must_include_check
+        .map((item) => {
+          const value = item as { point?: string; covered?: boolean; comment_cn?: string };
+          const point = String(value?.point ?? '').trim();
+          const commentCn = String(value?.comment_cn ?? '').trim();
+          if (!point || !commentCn) return null;
+          return {
+            point,
+            covered: Boolean(value?.covered),
+            commentCn,
+          };
+        })
+        .filter(Boolean)
+    : [];
+  const errors = Array.isArray(data.errors)
+    ? data.errors
+        .map((item) => {
+          const value = item as { fragment?: string; type?: string; suggestion?: string; reason_cn?: string };
+          const fragment = String(value?.fragment ?? '').trim();
+          const type = String(value?.type ?? '').trim();
+          const suggestion = String(value?.suggestion ?? '').trim();
+          const reasonCn = String(value?.reason_cn ?? '').trim();
+          if (!fragment || !type || !suggestion || !reasonCn) return null;
+          return {
+            fragment,
+            type,
+            suggestion,
+            reasonCn,
+          };
+        })
+        .filter(Boolean)
+    : [];
+
+  return {
+    score: Math.max(0, Math.min(100, score)),
+    level,
+    goalAchieved: Boolean(data.goal_achieved),
+    dimensionScores: {
+      task: clampInt(dimensions.task, 0, 35, 0),
+      grammar: clampInt(dimensions.grammar, 0, 25, 0),
+      vocab: clampInt(dimensions.vocab, 0, 20, 0),
+      coherence: clampInt(dimensions.coherence, 0, 10, 0),
+      register: clampInt(dimensions.register, 0, 10, 0),
+    },
+    mustIncludeCheck: mustIncludeCheck as WritingEvalResult['mustIncludeCheck'],
+    errors: errors as WritingEvalResult['errors'],
+    feedbackCn: String(data.feedback_cn ?? '').trim(),
+    betterAnswer: String(data.better_answer ?? '').trim(),
+    nextActionCn: String(data.next_action_cn ?? '').trim(),
   };
 }
 
@@ -1220,6 +1576,65 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
       }
       return items;
     },
+    async generateWritingTasks(params: GenerateWritingTasksParams) {
+      ensureConfigReady();
+
+      const purpose = params.purpose ?? 'request';
+      const register = params.register ?? 'polite';
+      const response = await fetch(`${baseUrl}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: [
+            {
+              role: 'system',
+              content: [{ type: 'input_text', text: buildWritingTaskSystemPrompt() }],
+            },
+            {
+              role: 'user',
+              content: [{ type: 'input_text', text: buildWritingTaskUserPrompt(params) }],
+            },
+          ],
+          max_output_tokens: 2400,
+          stream: false,
+          text: {
+            format: WRITING_TASK_SCHEMA,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`AI 写作出题失败（${response.status}）：${errText || response.statusText}`);
+      }
+
+      const outputText = await extractOutputTextFromHttpResponse(response);
+      if (!outputText) {
+        throw new Error('AI 返回写作题为空，请稍后重试');
+      }
+
+      let parsed: { items?: RawAiWritingTask[] } | null = null;
+      try {
+        parsed = JSON.parse(outputText) as { items?: RawAiWritingTask[] };
+      } catch {
+        throw new Error('AI 返回不是有效 JSON，请调整模型或 Base URL');
+      }
+
+      const items = sanitizeWritingTasks(Array.isArray(parsed?.items) ? parsed.items : [], {
+        level: params.level,
+        purpose,
+        scenario: params.scenario,
+        register,
+      });
+      if (!items.length) {
+        throw new Error('AI 返回写作题未通过校验，请重试');
+      }
+      return items.slice(0, params.count);
+    },
     async explainExamQuestion(params: ExplainExamQuestionParams) {
       ensureConfigReady();
 
@@ -1419,6 +1834,61 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
         return result;
       } catch {
         throw new Error('AI 批改结果格式无效，请重试');
+      }
+    },
+    async evaluateWritingAnswer(params: EvaluateWritingAnswerParams) {
+      ensureConfigReady();
+
+      const userAnswer = params.userAnswer.trim();
+      if (!userAnswer) {
+        throw new Error('请输入你的写作答案');
+      }
+
+      const response = await fetch(`${baseUrl}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: [
+            {
+              role: 'system',
+              content: [{ type: 'input_text', text: buildWritingEvalSystemPrompt() }],
+            },
+            {
+              role: 'user',
+              content: [{ type: 'input_text', text: buildWritingEvalUserPrompt({ ...params, userAnswer }) }],
+            },
+          ],
+          max_output_tokens: 1200,
+          stream: false,
+          text: {
+            format: WRITING_EVAL_SCHEMA,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`写作批改失败（${response.status}）：${errText || response.statusText}`);
+      }
+
+      const outputText = await extractOutputTextFromHttpResponse(response);
+      if (!outputText) {
+        throw new Error('AI 未返回写作批改结果，请稍后重试');
+      }
+
+      try {
+        const parsed = JSON.parse(outputText) as unknown;
+        const result = normalizeWritingEvalResult(parsed);
+        if (!result.feedbackCn || !result.betterAnswer || !result.nextActionCn) {
+          throw new Error('写作批改关键字段为空');
+        }
+        return result;
+      } catch {
+        throw new Error('AI 写作批改结果格式无效，请重试');
       }
     },
     async askDictionary(params: AskDictionaryParams) {

@@ -14,6 +14,10 @@ export type TranslationDirection = 'zh_to_ja' | 'ja_to_zh';
 
 export type TranslationFocus = 'vocab' | 'grammar' | 'mixed';
 
+export type WritingPurpose = 'request' | 'apology' | 'invitation' | 'consultation' | 'report';
+
+export type WritingRegister = 'polite' | 'plain';
+
 export type RawExamItem = {
   id?: string;
   question_html?: string;
@@ -44,6 +48,35 @@ export type AiSentenceAssembleItem = {
   answerTokens: string[];
 };
 
+export type RawAiWritingTask = {
+  id?: string;
+  scenario?: string;
+  purpose?: string;
+  audience?: string;
+  register?: WritingRegister;
+  prompt_cn?: string;
+  must_include?: string[];
+  min_sentences?: number;
+  max_sentences?: number;
+  min_chars?: number;
+  max_chars?: number;
+};
+
+export type AiWritingTask = {
+  id: string;
+  level: BankLevel;
+  scenario: string;
+  purpose: string;
+  audience: string;
+  register: WritingRegister;
+  promptCn: string;
+  mustInclude: string[];
+  minSentences: number;
+  maxSentences: number;
+  minChars: number;
+  maxChars: number;
+};
+
 export type AiProviderConfig = {
   provider_id: string;
   provider_label: string;
@@ -61,6 +94,33 @@ export type TranslationEvalResult = {
   betterAnswer?: string;
   errors: string[];
   feedbackCn: string;
+};
+
+export type WritingEvalResult = {
+  score: number;
+  level: 'excellent' | 'pass' | 'retry';
+  goalAchieved: boolean;
+  dimensionScores: {
+    task: number;
+    grammar: number;
+    vocab: number;
+    coherence: number;
+    register: number;
+  };
+  mustIncludeCheck: Array<{
+    point: string;
+    covered: boolean;
+    commentCn: string;
+  }>;
+  errors: Array<{
+    fragment: string;
+    type: string;
+    suggestion: string;
+    reasonCn: string;
+  }>;
+  feedbackCn: string;
+  betterAnswer: string;
+  nextActionCn: string;
 };
 
 export type Word = {

@@ -14,7 +14,7 @@ import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 type Props = NativeStackScreenProps<MyStackParamList, 'AiHub'>;
 
 const LEVELS: BankLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
-type HubActionTone = 'indigo' | 'teal' | 'amber' | 'sky';
+type HubActionTone = 'indigo' | 'teal' | 'amber' | 'sky' | 'violet';
 
 type HubActionButtonProps = {
   title: string;
@@ -37,6 +37,8 @@ function HubActionButton({ title, tone, onPress, disabled, style }: HubActionBut
           ? styles.hubActionBtnTeal
           : tone === 'amber'
           ? styles.hubActionBtnAmber
+          : tone === 'violet'
+          ? styles.hubActionBtnViolet
           : styles.hubActionBtnSky,
         pressed && !disabled ? styles.hubActionBtnPressed : null,
         disabled ? styles.hubActionBtnDisabled : null,
@@ -182,7 +184,7 @@ export default function AiHubScreen({ navigation }: Props) {
         <Text style={styles.heroSub}>你可以在这里使用 AI 场景对话和生题等功能。</Text>
         <View style={styles.heroMetaRow}>
           <View style={styles.heroMetaChip}>
-            <Text style={styles.heroMetaText}>3 阶段训练</Text>
+            <Text style={styles.heroMetaText}>4 阶段训练</Text>
           </View>
           <View style={styles.heroMetaChip}>
             <Text style={styles.heroMetaText}>N5-N1</Text>
@@ -293,7 +295,7 @@ export default function AiHubScreen({ navigation }: Props) {
           />
         </View>
 
-        <View style={[styles.systemCard, styles.systemCardLast]}>
+        <View style={styles.systemCard}>
           <View style={styles.systemCardHead}>
             <View style={[styles.stepBadge, styles.stepBadgeOrange]}>
               <Text style={styles.stepBadgeText}>03</Text>
@@ -307,6 +309,24 @@ export default function AiHubScreen({ navigation }: Props) {
             title="进入场景对话"
             onPress={() => navigation.navigate('AiConversation')}
             tone="amber"
+            style={styles.moduleActionBtn}
+          />
+        </View>
+
+        <View style={[styles.systemCard, styles.systemCardLast]}>
+          <View style={styles.systemCardHead}>
+            <View style={[styles.stepBadge, styles.stepBadgePurple]}>
+              <Text style={styles.stepBadgeText}>04</Text>
+            </View>
+            <View style={styles.systemCardMeta}>
+              <Text style={styles.systemCardTitle}>AI 写作达意</Text>
+              <Text style={styles.systemCardDesc}>围绕目标写几句短文，训练信息覆盖、语法准确与表达自然度。</Text>
+            </View>
+          </View>
+          <HubActionButton
+            title="进入写作达意"
+            onPress={() => navigation.navigate('AiWritingPractice')}
+            tone="violet"
             style={styles.moduleActionBtn}
           />
         </View>
@@ -485,6 +505,9 @@ const styles = StyleSheet.create({
   stepBadgeOrange: {
     backgroundColor: '#ffedd5',
   },
+  stepBadgePurple: {
+    backgroundColor: '#ede9fe',
+  },
   stepBadgeText: {
     color: '#111827',
     fontSize: 12,
@@ -536,6 +559,10 @@ const styles = StyleSheet.create({
   hubActionBtnSky: {
     backgroundColor: '#0c7bb8',
     borderColor: '#0369a1',
+  },
+  hubActionBtnViolet: {
+    backgroundColor: '#5b21b6',
+    borderColor: '#4c1d95',
   },
   hubActionBtnPressed: {
     opacity: 0.88,
