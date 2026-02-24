@@ -264,7 +264,7 @@ export default function AiHubScreen({ navigation }: Props) {
             title={sentenceButtonTitle}
             onPress={handleGenerateSentenceAssemble}
             disabled={sentenceLoading}
-            tone="indigo"
+            tone="sky"
             style={styles.moduleActionBtn}
           />
         </View>
@@ -348,7 +348,7 @@ export default function AiHubScreen({ navigation }: Props) {
           title={buttonTitle}
           onPress={handleGenerateExam}
           disabled={loading}
-          tone="sky"
+          tone="indigo"
           style={styles.actionBtn}
         />
       </View>
