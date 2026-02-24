@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import { DEFAULT_AI_PROVIDER_CONFIG } from '../features/ai/constants';
@@ -107,6 +108,7 @@ export default function AiSettingsScreen() {
       normalizedDraft.model !== savedSnapshot.model
     );
   }, [normalizedDraft, savedSnapshot]);
+  const syncLabel = hasChanges ? '有未保存变更' : '配置已同步';
 
   const handleSave = async () => {
     if (!canSave) {
@@ -180,7 +182,7 @@ export default function AiSettingsScreen() {
       if (!ids.includes(model.trim())) {
         setModel(ids[0]);
       }
-      setModelHint(`已拉取 ${ids.length} 个模型，可点击下方标签快速选择`);
+      setModelHint('');
     } catch (error) {
       setModelOptions([]);
       setModelHint(error instanceof Error ? error.message : String(error));
@@ -198,66 +200,100 @@ export default function AiSettingsScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Provider</Text>
-        <Text style={styles.tip}>当前使用 Responses 接口，后续可扩展更多 Provider。</Text>
-        <TextInput
-          value={providerLabel}
-          onChangeText={setProviderLabel}
-          placeholder="例如 OpenAI Compatible"
-          placeholderTextColor={colors.muted}
-          style={styles.input}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: topPadding }]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.heroCard}>
+        <View style={styles.heroHead}>
+          <View style={styles.heroIconWrap}>
+            <Ionicons name="settings-outline" size={16} color="#1d4ed8" />
+          </View>
+          <Text style={styles.heroTag}>AI Provider 配置</Text>
+        </View>
+        <Text style={styles.heroTitle}>连接你的模型服务</Text>
+        <Text style={styles.heroSub}>填写后即可用于 AI 生题、对话、翻译和写作能力训练。</Text>
+        <View style={styles.heroStatusRow}>
+          <View style={[styles.statusChip, hasChanges ? styles.statusChipWarn : styles.statusChipOk]}>
+            <Text style={[styles.statusChipText, hasChanges ? styles.statusChipTextWarn : styles.statusChipTextOk]}>{syncLabel}</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>API Base URL</Text>
-        <TextInput
-          value={apiBaseUrl}
-          onChangeText={setApiBaseUrl}
-          placeholder="https://api.openai.com/v1"
-          placeholderTextColor={colors.muted}
-          style={styles.input}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        <View style={styles.sectionTitleRow}>
+          <Ionicons name="server-outline" size={16} color={colors.text} />
+          <Text style={styles.sectionTitle}>基础连接信息</Text>
+        </View>
+        <View style={styles.fieldBlock}>
+          <Text style={styles.fieldLabel}>Provider</Text>
+          <TextInput
+            value={providerLabel}
+            onChangeText={setProviderLabel}
+            placeholder="例如 OpenAI Compatible"
+            placeholderTextColor={colors.muted}
+            style={styles.input}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
+        <View style={styles.fieldBlock}>
+          <Text style={styles.fieldLabel}>API Base URL</Text>
+          <TextInput
+            value={apiBaseUrl}
+            onChangeText={setApiBaseUrl}
+            placeholder="https://api.openai.com/v1"
+            placeholderTextColor={colors.muted}
+            style={styles.input}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
+        <View style={styles.fieldBlockLast}>
+          <Text style={styles.fieldLabel}>API Key</Text>
+          <TextInput
+            value={apiKey}
+            onChangeText={setApiKey}
+            placeholder="sk-..."
+            placeholderTextColor={colors.muted}
+            style={styles.input}
+            autoCapitalize="none"
+            autoCorrect={false}
+            secureTextEntry
+          />
+        </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>API Key</Text>
-        <TextInput
-          value={apiKey}
-          onChangeText={setApiKey}
-          placeholder="sk-..."
-          placeholderTextColor={colors.muted}
-          style={styles.input}
-          autoCapitalize="none"
-          autoCorrect={false}
-          secureTextEntry
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Model</Text>
-        <TextInput
-          value={model}
-          onChangeText={setModel}
-          placeholder="gpt-4.1-mini"
-          placeholderTextColor={colors.muted}
-          style={styles.input}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        <View style={styles.sectionTitleRow}>
+          <Ionicons name="hardware-chip-outline" size={16} color={colors.text} />
+          <Text style={styles.sectionTitle}>模型选择</Text>
+        </View>
+        <View style={styles.fieldBlockLast}>
+          <Text style={styles.fieldLabel}>Model</Text>
+          <TextInput
+            value={model}
+            onChangeText={setModel}
+            placeholder="gpt-4.1-mini"
+            placeholderTextColor={colors.muted}
+            style={styles.input}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
         <PrimaryButton
           title={loadingModels ? '拉取中...' : '拉取模型'}
           onPress={handleLoadModels}
           disabled={loadingModels}
           style={styles.modelFetchBtn}
         />
-        {modelHint ? <Text style={styles.modelHint}>{modelHint}</Text> : null}
+        {modelHint ? (
+          <View style={styles.modelHintCard}>
+            <Ionicons name="information-circle-outline" size={14} color="#475569" />
+            <Text style={styles.modelHint}>{modelHint}</Text>
+          </View>
+        ) : null}
         {modelOptions.length ? (
           <View style={styles.modelChipWrap}>
             {modelOptions.map((modelId) => {
@@ -276,18 +312,29 @@ export default function AiSettingsScreen() {
         ) : null}
       </View>
 
-      <PrimaryButton title={saving ? '保存中...' : '保存配置'} onPress={handleSave} disabled={saving || !canSave || !hasChanges} />
-      {saveHint ? (
-        <Text
-          style={[
-            styles.saveHint,
-            saveHintType === 'success' ? styles.saveHintSuccess : null,
-            saveHintType === 'error' ? styles.saveHintError : null,
-          ]}
-        >
-          {saveHint}
-        </Text>
-      ) : null}
+      <View style={styles.saveSection}>
+        <PrimaryButton title={saving ? '保存中...' : '保存配置'} onPress={handleSave} disabled={saving || !canSave || !hasChanges} />
+        {saveHint ? (
+          <View
+            style={[
+              styles.saveHintCard,
+              saveHintType === 'success' ? styles.saveHintCardSuccess : null,
+              saveHintType === 'error' ? styles.saveHintCardError : null,
+            ]}
+          >
+            <Text
+              style={[
+                styles.saveHint,
+                saveHintType === 'success' ? styles.saveHintSuccess : null,
+                saveHintType === 'error' ? styles.saveHintError : null,
+              ]}
+            >
+              {saveHint}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+
     </ScrollView>
   );
 }
@@ -300,6 +347,73 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.m,
     paddingBottom: spacing.l,
+  },
+  heroCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.m,
+    marginBottom: spacing.m,
+    overflow: 'hidden',
+  },
+  heroHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.s,
+  },
+  heroIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#eff6ff',
+    marginRight: spacing.xs,
+  },
+  heroTag: {
+    color: '#1d4ed8',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  heroTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  heroSub: {
+    marginTop: spacing.xs,
+    color: colors.muted,
+    lineHeight: 20,
+  },
+  heroStatusRow: {
+    marginTop: spacing.s,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusChip: {
+    paddingHorizontal: spacing.s,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  statusChipOk: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#86efac',
+  },
+  statusChipWarn: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fcd34d',
+  },
+  statusChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  statusChipTextOk: {
+    color: '#166534',
+  },
+  statusChipTextWarn: {
+    color: '#92400e',
   },
   loading: {
     flex: 1,
@@ -315,36 +429,62 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: radius.l,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#dbe3ee',
     padding: spacing.m,
     marginBottom: spacing.m,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: 4,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
+  },
+  fieldBlock: {
     marginBottom: spacing.s,
   },
-  tip: {
-    color: colors.muted,
-    marginBottom: spacing.s,
+  fieldBlockLast: {
+    marginBottom: 0,
+  },
+  fieldLabel: {
+    color: '#334155',
+    fontWeight: '700',
+    fontSize: 12,
+    marginBottom: spacing.xs,
   },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.m,
-    backgroundColor: '#fff',
+    backgroundColor: '#f8fafc',
     color: colors.text,
     paddingHorizontal: spacing.s,
     paddingVertical: spacing.s,
+    minHeight: 42,
   },
   modelFetchBtn: {
     marginTop: spacing.s,
   },
-  modelHint: {
+  modelHintCard: {
     marginTop: spacing.s,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: radius.m,
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  modelHint: {
     color: colors.muted,
     fontSize: 12,
+    flex: 1,
   },
   modelChipWrap: {
     marginTop: spacing.s,
@@ -354,26 +494,46 @@ const styles = StyleSheet.create({
   },
   modelChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#cbd5e1',
     borderRadius: 999,
     paddingHorizontal: spacing.s,
-    paddingVertical: 6,
-    backgroundColor: '#fff',
+    paddingVertical: 7,
+    backgroundColor: '#f8fafc',
   },
   modelChipActive: {
-    borderColor: colors.primary,
+    borderColor: '#1d4ed8',
     backgroundColor: '#eff6ff',
   },
   modelChipText: {
-    color: colors.muted,
+    color: '#475569',
     fontSize: 12,
   },
   modelChipTextActive: {
-    color: colors.primary,
+    color: '#1d4ed8',
     fontWeight: '700',
   },
-  saveHint: {
+  saveSection: {
+    marginTop: spacing.xs,
+    marginBottom: spacing.m,
+  },
+  saveHintCard: {
     marginTop: spacing.s,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: radius.m,
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.s,
+  },
+  saveHintCardSuccess: {
+    borderColor: '#86efac',
+    backgroundColor: '#f0fdf4',
+  },
+  saveHintCardError: {
+    borderColor: '#fca5a5',
+    backgroundColor: '#fef2f2',
+  },
+  saveHint: {
     color: colors.muted,
     fontSize: 12,
   },
