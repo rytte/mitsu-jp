@@ -604,6 +604,12 @@ function extractOutputTextFromRaw(raw: string): string {
   }
 }
 
+async function extractOutputTextFromHttpResponse(response: Response): Promise<string> {
+  const raw = await response.text();
+  trackUsageFromRawSse(raw);
+  return extractOutputTextFromRaw(raw);
+}
+
 function isNativeRuntime() {
   return Platform.OS !== 'web';
 }
@@ -877,9 +883,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
     }
 
     if (!options.stream) {
-      const payload = (await response.json()) as unknown;
-      trackUsageFromPayload(payload);
-      const outputText = extractOutputText(payload);
+      const outputText = await extractOutputTextFromHttpResponse(response);
       if (!outputText) {
         throw new Error('AI 未返回解释内容，请稍后重试');
       }
@@ -993,6 +997,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
             },
           ],
           max_output_tokens: 4000,
+          stream: false,
           text: {
             format: RESPONSES_SCHEMA,
           },
@@ -1004,9 +1009,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
         throw new Error(`AI 请求失败（${response.status}）：${errText || response.statusText}`);
       }
 
-      const payload = (await response.json()) as unknown;
-      trackUsageFromPayload(payload);
-      const outputText = extractOutputText(payload);
+      const outputText = await extractOutputTextFromHttpResponse(response);
       if (!outputText) {
         throw new Error('AI 返回为空，请调整模型或稍后重试');
       }
@@ -1046,6 +1049,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
             },
           ],
           max_output_tokens: 800,
+          stream: false,
         }),
       });
 
@@ -1054,9 +1058,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
         throw new Error(`AI 解析失败（${response.status}）：${errText || response.statusText}`);
       }
 
-      const payload = (await response.json()) as unknown;
-      trackUsageFromPayload(payload);
-      const outputText = extractOutputText(payload);
+      const outputText = await extractOutputTextFromHttpResponse(response);
       if (!outputText) {
         throw new Error('AI 未返回解析内容，请稍后重试');
       }
@@ -1085,6 +1087,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
             },
           ],
           max_output_tokens: 1200,
+          stream: false,
           text: {
             format: CONVERSATION_SCHEMA,
           },
@@ -1096,9 +1099,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
         throw new Error(`对话启动失败（${response.status}）：${errText || response.statusText}`);
       }
 
-      const payload = (await response.json()) as unknown;
-      trackUsageFromPayload(payload);
-      const outputText = extractOutputText(payload);
+      const outputText = await extractOutputTextFromHttpResponse(response);
       if (!outputText) {
         throw new Error('AI 未返回开场内容，请稍后重试');
       }
@@ -1136,6 +1137,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
             },
           ],
           max_output_tokens: 1200,
+          stream: false,
           text: {
             format: CONVERSATION_SCHEMA,
           },
@@ -1147,9 +1149,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
         throw new Error(`对话回复失败（${response.status}）：${errText || response.statusText}`);
       }
 
-      const payload = (await response.json()) as unknown;
-      trackUsageFromPayload(payload);
-      const outputText = extractOutputText(payload);
+      const outputText = await extractOutputTextFromHttpResponse(response);
       if (!outputText) {
         throw new Error('AI 未返回回复内容，请稍后重试');
       }
@@ -1200,6 +1200,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
             },
           ],
           max_output_tokens: 900,
+          stream: false,
           text: {
             format: TRANSLATION_EVAL_SCHEMA,
           },
@@ -1211,9 +1212,7 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
         throw new Error(`翻译批改失败（${response.status}）：${errText || response.statusText}`);
       }
 
-      const payload = (await response.json()) as unknown;
-      trackUsageFromPayload(payload);
-      const outputText = extractOutputText(payload);
+      const outputText = await extractOutputTextFromHttpResponse(response);
       if (!outputText) {
         throw new Error('AI 未返回批改结果，请稍后重试');
       }
