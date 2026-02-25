@@ -1,4 +1,5 @@
 import {
+  AiListeningPassageItem,
   AiSentenceAssembleItem,
   AiWritingTask,
   BankLevel,
@@ -18,7 +19,7 @@ import { loadAiProviderConfig } from './storage';
 export async function generateExamQuizWithAi(level: BankLevel, count: number): Promise<RawExamItem[]> {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.generateExamQuiz({ level, count });
@@ -35,7 +36,7 @@ export async function explainExamQuestionWithAi(params: {
 }) {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.explainExamQuestion(params);
@@ -49,7 +50,7 @@ export async function startConversationWithAi(params: {
 }): Promise<ConversationTurnResult> {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.startConversation(params);
@@ -66,7 +67,7 @@ export async function replyConversationWithAi(params: {
 }): Promise<ConversationTurnResult> {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.replyConversation(params);
@@ -79,7 +80,7 @@ export async function askDictionaryWithAi(params: {
 }): Promise<string> {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.askDictionary(params);
@@ -88,10 +89,22 @@ export async function askDictionaryWithAi(params: {
 export async function generateSentenceAssembleWithAi(level: BankLevel, count: number): Promise<AiSentenceAssembleItem[]> {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.generateSentenceAssemble({ level, count });
+}
+
+export async function generateListeningPassagesWithAi(
+  level: BankLevel,
+  count: number
+): Promise<AiListeningPassageItem[]> {
+  const config = await loadAiProviderConfig();
+  if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
+  }
+  const provider = createResponsesProvider(config);
+  return provider.generateListeningPassages({ level, count });
 }
 
 export async function generateWritingTasksWithAi(params: {
@@ -103,7 +116,7 @@ export async function generateWritingTasksWithAi(params: {
 }): Promise<AiWritingTask[]> {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.generateWritingTasks(params);
@@ -117,7 +130,7 @@ export async function askDictionaryStreamWithAi(params: {
 }): Promise<string> {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.askDictionaryStream(params);
@@ -134,7 +147,7 @@ export async function evaluateTranslationAnswerWithAi(params: {
 }): Promise<TranslationEvalResult> {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.evaluateTranslationAnswer(params);
@@ -146,8 +159,9 @@ export async function evaluateWritingAnswerWithAi(params: {
 }): Promise<WritingEvalResult> {
   const config = await loadAiProviderConfig();
   if (config.provider_id !== DEFAULT_AI_PROVIDER_CONFIG.provider_id) {
-    throw new Error(`暂不支持的 Provider：${config.provider_id}`);
+    throw new Error(`暂不支持的服务提供方：${config.provider_id}`);
   }
   const provider = createResponsesProvider(config);
   return provider.evaluateWritingAnswer(params);
 }
+

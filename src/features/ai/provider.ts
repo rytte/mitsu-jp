@@ -1,9 +1,11 @@
 import {
+  AiListeningPassageItem,
   AiSentenceAssembleItem,
   AiWritingTask,
   AiProviderConfig,
   BankLevel,
   ExamQuestionType,
+  RawAiListeningPassageItem,
   RawAiWritingTask,
   RawExamItem,
   RawAiSentenceAssembleItem,
@@ -23,6 +25,11 @@ type GenerateExamQuizParams = {
 };
 
 type GenerateSentenceAssembleParams = {
+  level: BankLevel;
+  count: number;
+};
+
+type GenerateListeningPassagesParams = {
   level: BankLevel;
   count: number;
 };
@@ -114,6 +121,7 @@ export type ConversationTurnResult = {
 export type AiQuizProvider = {
   generateExamQuiz: (params: GenerateExamQuizParams) => Promise<RawExamItem[]>;
   generateSentenceAssemble: (params: GenerateSentenceAssembleParams) => Promise<AiSentenceAssembleItem[]>;
+  generateListeningPassages: (params: GenerateListeningPassagesParams) => Promise<AiListeningPassageItem[]>;
   generateWritingTasks: (params: GenerateWritingTasksParams) => Promise<AiWritingTask[]>;
   explainExamQuestion: (params: ExplainExamQuestionParams) => Promise<string>;
   startConversation: (params: StartConversationParams) => Promise<ConversationTurnResult>;
@@ -212,6 +220,47 @@ const SENTENCE_ASSEMBLE_SCHEMA = {
               maxItems: 10,
               items: { type: 'string', minLength: 1 },
             },
+          },
+        },
+      },
+    },
+  },
+  strict: true,
+} as const;
+
+const LISTENING_PASSAGE_SCHEMA = {
+  type: 'json_schema',
+  name: 'listening_passage_items_schema',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['items'],
+    properties: {
+      items: {
+        type: 'array',
+        minItems: 1,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['id', 'title', 'passage', 'question', 'options', 'answer_index', 'answer_text', 'explain_cn'],
+          properties: {
+            id: { type: 'string', minLength: 1 },
+            title: { type: 'string', minLength: 1 },
+            passage: { type: 'string', minLength: 1 },
+            question: { type: 'string', minLength: 1 },
+            options: {
+              type: 'array',
+              minItems: 4,
+              maxItems: 4,
+              items: { type: 'string', minLength: 1 },
+            },
+            answer_index: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 4,
+            },
+            answer_text: { type: 'string', minLength: 1 },
+            explain_cn: { type: 'string', minLength: 1 },
           },
         },
       },
@@ -459,6 +508,72 @@ function buildSentenceAssembleUserPrompt(level: BankLevel, count: number) {
     '- Focus on practical, natural Japanese sentences.',
     '- Keep item length mobile-friendly (4-10 chunks).',
     '- Use id format assemble-LEVEL-INDEX, e.g. assemble-N5-1.',
+  ].join('\n');
+}
+
+function getListeningPassageRangeByLevel(level: BankLevel) {
+  if (level === 'N5') return { minChars: 60, maxChars: 72 };
+  if (level === 'N4') return { minChars: 72, maxChars: 84 };
+  if (level === 'N3') return { minChars: 84, maxChars: 96 };
+  if (level === 'N2') return { minChars: 96, maxChars: 108 };
+  return { minChars: 108, maxChars: 120 };
+}
+
+function countPassageChars(text: string) {
+  return text.replace(/\s+/g, '').length;
+}
+
+function normalizeListeningOptionText(text: string) {
+  return text
+    .trim()
+    .replace(/^[（(]?[A-DＡ-Ｄ][）).、．:：]\s*/u, '')
+    .replace(/^\s*[A-DＡ-Ｄ]\s+/u, '')
+    .replace(/\s+/g, '');
+}
+
+function inferAnswerIndexFromText(answerText: string, options: string[]) {
+  const exactIndex = options.findIndex((option) => option === answerText);
+  if (exactIndex >= 0) return exactIndex;
+
+  const normalizedAnswer = normalizeListeningOptionText(answerText);
+  if (normalizedAnswer) {
+    const normalizedIndex = options.findIndex((option) => normalizeListeningOptionText(option) === normalizedAnswer);
+    if (normalizedIndex >= 0) return normalizedIndex;
+  }
+
+  const marker = answerText.trim().toUpperCase();
+  if (/^[1-4]$/.test(marker)) return Number(marker) - 1;
+
+  const letterMatch = marker.match(/[A-D]/);
+  if (letterMatch) return letterMatch[0].charCodeAt(0) - 'A'.charCodeAt(0);
+
+  return -1;
+}
+
+function buildListeningPassageSystemPrompt() {
+  return [
+    '你是 JLPT 日语听力短文出题助手。',
+    '请生成可机器解析的短文题，每篇短文仅配 1 道四选一理解题。',
+    '硬性约束：',
+    '1) 输出必须严格符合 JSON Schema。',
+    '2) 日语内容需自然，且难度匹配目标等级。',
+    '3) 每题必须有且只有 4 个不重复选项，且仅 1 个正确答案。',
+    '4) answer_index 必须为 1-4（从 1 开始计数），并与正确选项位置一致。',
+    '5) answer_text 必须与 options 中正确项文本逐字一致。',
+    '6) question 字段应考查短文主旨或关键信息。',
+    '7) explain_cn 字段必须为简洁清晰的中文解析。',
+    '8) 不要输出 Markdown、注释或额外字段。',
+  ].join('\n');
+}
+
+function buildListeningPassageUserPrompt(level: BankLevel, count: number) {
+  const range = getListeningPassageRangeByLevel(level);
+  return [
+    `请生成 ${count} 道 JLPT ${level} 听力短文题。`,
+    `难度参考：${LEVEL_GUIDE[level]}`,
+    `每篇短文字数必须在 ${range.minChars}-${range.maxChars}（按日文字符计数，忽略空格）。`,
+    'id 格式统一为 listen-pass-LEVEL-INDEX，例如 listen-pass-N3-1。',
+    '短文内容要贴近日常语境，适合 TTS 清晰朗读。',
   ].join('\n');
 }
 
@@ -1128,6 +1243,54 @@ function sanitizeSentenceAssembleItems(rawItems: RawAiSentenceAssembleItem[]) {
     .filter(Boolean) as AiSentenceAssembleItem[];
 }
 
+function sanitizeListeningPassageItems(rawItems: RawAiListeningPassageItem[], level: BankLevel) {
+  const range = getListeningPassageRangeByLevel(level);
+  return rawItems
+    .map((item, index) => {
+      const title = String(item.title ?? '').trim();
+      const passage = String(item.passage ?? '').trim();
+      const question = String(item.question ?? '').trim();
+      const explainCn = String(item.explain_cn ?? '').trim();
+      const options = Array.isArray(item.options)
+        ? item.options.map((option) => String(option).trim()).filter(Boolean)
+        : [];
+      const dedupedOptions = Array.from(new Set(options));
+      const answerIndexRaw = Number(item.answer_index ?? NaN);
+      const answerText = String(item.answer_text ?? '').trim();
+      const passageLength = countPassageChars(passage);
+
+      if (!title || !passage || !question || !explainCn) return null;
+      if (passageLength < range.minChars || passageLength > range.maxChars) return null;
+      if (dedupedOptions.length !== 4) return null;
+
+      let answerIndex = inferAnswerIndexFromText(answerText, dedupedOptions);
+      if (answerIndex < 0 && Number.isInteger(answerIndexRaw)) {
+        if (answerIndexRaw >= 1 && answerIndexRaw <= 4) {
+          answerIndex = answerIndexRaw - 1;
+        } else if (answerIndexRaw >= 0 && answerIndexRaw <= 3) {
+          // 兼容部分模型偶发按 0-3 计数
+          answerIndex = answerIndexRaw;
+        }
+      }
+      if (answerIndex < 0 || answerIndex > 3) return null;
+
+      const answer = dedupedOptions[answerIndex];
+      if (!answer) return null;
+
+      return {
+        id: String(item.id ?? `listen-pass-${level}-${index + 1}`),
+        title,
+        passage,
+        question,
+        options: dedupedOptions,
+        answerIndex: answerIndex + 1,
+        answer,
+        explainCn,
+      } satisfies AiListeningPassageItem;
+    })
+    .filter(Boolean) as AiListeningPassageItem[];
+}
+
 function normalizeWritingRegister(value: unknown, fallback: WritingRegister): WritingRegister {
   return value === 'plain' || value === 'polite' ? value : fallback;
 }
@@ -1575,6 +1738,58 @@ export function createResponsesProvider(config: AiProviderConfig): AiQuizProvide
         throw new Error('AI 返回连词成句未通过校验，请重试');
       }
       return items;
+    },
+    async generateListeningPassages({ level, count }: GenerateListeningPassagesParams) {
+      ensureConfigReady();
+
+      const response = await fetch(`${baseUrl}/responses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: [
+            {
+              role: 'system',
+              content: [{ type: 'input_text', text: buildListeningPassageSystemPrompt() }],
+            },
+            {
+              role: 'user',
+              content: [{ type: 'input_text', text: buildListeningPassageUserPrompt(level, count) }],
+            },
+          ],
+          max_output_tokens: 4000,
+          stream: false,
+          text: {
+            format: LISTENING_PASSAGE_SCHEMA,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`AI 听力短文请求失败（${response.status}）：${errText || response.statusText}`);
+      }
+
+      const outputText = await extractOutputTextFromHttpResponse(response);
+      if (!outputText) {
+        throw new Error('AI 返回听力短文为空，请稍后重试');
+      }
+
+      let parsed: { items?: RawAiListeningPassageItem[] } | null = null;
+      try {
+        parsed = JSON.parse(outputText) as { items?: RawAiListeningPassageItem[] };
+      } catch {
+        throw new Error('AI 返回听力短文不是有效 JSON');
+      }
+
+      const items = sanitizeListeningPassageItems(Array.isArray(parsed?.items) ? parsed.items : [], level);
+      if (!items.length) {
+        throw new Error('AI 返回听力短文未通过校验，请重试');
+      }
+      return items.slice(0, count);
     },
     async generateWritingTasks(params: GenerateWritingTasksParams) {
       ensureConfigReady();

@@ -33,6 +33,7 @@ const BANK_CACHE: Partial<Record<BankLevel, ExamQuizItem[]>> = {};
 export const BANK_LEVELS: BankLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
 export const SESSION_SIZE = 10;
 export const WRITING_SESSION_SIZE = 3;
+export const LISTENING_PASSAGE_SESSION_SIZE = 5;
 
 function decodeHtmlEntities(text: string) {
   return text.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (raw: string, entity: string) => {

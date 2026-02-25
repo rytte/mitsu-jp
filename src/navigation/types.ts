@@ -57,6 +57,7 @@ export type MyStackParamList = {
   ExamQuiz: NavigatorScreenParams<ExamQuizStackParamList> | undefined;
   AiExamQuizPractice: { level: BankLevel; aiItems: ExamQuizItem[] };
   AiHub: undefined;
+  AiListeningPractice: undefined;
   AiSettings: undefined;
   AiConversation: undefined;
   AiTranslationPractice: undefined;

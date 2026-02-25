@@ -110,23 +110,27 @@ export default function AiHubScreen({ navigation }: Props) {
     [tokenUsage.cached_input_tokens, tokenUsage.input_tokens, tokenUsage.output_tokens, totalTokens]
   );
 
-  const navigateToAiPractice = (routeName: 'AiExamQuizPractice' | 'AiSentenceAssemblePractice', params: object) => {
+  const navigateToAiPractice = (
+    routeName: 'AiExamQuizPractice' | 'AiSentenceAssemblePractice' | 'AiListeningPractice',
+    params?: object
+  ) => {
     const navState = navigation.getState() as { routeNames?: string[] };
     const routeNames = navState.routeNames ?? [];
     const navAny = navigation as any;
 
     // 1) 当前容器可直达 AI 练习页（MyStack）时直接跳转
     if (routeNames.includes(routeName)) {
-      navAny.navigate(routeName, params);
+      if (params) {
+        navAny.navigate(routeName, params);
+      } else {
+        navAny.navigate(routeName);
+      }
       return;
     }
 
     // 2) 当前容器是 Tab 时，兜底走 MyStack 内的对应练习页
     if (routeNames.includes('My')) {
-      navAny.navigate('My', {
-        screen: routeName,
-        params,
-      });
+      navAny.navigate('My', params ? { screen: routeName, params } : { screen: routeName });
       return;
     }
 
@@ -226,6 +230,32 @@ export default function AiHubScreen({ navigation }: Props) {
               <Text style={styles.usageValue}>{item.value}</Text>
             </View>
           ))}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.systemHeader}>
+          <View style={styles.sectionTitleRow}>
+            <Ionicons name="ear-outline" size={16} color={colors.text} />
+            <Text style={styles.sectionTitle}>AI 日语理解能力训练</Text>
+          </View>
+        </View>
+        <View style={[styles.systemCard, styles.systemCardLast]}>
+          <View style={styles.systemCardHead}>
+            <View style={[styles.stepBadge, styles.stepBadgeTeal]}>
+              <Text style={styles.stepBadgeText}>01</Text>
+            </View>
+            <View style={styles.systemCardMeta}>
+              <Text style={styles.systemCardTitle}>AI 听力训练</Text>
+              <Text style={styles.systemCardDesc}>听单词、听句子与 AI 小短文听解，统一使用 TTS 播放音频。</Text>
+            </View>
+          </View>
+          <HubActionButton
+            title="进入听力训练"
+            onPress={() => navigateToAiPractice('AiListeningPractice')}
+            tone="teal"
+            style={styles.moduleActionBtn}
+          />
         </View>
       </View>
 
@@ -513,6 +543,9 @@ const styles = StyleSheet.create({
   },
   stepBadgePurple: {
     backgroundColor: '#ede9fe',
+  },
+  stepBadgeTeal: {
+    backgroundColor: '#ccfbf1',
   },
   stepBadgeText: {
     color: '#111827',

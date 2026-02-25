@@ -247,3 +247,56 @@ export type QuizItem =
       options: string[];
       answer: string;
     };
+
+export type ListeningQuestionType = 'word_meaning' | 'sentence_spelling' | 'ai_passage';
+
+export type ListeningQuestionItem =
+  | {
+      id: string;
+      type: 'word_meaning';
+      audioText: string;
+      prompt: string;
+      options: string[];
+      answer: string;
+      displayJa: string;
+    }
+  | {
+      id: string;
+      type: 'sentence_spelling';
+      audioText: string;
+      prompt: string;
+      answer: string;
+    }
+  | {
+      id: string;
+      type: 'ai_passage';
+      audioText: string;
+      title: string;
+      passage: string;
+      prompt: string;
+      options: string[];
+      answer: string;
+      explainCn?: string;
+    };
+
+export type RawAiListeningPassageItem = {
+  id?: string;
+  title?: string;
+  passage?: string;
+  question?: string;
+  options?: string[];
+  answer_index?: number;
+  answer_text?: string;
+  explain_cn?: string;
+};
+
+export type AiListeningPassageItem = {
+  id: string;
+  title: string;
+  passage: string;
+  question: string;
+  options: string[];
+  answerIndex: number;
+  answer: string;
+  explainCn?: string;
+};
