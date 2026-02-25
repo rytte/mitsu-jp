@@ -1,7 +1,7 @@
 ﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Audio } from 'expo-av';
+import { useAudioPlayer } from 'expo-audio';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import OptionButton from '../components/OptionButton';
@@ -381,7 +381,7 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [addedWordIds, setAddedWordIds] = useState<Set<string>>(new Set());
   const [addingWordId, setAddingWordId] = useState<string | null>(null);
   const lastAutoPlayedId = useRef<string | null>(null);
-  const correctSoundRef = useRef<Audio.Sound | null>(null);
+  const correctSoundPlayer = useAudioPlayer(require('../../assets/sfx/correct.wav'));
 
   const currentItem = items[currentIndex];
   const meaningLabel = getMeaningLabel(settings.meaning_language);
@@ -462,37 +462,14 @@ export default function QuizScreen({ navigation, route }: Props) {
   };
 
   useEffect(() => {
-    let active = true;
-    const loadSound = async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(
-          require('../../assets/sfx/correct.wav'),
-          { shouldPlay: false, volume: 1.0, rate: 1.15, shouldCorrectPitch: true }
-        );
-        if (!active) {
-          await sound.unloadAsync();
-          return;
-        }
-        correctSoundRef.current = sound;
-      } catch {
-        // ignore
-      }
-    };
-    loadSound();
-    return () => {
-      active = false;
-      if (correctSoundRef.current) {
-        void correctSoundRef.current.unloadAsync();
-        correctSoundRef.current = null;
-      }
-    };
-  }, []);
+    correctSoundPlayer.volume = 1.0;
+    correctSoundPlayer.setPlaybackRate(1.15, 'high');
+  }, [correctSoundPlayer]);
 
   const playCorrectSound = async () => {
-    const sound = correctSoundRef.current;
-    if (!sound) return;
     try {
-      await sound.replayAsync();
+      await correctSoundPlayer.seekTo(0);
+      correctSoundPlayer.play();
     } catch {
       // ignore
     }
