@@ -143,12 +143,12 @@ function renderFuriganaText(text: string, fontSize: number) {
   const buildBaseStyle = (bold: boolean) => [
     styles.exampleJa,
     { fontSize, lineHeight: Math.round(fontSize * 1.5) },
-    bold ? styles.exampleBold : null,
+    bold ? styles.exampleKeyword : null,
   ];
   const buildReadingStyle = (bold: boolean) => [
     styles.furiganaReading,
     { fontSize: readingSize, lineHeight: Math.round(readingSize * 1.1) },
-    bold ? styles.exampleBold : null,
+    bold ? styles.exampleKeyword : null,
   ];
 
   for (const token of tokens) {
@@ -266,7 +266,7 @@ export default function WordCard({
                       { fontSize: fontSizes.meaning, lineHeight: Math.round(fontSizes.meaning * 1.5) },
                     ]}
                   >
-                    {renderBoldMarkup(stripFurigana(exampleJa), styles.exampleBold)}
+                    {renderBoldMarkup(stripFurigana(exampleJa), styles.exampleKeyword)}
                   </Text>
                 )
               ) : null}
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     paddingRight: spacing.s,
   },
   word: {
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
   },
   reading: {
@@ -417,8 +417,8 @@ const styles = StyleSheet.create({
     color: colors.muted,
     includeFontPadding: false,
   },
-  exampleBold: {
-    fontWeight: '700',
+  exampleKeyword: {
+    color: colors.primaryDark,
   },
   exampleCn: {
     marginTop: spacing.s,

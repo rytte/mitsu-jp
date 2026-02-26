@@ -206,7 +206,7 @@ function sanitizeFormationText(text: string) {
     .trim();
 }
 
-function renderFuriganaMarkup(text: string, fontSize: number, baseStyle?: TextStyle) {
+function renderFuriganaMarkup(text: string, fontSize: number, baseStyle?: TextStyle, keywordStyle?: TextStyle) {
   const tokens = parseInlineTokens(text);
   const readingSize = Math.max(10, Math.round(fontSize * 0.6));
   const lines: ReactNode[] = [];
@@ -219,7 +219,7 @@ function renderFuriganaMarkup(text: string, fontSize: number, baseStyle?: TextSt
     return [
       baseTextStyle,
       { fontSize, lineHeight: Math.round(fontSize * 1.5) },
-      token.bold ? styles.inlineBold : null,
+      token.bold ? (keywordStyle ?? styles.inlineBold) : null,
       token.underline ? styles.inlineUnderline : null,
       token.strike ? styles.inlineStrike : null,
     ];
@@ -229,7 +229,7 @@ function renderFuriganaMarkup(text: string, fontSize: number, baseStyle?: TextSt
     return [
       styles.furiganaReading,
       { fontSize: readingSize, lineHeight: Math.round(readingSize * 1.1) },
-      token.bold ? styles.inlineBold : null,
+      token.bold ? (keywordStyle ?? styles.inlineBold) : null,
     ];
   };
 
@@ -400,16 +400,21 @@ export default function GrammarCard({
           </View>
           {exampleJa ? (
             showExampleFurigana ? (
-              renderFuriganaMarkup(exampleJa, fontSizes.detail, styles.exampleJa)
+              renderFuriganaMarkup(exampleJa, fontSizes.detail, styles.exampleJa, styles.exampleKeyword)
             ) : (
               <Text style={[styles.exampleJa, { fontSize: fontSizes.detail, lineHeight: Math.round(fontSizes.detail * 1.5) }]}>
-                {renderInlineMarkup(stripFurigana(exampleJa), styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+                {renderInlineMarkup(
+                  stripFurigana(exampleJa),
+                  styles.exampleKeyword,
+                  styles.inlineUnderline,
+                  styles.inlineStrike
+                )}
               </Text>
             )
           ) : null}
           {exampleZh ? (
             <Text style={[styles.exampleZh, { fontSize: fontSizes.detail, lineHeight: Math.round(fontSizes.detail * 1.5) }]}>
-              {renderInlineMarkup(exampleZh, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+              {renderInlineMarkup(exampleZh, styles.exampleKeyword, styles.inlineUnderline, styles.inlineStrike)}
             </Text>
           ) : null}
         </Pressable>
@@ -463,7 +468,7 @@ const styles = StyleSheet.create({
     paddingRight: spacing.s,
   },
   pattern: {
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
   },
   formation: {
@@ -571,6 +576,9 @@ const styles = StyleSheet.create({
   },
   exampleJa: {
     color: colors.text,
+  },
+  exampleKeyword: {
+    color: colors.primaryDark,
   },
   furiganaWrap: {
     flexDirection: 'column',
