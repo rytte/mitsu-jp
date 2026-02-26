@@ -160,7 +160,6 @@ export type GrammarPoint = {
   notes?: string[] | null;
   examples?: GrammarExample[] | null;
   tags?: string[] | null;
-  sentenceTags?: string[] | null;
   subOrder?: string | null;
   totalOrder?: string | null;
   honorific?: string | null;

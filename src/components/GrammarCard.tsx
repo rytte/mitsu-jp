@@ -301,8 +301,6 @@ export default function GrammarCard({
   const meaning = (grammar.meaning_cn ?? '').trim() || (grammar.usage?.[0] ?? '').trim();
   const usageLines = (grammar.usage ?? []).map((item) => item.trim()).filter((item) => item && item !== meaning);
   const noteLines = (grammar.notes ?? []).map((item) => item.trim()).filter(Boolean);
-  const examTags = (grammar.sentenceTags ?? []).map((item) => item.trim()).filter(Boolean);
-
   const example = grammar.examples?.[0];
   const exampleJa = (example?.ja ?? '').trim();
   const exampleZh = (example?.zh ?? '').trim();
@@ -375,16 +373,6 @@ export default function GrammarCard({
             <Text key={`note-${index}`} style={[styles.blockText, { fontSize: fontSizes.detail }]}>
               {renderInlineMarkup(stripBracketFurigana(line), styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
             </Text>
-          ))}
-        </View>
-      ) : null}
-
-      {showDetails && examTags.length > 0 ? (
-        <View style={styles.tagRow}>
-          {examTags.map((tag, index) => (
-            <View key={`${tag}-${index}`} style={styles.tagChip}>
-              <Text style={styles.tagText}>{tag}</Text>
-            </View>
           ))}
         </View>
       ) : null}
@@ -524,29 +512,6 @@ const styles = StyleSheet.create({
   blockText: {
     color: colors.text,
     marginBottom: spacing.xs,
-  },
-  tagRow: {
-    marginTop: spacing.s,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  tagChip: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.s,
-    paddingVertical: 2,
-    borderRadius: radius.s,
-    backgroundColor: '#fff7ed',
-    borderWidth: 1,
-    borderColor: '#fed7aa',
-    marginRight: spacing.xs,
-    marginTop: spacing.xs,
-  },
-  tagText: {
-    fontSize: 10,
-    color: '#9a3412',
-    fontWeight: '600',
-    lineHeight: 12,
-    includeFontPadding: false,
   },
   example: {
     marginTop: spacing.s,
