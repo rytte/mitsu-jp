@@ -18,7 +18,7 @@ const DEFAULT_MODES: GrammarQuizModes = {
 };
 
 function getMeaning(grammar: GrammarPoint) {
-  const direct = (grammar.meaning_cn ?? '').trim();
+  const direct = (grammar.explanation ?? '').trim();
   if (direct) return direct;
   const usage = grammar.usage ?? [];
   for (const item of usage) {

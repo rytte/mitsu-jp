@@ -92,7 +92,7 @@ function buildGrammarHaystack(grammar: GrammarPoint) {
   return normalizeText(
     [
       grammar.pattern ?? '',
-      grammar.meaning_cn ?? '',
+      grammar.explanation ?? '',
     ].join(' ')
   );
 }
@@ -101,7 +101,7 @@ function scoreGrammar(grammar: GrammarPoint, query: string) {
   const needle = normalizeText(query);
   if (!needle) return 0;
   const pattern = normalizeText(grammar.pattern ?? '');
-  const meaning = normalizeText(grammar.meaning_cn ?? '');
+  const meaning = normalizeText(grammar.explanation ?? '');
   let score = 0;
   if (pattern === needle) score += 120;
   if (pattern.startsWith(needle)) score += 50;

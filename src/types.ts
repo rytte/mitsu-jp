@@ -155,7 +155,7 @@ export type GrammarPoint = {
   level?: Level;
   pattern: string;
   formation?: string[] | null;
-  meaning_cn?: string | null;
+  explanation?: string | null;
   usage?: string[] | null;
   notes?: string[] | null;
   examples?: GrammarExample[] | null;

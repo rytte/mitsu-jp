@@ -120,7 +120,7 @@ function buildGrammarItems(level: BankLevel, direction: TranslationDirection) {
   for (const grammar of grammars) {
     if (!Array.isArray(grammar.examples) || grammar.examples.length === 0) continue;
     const pattern = sanitizePattern(String(grammar.pattern ?? ''));
-    const meaning = normalizeChineseText(String(grammar.meaning_cn ?? ''));
+    const meaning = normalizeChineseText(String(grammar.explanation ?? ''));
     const hint = meaning ? `文法提示：${pattern}｜${meaning}` : `文法提示：${pattern}`;
 
     for (let i = 0; i < grammar.examples.length; i += 1) {

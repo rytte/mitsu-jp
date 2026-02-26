@@ -198,12 +198,20 @@ function stripBracketFurigana(text: string) {
 
 function sanitizeFormationText(text: string) {
   if (!text) return '';
+  return stripBracketFurigana(text).trim();
+}
+
+function sanitizeMeaningText(text: string) {
+  if (!text) return '';
+  return stripBracketFurigana(text).trim();
+}
+
+function splitRichTextLines(text: string) {
+  if (!text) return [];
   return text
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\[[^\]]*\]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+    .split(/<br\s*\/?>|\r?\n/gi)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function renderFuriganaMarkup(text: string, fontSize: number, baseStyle?: TextStyle, keywordStyle?: TextStyle) {
@@ -294,12 +302,13 @@ export default function GrammarCard({
   const showDetails = !compact || expanded;
   const cardStyles = [styles.card, shadow ? styles.cardShadow : null];
 
-  const formationText = (grammar.formation ?? [])
-    .map((item) => sanitizeFormationText(item))
-    .filter(Boolean)
-    .join(' / ');
-  const meaning = (grammar.meaning_cn ?? '').trim() || (grammar.usage?.[0] ?? '').trim();
-  const usageLines = (grammar.usage ?? []).map((item) => item.trim()).filter((item) => item && item !== meaning);
+  const connectiveSource =
+    grammar.gakkoConnectives && grammar.gakkoConnectives.length > 0 ? grammar.gakkoConnectives : grammar.formation;
+  const formationLines = (connectiveSource ?? [])
+    .flatMap((item) => splitRichTextLines(sanitizeFormationText(item)))
+    .filter(Boolean);
+  const meaningLines = splitRichTextLines(sanitizeMeaningText(grammar.explanation ?? ''));
+  const usageLines = (grammar.usage ?? []).map((item) => item.trim()).filter(Boolean);
   const noteLines = (grammar.notes ?? []).map((item) => item.trim()).filter(Boolean);
   const example = grammar.examples?.[0];
   const exampleJa = (example?.ja ?? '').trim();
@@ -307,9 +316,8 @@ export default function GrammarCard({
   const showExample = Boolean(exampleJa || exampleZh);
   const exampleSpeechText = stripFurigana(stripInlineMarkup(exampleJa)).trim();
 
-  const metaItems: string[] = [];
-  if (grammar.level) metaItems.push(grammar.level);
-  if (grammar.subOrder) metaItems.push(`No. ${grammar.subOrder}`);
+  const noLabel = grammar.subOrder ? `No. ${grammar.subOrder}` : '';
+  const metaItems = [noLabel].filter(Boolean);
 
   const scheduleSpeak = (text: string) => {
     InteractionManager.runAfterInteractions(() => {
@@ -335,7 +343,7 @@ export default function GrammarCard({
         <View style={styles.headText}>
           {renderFuriganaMarkup(grammar.pattern, fontSizes.pattern, styles.pattern)}
         </View>
-        {showDetails && metaItems.length > 0 ? (
+        {metaItems.length > 0 ? (
           <View style={styles.metaRow}>
             {metaItems.map((item, index) => (
               <View key={`${item}-${index}`} style={[styles.metaChip, index > 0 ? styles.metaChipGap : null]}>
@@ -345,14 +353,38 @@ export default function GrammarCard({
           </View>
         ) : null}
       </View>
-      {showDetails && formationText ? (
-        <Text style={[styles.formation, { fontSize: fontSizes.detail }]}>{formationText}</Text>
+      {showDetails && formationLines.length > 0 ? (
+        <View style={[styles.block, styles.connectiveBlock]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionAccent, styles.connectiveAccent]} />
+            <Text style={[styles.sectionLabel, styles.connectiveLabel]}>接续</Text>
+          </View>
+          {formationLines.map((line, index) => (
+            <Text
+              key={`formation-${index}`}
+              style={[styles.blockText, styles.connectiveText, { fontSize: fontSizes.detail }]}
+            >
+              {renderInlineMarkup(line, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+            </Text>
+          ))}
+        </View>
       ) : null}
 
-      {showDetails && meaning ? (
-        <Text style={[styles.meaning, { fontSize: fontSizes.meaning }]}>
-          {renderInlineMarkup(meaning, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
-        </Text>
+      {showDetails && meaningLines.length > 0 ? (
+        <View style={[styles.block, styles.meaningBlock]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionAccent, styles.meaningAccent]} />
+            <Text style={[styles.sectionLabel, styles.meaningLabel]}>释义</Text>
+          </View>
+          {meaningLines.map((line, index) => (
+            <Text
+              key={`meaning-${index}`}
+              style={[styles.meaning, styles.meaningText, { fontSize: fontSizes.meaning }, index > 0 ? styles.meaningLineGap : null]}
+            >
+              {renderInlineMarkup(line, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
+            </Text>
+          ))}
+        </View>
       ) : null}
 
       {showDetails && usageLines.length > 0 ? (
@@ -459,10 +491,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
   },
-  formation: {
-    marginTop: spacing.xs,
-    color: colors.muted,
-  },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -489,11 +517,54 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   meaning: {
-    marginTop: spacing.s,
     color: colors.text,
+  },
+  meaningLineGap: {
+    marginTop: spacing.xs,
   },
   block: {
     marginTop: spacing.s,
+  },
+  connectiveBlock: {
+    marginTop: spacing.s,
+  },
+  connectiveLabel: {
+    color: '#8a6d3b',
+  },
+  connectiveText: {
+    color: colors.muted,
+  },
+  meaningBlock: {
+    marginTop: spacing.s,
+  },
+  meaningLabel: {
+    color: colors.primaryDark,
+  },
+  meaningText: {
+    color: colors.text,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  sectionAccent: {
+    width: 3,
+    height: 12,
+    borderRadius: 2,
+    marginRight: spacing.xs,
+    backgroundColor: colors.border,
+  },
+  connectiveAccent: {
+    backgroundColor: '#d4c3a5',
+  },
+  meaningAccent: {
+    backgroundColor: '#c4d1e2',
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   blockLabel: {
     alignSelf: 'flex-start',
