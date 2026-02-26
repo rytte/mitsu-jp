@@ -334,9 +334,6 @@ export default function GrammarCard({
       <View style={styles.headRow}>
         <View style={styles.headText}>
           {renderFuriganaMarkup(grammar.pattern, fontSizes.pattern, styles.pattern)}
-          {showDetails && formationText ? (
-            <Text style={[styles.formation, { fontSize: fontSizes.detail }]}>{formationText}</Text>
-          ) : null}
         </View>
         {showDetails && metaItems.length > 0 ? (
           <View style={styles.metaRow}>
@@ -348,6 +345,9 @@ export default function GrammarCard({
           </View>
         ) : null}
       </View>
+      {showDetails && formationText ? (
+        <Text style={[styles.formation, { fontSize: fontSizes.detail }]}>{formationText}</Text>
+      ) : null}
 
       {showDetails && meaning ? (
         <Text style={[styles.meaning, { fontSize: fontSizes.meaning }]}>
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     fontSize: 11,
     color: colors.primaryDark,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: spacing.xs,
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
