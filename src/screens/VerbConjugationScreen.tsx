@@ -218,6 +218,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: '#f8fafc',
+    paddingHorizontal: spacing.xs,
   },
   cell: {
     color: colors.text,
