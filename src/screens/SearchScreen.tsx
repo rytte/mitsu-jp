@@ -463,12 +463,7 @@ export default function SearchScreen() {
           </View>
         ) : null}
 
-        {aiMessages.length === 0 ? (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>还没有解释内容</Text>
-            <Text style={styles.emptyHint}>先输入关键词并点击「AI 解释」</Text>
-          </View>
-        ) : (
+        {aiMessages.length > 0 ? (
           <View style={styles.aiMessagesWrap}>
             {aiMessages.map((message) => {
               const isUser = message.role === 'user';
@@ -483,7 +478,7 @@ export default function SearchScreen() {
               );
             })}
           </View>
-        )}
+        ) : null}
 
         {aiMessages.length > 0 ? (
           <View style={styles.aiFollowUpBox}>
@@ -625,7 +620,7 @@ export default function SearchScreen() {
         <View style={styles.titleRow}>
           <View>
             <Text style={styles.title}>搜索</Text>
-            <Text style={styles.subtitle}>支持假名、汉字、释义、用法与标签</Text>
+            <Text style={styles.subtitle}>支持假名、汉字和释义</Text>
           </View>
           <View style={styles.compactToggle}>
             <Text style={styles.compactLabel}>紧凑</Text>
@@ -640,9 +635,9 @@ export default function SearchScreen() {
             onChangeText={setQuery}
             placeholder={
               mode === 'word'
-                ? '搜索词汇、读音或释义'
+                ? '搜索词汇或释义'
                 : mode === 'grammar'
-                  ? '搜索文法、用法或释义'
+                  ? '搜索文法或释义'
                   : '输入词汇或文法点，点击 AI 解释'
             }
             placeholderTextColor={colors.muted}
