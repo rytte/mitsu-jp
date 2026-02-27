@@ -447,91 +447,92 @@ function KeigoPracticePanel() {
   if (!current) return null;
 
   return (
-    <View style={styles.practiceCard}>
-      <View style={styles.practiceModeRow}>
-        {KEIGO_MODE_ITEMS.map((item) => {
-          const active = item.id === mode;
+    <>
+      <View style={[styles.practiceCard, answered ? styles.practiceCardWithResult : null]}>
+        <View style={styles.practiceModeRow}>
+          {KEIGO_MODE_ITEMS.map((item) => {
+            const active = item.id === mode;
+            return (
+              <Pressable
+                key={item.id}
+                onPress={() => handleModeChange(item.id)}
+                style={[styles.practiceModeChip, active ? styles.practiceModeChipActive : null]}
+              >
+                <Text style={[styles.practiceModeChipText, active ? styles.practiceModeChipTextActive : null]}>{item.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.practiceHeadRow}>
+          <Text style={styles.practiceProgress}>第 {index + 1} / {session.length} 题</Text>
+        </View>
+        <View style={styles.practiceProgressTrack}>
+          <View style={[styles.practiceProgressFill, { width: `${Math.max(0, Math.min(100, Math.round(progressRatio * 100)))}%` }]} />
+        </View>
+
+        <View style={styles.practicePromptCard}>
+          <View style={styles.practiceTargetRow}>
+            <Text style={styles.practiceTargetLabel}>目标敬语</Text>
+            <Text style={styles.practiceTargetValue}>{current.label}</Text>
+          </View>
+          <Text style={styles.practicePrompt}>「{promptMain}」</Text>
+        </View>
+
+        {current.options.map((option, optionIndex) => {
+          const isSelected = option === selected;
+          const isCorrect = option === current.answer;
           return (
             <Pressable
-              key={item.id}
-              onPress={() => handleModeChange(item.id)}
-              style={[styles.practiceModeChip, active ? styles.practiceModeChipActive : null]}
+              key={`${current.id}-${option}`}
+              onPress={() => handleSelect(option)}
+              disabled={answered}
+              style={({ pressed }) => [
+                styles.practiceOption,
+                answered && isCorrect ? styles.practiceOptionCorrect : null,
+                answered && isSelected && !isCorrect ? styles.practiceOptionWrong : null,
+                pressed && !answered ? styles.practiceOptionPressed : null,
+              ]}
             >
-              <Text style={[styles.practiceModeChipText, active ? styles.practiceModeChipTextActive : null]}>{item.label}</Text>
+              <View style={styles.practiceOptionInner}>
+                <View
+                  style={[
+                    styles.practiceOptionBadge,
+                    answered && isCorrect ? styles.practiceOptionBadgeCorrect : null,
+                    answered && isSelected && !isCorrect ? styles.practiceOptionBadgeWrong : null,
+                  ]}
+                >
+                  <Text style={styles.practiceOptionBadgeText}>{PRACTICE_OPTION_LABELS[optionIndex] ?? '?'}</Text>
+                </View>
+                <Text
+                  style={[
+                    styles.practiceOptionText,
+                    answered && (isCorrect || isSelected) ? styles.practiceOptionTextStrong : null,
+                  ]}
+                >
+                  {option}
+                </Text>
+                {answered && isCorrect ? <Text style={styles.practiceOptionMark}>正确</Text> : null}
+              </View>
             </Pressable>
           );
         })}
       </View>
 
-      <View style={styles.practiceHeadRow}>
-        <Text style={styles.practiceProgress}>第 {index + 1} / {session.length} 题</Text>
-      </View>
-      <View style={styles.practiceProgressTrack}>
-        <View style={[styles.practiceProgressFill, { width: `${Math.max(0, Math.min(100, Math.round(progressRatio * 100)))}%` }]} />
-      </View>
-
-      <View style={styles.practicePromptCard}>
-        <View style={styles.practiceTargetRow}>
-          <Text style={styles.practiceTargetLabel}>目标敬语</Text>
-          <Text style={styles.practiceTargetValue}>{current.label}</Text>
-        </View>
-        <Text style={styles.practicePrompt}>「{promptMain}」</Text>
-      </View>
-
-      {current.options.map((option, optionIndex) => {
-        const isSelected = option === selected;
-        const isCorrect = option === current.answer;
-        return (
-          <Pressable
-            key={`${current.id}-${option}`}
-            onPress={() => handleSelect(option)}
-            disabled={answered}
-            style={({ pressed }) => [
-              styles.practiceOption,
-              answered && isCorrect ? styles.practiceOptionCorrect : null,
-              answered && isSelected && !isCorrect ? styles.practiceOptionWrong : null,
-              pressed && !answered ? styles.practiceOptionPressed : null,
-            ]}
-          >
-            <View style={styles.practiceOptionInner}>
-              <View
-                style={[
-                  styles.practiceOptionBadge,
-                  answered && isCorrect ? styles.practiceOptionBadgeCorrect : null,
-                  answered && isSelected && !isCorrect ? styles.practiceOptionBadgeWrong : null,
-                ]}
-              >
-                <Text style={styles.practiceOptionBadgeText}>{PRACTICE_OPTION_LABELS[optionIndex] ?? '?'}</Text>
-              </View>
-              <Text
-                style={[
-                  styles.practiceOptionText,
-                  answered && (isCorrect || isSelected) ? styles.practiceOptionTextStrong : null,
-                ]}
-              >
-                {option}
-              </Text>
-              {answered && isCorrect ? <Text style={styles.practiceOptionMark}>正确</Text> : null}
-            </View>
-          </Pressable>
-        );
-      })}
-
       {answered ? (
-        <>
-          <Text
-            style={[
-              styles.practiceFeedback,
-              currentCorrect ? styles.practiceFeedbackOk : styles.practiceFeedbackNg,
-              currentCorrect ? styles.practiceFeedbackCardOk : styles.practiceFeedbackCardNg,
-            ]}
-          >
-            {currentCorrect ? '回答正确' : `回答错误，正确答案：${current.answer}`}
-          </Text>
+        <View style={styles.practiceResultBox}>
+          {currentCorrect ? (
+            <Text style={[styles.practiceFeedback, styles.practiceFeedbackOk]}>回答正确</Text>
+          ) : (
+            <>
+              <Text style={[styles.practiceFeedback, styles.practiceFeedbackNg]}>回答错误，正确答案：</Text>
+              <Text style={styles.practiceFeedbackAnswer}>{current.answer}</Text>
+            </>
+          )}
           <PrimaryButton title={index === session.length - 1 ? '查看结果' : '下一题'} onPress={handleNext} style={styles.practiceButton} />
-        </>
+        </View>
       ) : null}
-    </View>
+    </>
   );
 }
 
@@ -834,6 +835,9 @@ const styles = StyleSheet.create({
     padding: spacing.m,
     marginBottom: spacing.m,
   },
+  practiceCardWithResult: {
+    marginBottom: 0,
+  },
   practiceTitle: {
     fontSize: 18,
     fontWeight: '700',
@@ -997,20 +1001,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   practiceFeedback: {
-    marginTop: spacing.s,
     fontWeight: '700',
-    borderWidth: 1,
-    borderRadius: radius.m,
-    paddingHorizontal: spacing.s,
-    paddingVertical: spacing.s,
-  },
-  practiceFeedbackCardOk: {
-    borderColor: '#86efac',
-    backgroundColor: '#f0fdf4',
-  },
-  practiceFeedbackCardNg: {
-    borderColor: '#fecaca',
-    backgroundColor: '#fef2f2',
+    fontSize: 15,
+    lineHeight: 22,
   },
   practiceFeedbackOk: {
     color: colors.success,
@@ -1018,8 +1011,24 @@ const styles = StyleSheet.create({
   practiceFeedbackNg: {
     color: colors.danger,
   },
+  practiceFeedbackAnswer: {
+    marginTop: spacing.xs,
+    color: colors.text,
+    fontSize: 17,
+    lineHeight: 24,
+    fontWeight: '400',
+  },
   practiceButton: {
     marginTop: spacing.m,
+  },
+  practiceResultBox: {
+    marginTop: spacing.m,
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    padding: spacing.m,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.m,
   },
   noteCard: {
     backgroundColor: colors.card,

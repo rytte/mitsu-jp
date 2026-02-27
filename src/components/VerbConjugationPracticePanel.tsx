@@ -179,90 +179,101 @@ export default function VerbConjugationPracticePanel() {
   if (!current) return null;
 
   return (
-    <View style={styles.card}>
-      <View style={styles.modeRow}>
-        {MODE_ITEMS.map((item) => {
-          const active = item.id === mode;
+    <>
+      <View style={[styles.card, answered ? styles.cardWithResult : null]}>
+        <View style={styles.modeRow}>
+          {MODE_ITEMS.map((item) => {
+            const active = item.id === mode;
+            return (
+              <Pressable key={item.id} onPress={() => handleModeChange(item.id)} style={[styles.modeChip, active ? styles.modeChipActive : null]}>
+                <Text style={[styles.modeChipText, active ? styles.modeChipTextActive : null]}>{item.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.headRow}>
+          <Text style={styles.progress}>第 {index + 1} / {session.length} 题</Text>
+        </View>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${Math.max(0, Math.min(100, Math.round(progressRatio * 100)))}%` }]} />
+        </View>
+
+        <View style={styles.promptCard}>
+          <View style={styles.promptRow}>
+            <Text style={styles.promptLabel}>{mode === 'form_to_word' ? '原型' : '单词'}</Text>
+            <Text style={styles.promptValue}>{mode === 'form_to_word' ? current.base : current.word}</Text>
+          </View>
+          <Text style={styles.question}>{mode === 'form_to_word' ? `「${current.form}」是？` : '这是哪种形态？'}</Text>
+        </View>
+
+        {current.options.map((option, optionIndex) => {
+          const isSelected = option === selected;
+          const isCorrect = option === current.answer;
           return (
-            <Pressable key={item.id} onPress={() => handleModeChange(item.id)} style={[styles.modeChip, active ? styles.modeChipActive : null]}>
-              <Text style={[styles.modeChipText, active ? styles.modeChipTextActive : null]}>{item.label}</Text>
+            <Pressable
+              key={`${current.id}-${option}`}
+              onPress={() => handleSelect(option)}
+              disabled={answered}
+              style={({ pressed }) => [
+                styles.option,
+                answered && isCorrect ? styles.optionCorrect : null,
+                answered && isSelected && !isCorrect ? styles.optionWrong : null,
+                pressed && !answered ? styles.optionPressed : null,
+              ]}
+            >
+              <View style={styles.optionInner}>
+                <View
+                  style={[
+                    styles.optionBadge,
+                    answered && isCorrect ? styles.optionBadgeCorrect : null,
+                    answered && isSelected && !isCorrect ? styles.optionBadgeWrong : null,
+                  ]}
+                >
+                  <Text style={styles.optionBadgeText}>{OPTION_LABELS[optionIndex] ?? '?'}</Text>
+                </View>
+                <Text
+                  style={[
+                    styles.optionText,
+                    answered && isCorrect ? styles.optionTextStrong : null,
+                    answered && isSelected && !isCorrect ? styles.optionTextStrong : null,
+                  ]}
+                >
+                  {option}
+                </Text>
+                {answered && isCorrect ? <Text style={styles.optionMark}>正确</Text> : null}
+              </View>
             </Pressable>
           );
         })}
       </View>
 
-      <View style={styles.headRow}>
-        <Text style={styles.progress}>第 {index + 1} / {session.length} 题</Text>
-      </View>
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${Math.max(0, Math.min(100, Math.round(progressRatio * 100)))}%` }]} />
-      </View>
-
-      <View style={styles.promptCard}>
-        <View style={styles.promptRow}>
-          <Text style={styles.promptLabel}>{mode === 'form_to_word' ? '原型' : '单词'}</Text>
-          <Text style={styles.promptValue}>{mode === 'form_to_word' ? current.base : current.word}</Text>
-        </View>
-        <Text style={styles.question}>{mode === 'form_to_word' ? `「${current.form}」是？` : '这是哪种形态？'}</Text>
-      </View>
-
-      {current.options.map((option, optionIndex) => {
-        const isSelected = option === selected;
-        const isCorrect = option === current.answer;
-        return (
-          <Pressable
-            key={`${current.id}-${option}`}
-            onPress={() => handleSelect(option)}
-            disabled={answered}
-            style={({ pressed }) => [
-              styles.option,
-              answered && isCorrect ? styles.optionCorrect : null,
-              answered && isSelected && !isCorrect ? styles.optionWrong : null,
-              pressed && !answered ? styles.optionPressed : null,
-            ]}
-          >
-            <View style={styles.optionInner}>
-              <View
-                style={[
-                  styles.optionBadge,
-                  answered && isCorrect ? styles.optionBadgeCorrect : null,
-                  answered && isSelected && !isCorrect ? styles.optionBadgeWrong : null,
-                ]}
-              >
-                <Text style={styles.optionBadgeText}>{OPTION_LABELS[optionIndex] ?? '?'}</Text>
-              </View>
-              <Text
-                style={[
-                  styles.optionText,
-                  answered && isCorrect ? styles.optionTextStrong : null,
-                  answered && isSelected && !isCorrect ? styles.optionTextStrong : null,
-                ]}
-              >
-                {option}
-              </Text>
-              {answered && isCorrect ? <Text style={styles.optionMark}>正确</Text> : null}
-            </View>
-          </Pressable>
-        );
-      })}
-
       {answered ? (
-        <>
-          {mode === 'word_to_form' ? <Text style={styles.revealBase}>原型：{current.base}</Text> : null}
-          <Text
-            style={[
-              styles.feedback,
-              currentCorrect ? styles.feedbackOk : styles.feedbackNg,
-              currentCorrect ? styles.feedbackCardOk : styles.feedbackCardNg,
-            ]}
-          >
-            {currentCorrect ? '回答正确' : `回答错误，正确答案：${current.answer}`}
-          </Text>
-          <Text style={styles.ruleHint}>规则：{current.ruleHint}</Text>
+        <View style={styles.resultBox}>
+          {currentCorrect ? (
+            <Text style={[styles.feedback, styles.feedbackOk]}>回答正确</Text>
+          ) : (
+            <>
+              <Text style={[styles.feedback, styles.feedbackNg]}>回答错误，正确答案：</Text>
+              <Text style={styles.feedbackAnswer}>{current.answer}</Text>
+            </>
+          )}
+          <View style={styles.infoWrap}>
+            {mode === 'word_to_form' ? (
+              <Text style={[styles.infoText, styles.infoBaseText]}>
+                <Text style={styles.infoKey}>原型：</Text>
+                {current.base}
+              </Text>
+            ) : null}
+            <Text style={[styles.infoText, mode === 'word_to_form' ? styles.infoTextGap : null]}>
+              <Text style={styles.infoKey}>规则：</Text>
+              {current.ruleHint}
+            </Text>
+          </View>
           <PrimaryButton title={index === session.length - 1 ? '查看结果' : '下一题'} onPress={handleNext} style={styles.nextButton} />
-        </>
+        </View>
       ) : null}
-    </View>
+    </>
   );
 }
 
@@ -274,6 +285,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.m,
     marginBottom: spacing.m,
+  },
+  cardWithResult: {
+    marginBottom: 0,
   },
   title: {
     fontSize: 18,
@@ -433,20 +447,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   feedback: {
-    marginTop: spacing.s,
     fontWeight: '700',
-    borderWidth: 1,
-    borderRadius: radius.m,
-    paddingHorizontal: spacing.s,
-    paddingVertical: spacing.s,
-  },
-  feedbackCardOk: {
-    borderColor: '#86efac',
-    backgroundColor: '#f0fdf4',
-  },
-  feedbackCardNg: {
-    borderColor: '#fecaca',
-    backgroundColor: '#fef2f2',
+    fontSize: 15,
+    lineHeight: 22,
   },
   feedbackOk: {
     color: colors.success,
@@ -454,18 +457,48 @@ const styles = StyleSheet.create({
   feedbackNg: {
     color: colors.danger,
   },
-  revealBase: {
-    marginTop: spacing.s,
-    color: '#5b6675',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  ruleHint: {
+  feedbackAnswer: {
     marginTop: spacing.xs,
-    color: '#5b6675',
-    lineHeight: 18,
+    color: colors.text,
+    fontSize: 17,
+    lineHeight: 24,
+    fontWeight: '400',
+  },
+  infoWrap: {
+    marginTop: spacing.s,
+    borderRadius: radius.m,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.s,
+  },
+  infoText: {
+    color: '#475569',
+    lineHeight: 20,
+    fontSize: 13,
+  },
+  infoBaseText: {
+    fontWeight: '600',
+    color: '#334155',
+  },
+  infoKey: {
+    color: '#334155',
+    fontWeight: '700',
+  },
+  infoTextGap: {
+    marginTop: spacing.xs,
   },
   nextButton: {
     marginTop: spacing.m,
+  },
+  resultBox: {
+    marginTop: spacing.m,
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    padding: spacing.m,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.m,
   },
 });
