@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import * as Speech from 'expo-speech';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -252,16 +253,22 @@ export default function KanaPracticePanel({ sources }: Props) {
         </Text>
       </View>
 
-      <Text style={styles.promptText}>{question.prompt}</Text>
-      {question.note ? <Text style={styles.noteText}>{question.note}</Text> : null}
-
       {question.mode === 'sound_to_char' ? (
-        <PrimaryButton
-          title="播放发音"
-          onPress={() => speakKana(question.audioKana ?? '')}
-          style={styles.playButton}
-        />
-      ) : null}
+        <View style={styles.promptActionRow}>
+          <Text style={[styles.promptText, styles.promptTextWithAction]}>{question.prompt}</Text>
+          <Pressable
+            onPress={() => speakKana(question.audioKana ?? '')}
+            accessibilityRole="button"
+            accessibilityLabel="播放发音"
+            style={({ pressed }) => [styles.speakIconButton, pressed ? styles.speakIconButtonPressed : null]}
+          >
+            <Ionicons name="volume-high" size={20} color="#fff" />
+          </Pressable>
+        </View>
+      ) : (
+        <Text style={styles.promptText}>{question.prompt}</Text>
+      )}
+      {question.note ? <Text style={styles.noteText}>{question.note}</Text> : null}
 
       {question.mode === 'spelling' ? (
         <View style={styles.spellingWrap}>
@@ -353,13 +360,40 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: spacing.xs,
   },
+  promptActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
+  promptTextWithAction: {
+    marginBottom: 0,
+    marginRight: spacing.s,
+    flex: 1,
+    flexShrink: 1,
+  },
   noteText: {
     color: colors.muted,
     fontSize: 12,
     marginBottom: spacing.s,
   },
-  playButton: {
-    marginBottom: spacing.s,
+  speakIconButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
+    borderColor: '#1e40af',
+    backgroundColor: '#2563eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1e3a8a',
+    shadowOpacity: 0.14,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  speakIconButtonPressed: {
+    backgroundColor: '#1d4ed8',
   },
   optionsWrap: {
     marginTop: spacing.xs,

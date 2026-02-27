@@ -417,10 +417,9 @@ export default function KanaChartScreen() {
       </View>
 
       {showPractice ? (
-        <>
-          <Text style={styles.pageSubtitle}>四模式训练：看字选音 / 听音选字 / 拼写输入 / 易混淆专项</Text>
+        <View style={styles.practiceWrap}>
           <KanaPracticePanel sources={practiceSources} />
-        </>
+        </View>
       ) : (
         <>
           <Text style={styles.pageSubtitle}>基础清音（平假名 / 片假名）</Text>
@@ -483,6 +482,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     marginBottom: spacing.m,
     color: colors.muted,
+  },
+  practiceWrap: {
+    marginTop: spacing.s,
   },
   sectionTitle: {
     marginTop: spacing.s,
