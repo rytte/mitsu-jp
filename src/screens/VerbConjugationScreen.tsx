@@ -1,77 +1,66 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import VerbConjugationPracticePanel from '../components/VerbConjugationPracticePanel';
 import { CONJUGATION_OVERVIEW_ROWS, CONJUGATION_TABLE_ROWS } from '../features/verbConjugation/data';
 import { colors, radius, spacing } from '../theme';
 import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
-function FormOverviewTable() {
+type MergedConjugationRow = {
+  form: string;
+  meaning: string;
+  godanRule: string;
+  ichidanRule: string;
+  godan: string;
+  ichidan: string;
+  suru: string;
+  kuru: string;
+};
+
+function ConjugationHeaderRow() {
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>变形规则表</Text>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tableScroll}>
-        <View style={[styles.table, styles.overviewTable]}>
-          <View style={[styles.tableRow, styles.headerRow]}>
-            <Text style={[styles.cell, styles.headerCell, styles.colForm]}>形态</Text>
-            <Text style={[styles.cell, styles.headerCell, styles.colMeaning]}>形态说明</Text>
-            <Text style={[styles.cell, styles.headerCell, styles.colRuleWide]}>五段规则</Text>
-            <Text style={[styles.cell, styles.headerCell, styles.colRuleWide, styles.noRightBorder]}>一段规则</Text>
-          </View>
-
-          {CONJUGATION_OVERVIEW_ROWS.map((row) => (
-            <View key={row.form} style={styles.tableRow}>
-              <Text style={[styles.cell, styles.colForm, styles.formCell]}>{row.form}</Text>
-              <Text style={[styles.cell, styles.colMeaning, styles.ruleCell]}>{row.meaning}</Text>
-              <Text style={[styles.cell, styles.colRuleWide, styles.ruleCell]}>{row.godanRule}</Text>
-              <Text style={[styles.cell, styles.colRuleWide, styles.ruleCell, styles.noRightBorder]}>{row.ichidanRule}</Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-
-      <Text style={styles.tipText}>
-        提示：五段音便速记 う/つ/る→って，む/ぶ/ぬ→んで，く→いて，ぐ→いで，す→して；行く→行って/行った。
-      </Text>
+    <View style={[styles.row, styles.headerRow]}>
+      <Text style={[styles.cell, styles.headerText, styles.colForm]}>形态</Text>
+      <Text style={[styles.cell, styles.headerText, styles.colRule]}>五段规则</Text>
+      <Text style={[styles.cell, styles.headerText, styles.colRule]}>一段规则</Text>
     </View>
   );
 }
 
-function ConjugationTable() {
+type ConjugationRowItemProps = {
+  row: MergedConjugationRow;
+  active: boolean;
+  onPress: () => void;
+};
+
+function ConjugationRowItem({ row, active, onPress }: ConjugationRowItemProps) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>变形对照表</Text>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tableScroll}>
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.headerRow]}>
-            <Text style={[styles.cell, styles.headerCell, styles.colForm]}>形态</Text>
-            <Text style={[styles.cell, styles.headerCell, styles.colVerb]}>五段</Text>
-            <Text style={[styles.cell, styles.headerCell, styles.colVerb]}>一段</Text>
-            <Text style={[styles.cell, styles.headerCell, styles.colVerb]}>する</Text>
-            <Text style={[styles.cell, styles.headerCell, styles.colVerb, styles.noRightBorder]}>来る</Text>
-          </View>
-
-          {CONJUGATION_TABLE_ROWS.map((row) => (
-            <View key={row.form} style={styles.tableRow}>
-              <Text style={[styles.cell, styles.colForm, styles.formCell]}>{row.form}</Text>
-              <Text style={[styles.cell, styles.colVerb, styles.valueCell]}>{row.godan}</Text>
-              <Text style={[styles.cell, styles.colVerb, styles.valueCell]}>{row.ichidan}</Text>
-              <Text style={[styles.cell, styles.colVerb, styles.valueCell]}>{row.suru}</Text>
-              <Text style={[styles.cell, styles.colVerb, styles.valueCell, styles.noRightBorder]}>{row.kuru}</Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-
-      <Text style={styles.tipText}>提示：可能形与被动形在一段和来る中同形（〜られる），需靠语境判断。</Text>
-    </View>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, styles.pressableRow, active ? styles.activeRow : null, pressed ? styles.pressedRow : null]}>
+      <Text style={[styles.cell, styles.colForm, styles.formCell, active ? styles.formCellActive : null]}>{row.form}</Text>
+      <Text style={[styles.cell, styles.colRule, styles.ruleCell, active ? styles.activeCell : null]}>{row.godanRule}</Text>
+      <Text style={[styles.cell, styles.colRule, styles.ruleCell, active ? styles.activeCell : null]}>{row.ichidanRule}</Text>
+    </Pressable>
   );
 }
 
 export default function VerbConjugationScreen() {
   const topPadding = useScreenTopPadding();
   const [showPractice, setShowPractice] = useState(false);
+  const [selectedForm, setSelectedForm] = useState<string | null>(null);
+
+  const mergedRows = useMemo<MergedConjugationRow[]>(() => {
+    const overviewMap = new Map(CONJUGATION_OVERVIEW_ROWS.map((row) => [row.form, row]));
+    return CONJUGATION_TABLE_ROWS.map((row) => {
+      const overview = overviewMap.get(row.form);
+      return {
+        ...row,
+        meaning: overview?.meaning ?? '—',
+        godanRule: overview?.godanRule ?? '—',
+        ichidanRule: overview?.ichidanRule ?? '—',
+      };
+    });
+  }, []);
+
+  const handleToggleRow = (form: string) => setSelectedForm((value) => (value === form ? null : form));
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
@@ -89,9 +78,60 @@ export default function VerbConjugationScreen() {
         <VerbConjugationPracticePanel />
       ) : (
         <>
-          <Text style={styles.pageHint}>移动端可左右滑动查看完整表格。</Text>
-          <FormOverviewTable />
-          <ConjugationTable />
+          <View style={styles.tableSection}>
+            <View style={styles.tableScroll}>
+              <View style={styles.tableOuter}>
+                <View style={styles.table}>
+                  <ConjugationHeaderRow />
+                  {mergedRows.map((row) => {
+                    const expanded = selectedForm === row.form;
+                    const extraNote =
+                      row.form === 'ない形'
+                        ? '补充：\n五段词尾「う」要变「わ」。\n例：買う→買わない'
+                        : row.form === 'て形'
+                          ? '补充（音便）：\n  う/つ/る → って\n  む/ぶ/ぬ → んで\n  く → いて\n  ぐ → いで\n  す → して\n例外：行く → 行って'
+                          : row.form === 'た形'
+                            ? '补充（音便）：\n  う/つ/る → った\n  む/ぶ/ぬ → んだ\n  く → いた\n  く → いだ\n  す → した\n例外：行く → 行った'
+                        : row.form === '命令形'
+                          ? '补充：\n一段命令形「ろ」多用于口语，「よ」多用于书面。'
+                          : null;
+                    return (
+                      <View key={row.form} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
+                        <ConjugationRowItem row={row} active={expanded} onPress={() => handleToggleRow(row.form)} />
+                        {expanded ? (
+                          <View style={styles.inlineIntroCard}>
+                            <Text style={styles.meaningText}>{row.meaning}</Text>
+                            <View style={styles.detailLine}>
+                              <Text style={[styles.detailLabel, styles.godanLabel]}>五段</Text>
+                              <Text style={styles.detailValue}>{row.godan}</Text>
+                            </View>
+                            <View style={styles.detailLine}>
+                              <Text style={[styles.detailLabel, styles.ichidanLabel]}>一段</Text>
+                              <Text style={styles.detailValue}>{row.ichidan}</Text>
+                            </View>
+                            <View style={styles.detailLine}>
+                              <Text style={[styles.detailLabel, styles.suruLabel]}>する</Text>
+                              <Text style={styles.detailValue}>{row.suru}</Text>
+                            </View>
+                            <View style={styles.detailLine}>
+                              <Text style={[styles.detailLabel, styles.kuruLabel]}>来る</Text>
+                              <Text style={styles.detailValue}>{row.kuru}</Text>
+                            </View>
+                            {extraNote ? <Text style={styles.expandNote}>{extraNote}</Text> : null}
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.tipText}>
+              提示：た形音便与て形对应。
+            </Text>
+            <Text style={styles.tipText}>提示：可能形与被动形在一段和来る中同形（〜られる），需靠语境判断。</Text>
+          </View>
         </>
       )}
     </ScrollView>
@@ -133,86 +173,153 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
   },
-  pageHint: {
-    marginTop: spacing.xs,
+  tableSection: {
     marginBottom: spacing.m,
-    color: colors.muted,
-  },
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: radius.l,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.m,
-    marginBottom: spacing.m,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
   },
   tableScroll: {
     marginTop: spacing.s,
   },
-  table: {
+  tableOuter: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.s,
+    borderColor: '#c5d4e7',
+    borderRadius: radius.l,
+    backgroundColor: '#fbfdff',
+    padding: 1,
     overflow: 'hidden',
-    minWidth: 640,
+  },
+  table: {
+    width: '100%',
     backgroundColor: '#fff',
   },
-  overviewTable: {
-    minWidth: 980,
-  },
-  tableRow: {
+  row: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    alignItems: 'center',
+    paddingVertical: spacing.s,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: '#fff',
+  },
+  pressableRow: {
+    paddingHorizontal: spacing.xs,
+  },
+  activeRow: {
+    backgroundColor: '#eef5ff',
+    borderBottomColor: '#c7dbf9',
+  },
+  pressedRow: {
+    opacity: 0.9,
   },
   headerRow: {
-    borderTopWidth: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
     backgroundColor: '#f8fafc',
   },
   cell: {
-    paddingHorizontal: spacing.s,
-    paddingVertical: spacing.s,
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
     color: colors.text,
+    fontWeight: '600',
+    fontSize: 12,
+    paddingHorizontal: spacing.xs,
+    flexShrink: 1,
   },
-  headerCell: {
+  headerText: {
     fontWeight: '700',
-    color: colors.text,
+    color: colors.muted,
+  },
+  activeCell: {
+    color: '#2f558f',
+    fontWeight: '700',
   },
   formCell: {
-    fontWeight: '700',
     color: colors.primaryDark,
+    fontWeight: '700',
   },
-  valueCell: {
-    fontWeight: '600',
+  formCellActive: {
+    color: '#1d4ed8',
+  },
+  colForm: {
+    width: 75,
+  },
+  colRule: {
+    flex: 1,
+    minWidth: 0,
   },
   ruleCell: {
     color: colors.muted,
   },
-  colForm: {
-    width: 96,
+  expandWrap: {
+    backgroundColor: '#fff',
   },
-  colVerb: {
-    width: 136,
+  expandWrapActive: {
+    borderWidth: 1,
+    borderColor: '#bdd5f6',
+    borderRadius: radius.s,
+    marginBottom: spacing.xs,
+    backgroundColor: '#eef4ff',
   },
-  colMeaning: {
-    width: 220,
+  inlineIntroCard: {
+    backgroundColor: '#f7faff',
+    borderBottomLeftRadius: radius.s,
+    borderBottomRightRadius: radius.s,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.s,
   },
-  colRuleWide: {
-    width: 280,
+  meaningText: {
+    marginBottom: spacing.s,
+    color: '#344d74',
+    fontWeight: '600',
+    fontSize: 13,
+    lineHeight: 19,
+    borderRadius: radius.s,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
   },
-  noRightBorder: {
-    borderRightWidth: 0,
+  detailLine: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: spacing.xs,
+  },
+  detailLabel: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 11,
+    lineHeight: 15,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+    marginRight: spacing.xs,
+    marginTop: 2.2,
+    overflow: 'hidden',
+  },
+  godanLabel: {
+    backgroundColor: '#6f8fbe',
+  },
+  ichidanLabel: {
+    backgroundColor: '#7a93b3',
+  },
+  suruLabel: {
+    backgroundColor: '#8b82b9',
+  },
+  kuruLabel: {
+    backgroundColor: '#8f8f8f',
+  },
+  detailValue: {
+    flex: 1,
+    color: '#3f4f63',
+    fontSize: 13,
+    lineHeight: 19,
   },
   tipText: {
     marginTop: spacing.s,
     color: '#92400e',
     fontWeight: '600',
+  },
+  expandNote: {
+    marginTop: spacing.s,
+    color: '#3f5068',
+    lineHeight: 18,
+    fontSize: 12,
+    fontWeight: '500',
+    borderTopWidth: 1,
+    borderTopColor: '#d8e5f7',
+    paddingTop: spacing.xs,
   },
 });
