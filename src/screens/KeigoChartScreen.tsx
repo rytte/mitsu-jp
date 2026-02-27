@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, spacing } from '../theme';
 import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
@@ -7,6 +8,9 @@ type KeigoRow = {
   respectful: string;
   humble: string;
   polite: string;
+  gloss: string;
+  respectfulIntro: string;
+  humbleIntro: string;
 };
 
 type GiveRow = {
@@ -21,18 +25,114 @@ type RequestRow = {
 };
 
 const ROWS: KeigoRow[] = [
-  { plain: '見る', respectful: 'ご覧になる', humble: '拝見する', polite: '見ます' },
-  { plain: '行く / 来る', respectful: 'いらっしゃる / おいでになる', humble: '伺う / 参る', polite: '行きます / 来ます' },
-  { plain: 'いる', respectful: 'いらっしゃる', humble: 'おる', polite: 'います' },
-  { plain: '言う', respectful: 'おっしゃる', humble: '申す / 申し上げる', polite: '言います' },
-  { plain: 'する', respectful: 'なさる', humble: 'いたす', polite: 'します' },
-  { plain: '食べる / 飲む', respectful: '召し上がる', humble: 'いただく', polite: '食べます / 飲みます' },
-  { plain: '知る', respectful: 'ご存じだ', humble: '存じる', polite: '知っています' },
-  { plain: '思う', respectful: 'お思いになる', humble: '存じる', polite: '思います' },
-  { plain: '与える', respectful: 'くださる', humble: '差し上げる', polite: 'あげます' },
-  { plain: 'もらう', respectful: 'お受け取りになる', humble: 'いただく', polite: 'もらいます' },
-  { plain: '会う', respectful: 'お会いになる', humble: 'お目にかかる', polite: '会います' },
-  { plain: '聞く / 尋ねる', respectful: 'お聞きになる / お尋ねになる', humble: '伺う / お聞きする', polite: '聞きます / 尋ねます' },
+  {
+    plain: '見る',
+    respectful: 'ご覧になる',
+    humble: '拝見する',
+    polite: '見ます',
+    gloss: '看',
+    respectfulIntro: '对上级或客户说“看”时，用「ご覧になる」。',
+    humbleIntro: '自己“看”对方资料或作品时，用「拝見する」。',
+  },
+  {
+    plain: '行く / 来る',
+    respectful: 'いらっしゃる / おいでになる',
+    humble: '伺う / 参る',
+    polite: '行きます / 来ます',
+    gloss: '去 / 来',
+    respectfulIntro: '谈对方来访或到场时，用「いらっしゃる / おいでになる」。',
+    humbleIntro: '自己去拜访对方时，多用「伺う / 参る」。',
+  },
+  {
+    plain: 'いる',
+    respectful: 'いらっしゃる',
+    humble: 'おる',
+    polite: 'います',
+    gloss: '在 / 存在',
+    respectfulIntro: '描述对方“在”某地时，用「いらっしゃる」。',
+    humbleIntro: '描述自己或己方“在”时，可用「おる」。',
+  },
+  {
+    plain: '言う',
+    respectful: 'おっしゃる',
+    humble: '申す / 申し上げる',
+    polite: '言います',
+    gloss: '说',
+    respectfulIntro: '引用客户、老师发言时，用「おっしゃる」。',
+    humbleIntro: '自己发言对外表达时，用「申す / 申し上げる」。',
+  },
+  {
+    plain: 'する',
+    respectful: 'なさる',
+    humble: 'いたす',
+    polite: 'します',
+    gloss: '做',
+    respectfulIntro: '谈对方动作时，用「なさる」。',
+    humbleIntro: '谈自己动作时，用「いたす / いたします」。',
+  },
+  {
+    plain: '食べる / 飲む',
+    respectful: '召し上がる',
+    humble: 'いただく',
+    polite: '食べます / 飲みます',
+    gloss: '吃 / 喝',
+    respectfulIntro: '请对方用餐、饮用时，用「召し上がる」。',
+    humbleIntro: '自己受邀或受赠进食时，用「いただく」。',
+  },
+  {
+    plain: '知る',
+    respectful: 'ご存じだ',
+    humble: '存じる',
+    polite: '知っています',
+    gloss: '知道',
+    respectfulIntro: '询问对方是否知道时，用「ご存じだ / ご存じですか」。',
+    humbleIntro: '表达自己“知道”时，用「存じる / 存じております」。',
+  },
+  {
+    plain: '思う',
+    respectful: 'お思いになる',
+    humble: '存じる',
+    polite: '思います',
+    gloss: '想 / 认为',
+    respectfulIntro: '陈述对方看法时，用「お思いになる」。',
+    humbleIntro: '自谦表达自己的意见时，可用「存じる / 存じます」。',
+  },
+  {
+    plain: '与える',
+    respectful: 'くださる',
+    humble: '差し上げる',
+    polite: 'あげます',
+    gloss: '给',
+    respectfulIntro: '对方给我方时，用「くださる」。',
+    humbleIntro: '我方给对方时，用「差し上げる」。',
+  },
+  {
+    plain: 'もらう',
+    respectful: 'お受け取りになる',
+    humble: 'いただく',
+    polite: 'もらいます',
+    gloss: '得到 / 收到',
+    respectfulIntro: '谈对方“收下、领取”时，可用「お受け取りになる」。',
+    humbleIntro: '自己收到他人给予时，常用「いただく」。',
+  },
+  {
+    plain: '会う',
+    respectful: 'お会いになる',
+    humble: 'お目にかかる',
+    polite: '会います',
+    gloss: '见面',
+    respectfulIntro: '描述对方见面会面时，用「お会いになる」。',
+    humbleIntro: '自己见客户或老师时，用「お目にかかる」。',
+  },
+  {
+    plain: '聞く / 尋ねる',
+    respectful: 'お聞きになる / お尋ねになる',
+    humble: '伺う / お聞きする',
+    polite: '聞きます / 尋ねます',
+    gloss: '听 / 询问',
+    respectfulIntro: '谈对方“听、询问”时，用「お聞きになる / お尋ねになる」。',
+    humbleIntro: '自己向对方请教、询问时，用「伺う / お聞きする」。',
+  },
 ];
 
 const GIVE_ROWS: GiveRow[] = [
@@ -66,14 +166,19 @@ function HeaderRow() {
   );
 }
 
-function KeigoRowItem({ plain, respectful, humble, polite }: KeigoRow) {
+type KeigoRowItemProps = KeigoRow & {
+  active: boolean;
+  onPress: () => void;
+};
+
+function KeigoRowItem({ plain, respectful, humble, polite, active, onPress }: KeigoRowItemProps) {
   return (
-    <View style={styles.row}>
-      <Text style={styles.cell}>{plain}</Text>
-      <Text style={styles.cell}>{respectful}</Text>
-      <Text style={styles.cell}>{humble}</Text>
-      <Text style={styles.cell}>{polite}</Text>
-    </View>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, styles.pressableRow, active ? styles.activeRow : null, pressed ? styles.pressedRow : null]}>
+      <Text style={[styles.cell, active ? styles.activeCell : null]}>{plain}</Text>
+      <Text style={[styles.cell, active ? styles.activeCell : null]}>{respectful}</Text>
+      <Text style={[styles.cell, active ? styles.activeCell : null]}>{humble}</Text>
+      <Text style={[styles.cell, active ? styles.activeCell : null]}>{polite}</Text>
+    </Pressable>
   );
 }
 
@@ -117,6 +222,9 @@ function RequestRowItem({ pattern, usage }: RequestRow) {
 
 export default function KeigoChartScreen() {
   const topPadding = useScreenTopPadding();
+  const [selectedPlain, setSelectedPlain] = useState<string | null>(null);
+  const handleToggleRow = (plain: string) => setSelectedPlain((value) => (value === plain ? null : plain));
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
       <Text style={styles.pageTitle}>敬语表</Text>
@@ -124,10 +232,33 @@ export default function KeigoChartScreen() {
 
       <View style={styles.card}>
         <HeaderRow />
-        {ROWS.map((row) => (
-          <KeigoRowItem key={row.plain} {...row} />
-        ))}
+        {ROWS.map((row) => {
+          const expanded = selectedPlain === row.plain;
+          return (
+            <View key={row.plain} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
+              <KeigoRowItem
+                {...row}
+                active={expanded}
+                onPress={() => handleToggleRow(row.plain)}
+              />
+              {expanded ? (
+                <View style={styles.inlineIntroCard}>
+                  <Text style={styles.introGloss}>{row.gloss}</Text>
+                  <View style={styles.introLine}>
+                    <Text style={[styles.introLabel, styles.respectfulLabel]}>尊</Text>
+                    <Text style={styles.introValue}>{row.respectfulIntro}</Text>
+                  </View>
+                  <View style={styles.introLine}>
+                    <Text style={[styles.introLabel, styles.humbleLabel]}>谦</Text>
+                    <Text style={styles.introValue}>{row.humbleIntro}</Text>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          );
+        })}
       </View>
+      <Text style={styles.tapHint}>点击表格行可在表格内展开说明</Text>
 
       <Text style={styles.sectionTitle}>授受表达</Text>
       <Text style={styles.sectionSubtitle}>常用的给与 / 接受敬语表达</Text>
@@ -205,12 +336,27 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.s,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  pressableRow: {
+    borderRadius: radius.s,
+    paddingHorizontal: spacing.xs,
+  },
+  activeRow: {
+    backgroundColor: '#eef5ff',
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderBottomColor: '#c7dbf9',
+  },
+  pressedRow: {
+    opacity: 0.92,
   },
   headerRow: {
     backgroundColor: '#f8fafc',
     borderRadius: radius.s,
     borderBottomWidth: 0,
     marginBottom: spacing.s,
+    paddingHorizontal: spacing.xs,
   },
   headerText: {
     color: colors.muted,
@@ -223,6 +369,64 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 12,
     paddingHorizontal: spacing.xs,
+  },
+  activeCell: {
+    color: '#2f558f',
+    fontWeight: '700',
+  },
+  tapHint: {
+    marginTop: spacing.s,
+    color: colors.muted,
+    fontSize: 12,
+  },
+  expandWrap: {
+    backgroundColor: colors.card,
+  },
+  expandWrapActive: {
+    borderWidth: 1,
+    borderColor: '#c7dbf9',
+    borderRadius: radius.s,
+    marginBottom: spacing.xs,
+    backgroundColor: '#eef5ff',
+  },
+  inlineIntroCard: {
+    backgroundColor: '#f3f8ff',
+    borderBottomLeftRadius: radius.s,
+    borderBottomRightRadius: radius.s,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.s,
+  },
+  introGloss: {
+    color: '#3f6eb7',
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  introLine: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: spacing.xs,
+  },
+  introValue: {
+    flex: 1,
+    color: '#3f4f63',
+    lineHeight: 20,
+  },
+  introLabel: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 11,
+    lineHeight: 16,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+    marginRight: spacing.xs,
+    marginTop: 2.2,
+    overflow: 'hidden',
+  },
+  respectfulLabel: {
+    backgroundColor: '#6f8fbe',
+  },
+  humbleLabel: {
+    backgroundColor: '#7a93b3',
   },
   noteCard: {
     backgroundColor: colors.card,
