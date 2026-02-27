@@ -323,7 +323,6 @@ export default function KeigoChartScreen() {
           );
         })}
       </View>
-      <Text style={styles.tapHint}>点击表格行可在表格内展开说明</Text>
 
       <Text style={styles.sectionTitle}>授受表达</Text>
       <Text style={styles.sectionSubtitle}>常用的给与 / 接受敬语表达</Text>
@@ -353,7 +352,6 @@ export default function KeigoChartScreen() {
           );
         })}
       </View>
-      <Text style={styles.tapHint}>点击授受表达行可查看详细说明与例句</Text>
 
       <Text style={styles.sectionTitle}>请求表达</Text>
       <Text style={styles.sectionSubtitle}>常用的请求/许可表达</Text>
@@ -383,7 +381,6 @@ export default function KeigoChartScreen() {
           );
         })}
       </View>
-      <Text style={styles.tapHint}>点击请求表达行可查看详细说明与例句</Text>
 
       <View style={styles.noteCard}>
         <Text style={styles.noteTitle}>使用提示</Text>
@@ -480,11 +477,6 @@ const styles = StyleSheet.create({
   activeCell: {
     color: '#2f558f',
     fontWeight: '700',
-  },
-  tapHint: {
-    marginTop: spacing.s,
-    color: colors.muted,
-    fontSize: 12,
   },
   expandWrap: {
     backgroundColor: colors.card,
