@@ -1,6 +1,16 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import { evaluateWritingAnswerWithAi, generateWritingTasksWithAi } from '../features/ai/service';
 import { WRITING_SESSION_SIZE } from '../features/exam/examBank';
@@ -61,6 +71,7 @@ export default function AiWritingPracticeScreen({ navigation }: Props) {
   const [goalAchievedCount, setGoalAchievedCount] = useState(0);
   const [scoreSum, setScoreSum] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
+  const scrollViewRef = useRef<ScrollView | null>(null);
 
   const finished = items.length > 0 && currentIndex >= items.length;
   const currentTask = !finished ? items[currentIndex] : null;
@@ -155,7 +166,17 @@ export default function AiWritingPracticeScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoiding}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
       <View style={styles.section}>
         <View style={styles.sectionHeadRow}>
           <Text style={styles.sectionTitle}>写作设置</Text>
@@ -216,6 +237,7 @@ export default function AiWritingPracticeScreen({ navigation }: Props) {
             <TextInput
               value={scenario}
               onChangeText={setScenario}
+              onFocus={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
               placeholder="例如：向老师请假、餐厅投诉、同事协作"
               placeholderTextColor={colors.muted}
               style={styles.scenarioInput}
@@ -276,6 +298,7 @@ export default function AiWritingPracticeScreen({ navigation }: Props) {
           <TextInput
             value={answerText}
             onChangeText={setAnswerText}
+            onFocus={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
             placeholder="输入你的日语短文"
             placeholderTextColor={colors.muted}
             multiline
@@ -359,14 +382,19 @@ export default function AiWritingPracticeScreen({ navigation }: Props) {
           <PrimaryButton title="返回 AI 学习中心" onPress={() => navigation.goBack()} style={styles.actionBtn} />
         </View>
       ) : null}
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoiding: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     padding: spacing.m,
-    paddingBottom: spacing.l,
+    paddingBottom: spacing.xl,
     backgroundColor: colors.background,
   },
   section: {

@@ -1,7 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, InteractionManager, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  InteractionManager,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import { replyConversationWithAi, startConversationWithAi } from '../features/ai/service';
 import { useAppStore } from '../store/useAppStore';
@@ -72,6 +83,7 @@ export default function AiConversationScreen() {
   const [inputText, setInputText] = useState('');
   const [error, setError] = useState('');
   const spokenAssistantIdsRef = useRef<Set<string>>(new Set());
+  const scrollViewRef = useRef<ScrollView | null>(null);
 
   const speakAssistantText = (text: string) => {
     const speakingText = text.trim();
@@ -200,8 +212,18 @@ export default function AiConversationScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding }]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoiding}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+      <View style={[styles.container, { paddingTop: topPadding }]}>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>
             <View style={styles.heroIconWrap}>
@@ -299,6 +321,7 @@ export default function AiConversationScreen() {
             <TextInput
               value={inputText}
               onChangeText={setInputText}
+              onFocus={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
               placeholder="输入你想说的日语句子"
               placeholderTextColor={colors.muted}
               style={styles.input}
@@ -316,18 +339,22 @@ export default function AiConversationScreen() {
         ) : null}
 
       </ScrollView>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoiding: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
   content: {
     padding: spacing.m,
-    paddingBottom: spacing.l,
+    paddingBottom: spacing.xl,
   },
   heroCard: {
     backgroundColor: colors.card,

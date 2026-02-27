@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -164,6 +166,7 @@ export default function SearchScreen() {
   const [aiError, setAiError] = useState('');
   const [aiFollowUp, setAiFollowUp] = useState('');
   const [aiEntry, setAiEntry] = useState('');
+  const aiDictScrollRef = useRef<ScrollView | null>(null);
   const layout = useWindowDimensions();
   const routes = useMemo(
     () => [
@@ -436,7 +439,12 @@ export default function SearchScreen() {
     const canAsk = query.trim().length > 0 && !aiLoading;
     const canFollowUp = aiMessages.length > 0 && aiFollowUp.trim().length > 0 && !aiLoading;
     return (
-      <ScrollView contentContainerStyle={styles.aiDictContent} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        ref={aiDictScrollRef}
+        contentContainerStyle={styles.aiDictContent}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <View style={styles.aiDictIntroCard}>
           <Text style={styles.aiDictTitle}>AI 辞典</Text>
           <Text style={styles.aiDictSubtitle}>输入词汇或文法点，先获取解释，再继续追问细节。</Text>
@@ -486,6 +494,7 @@ export default function SearchScreen() {
             <TextInput
               value={aiFollowUp}
               onChangeText={setAiFollowUp}
+              onFocus={() => aiDictScrollRef.current?.scrollToEnd({ animated: true })}
               placeholder="例如：这个表达和「〜について」有什么区别？"
               placeholderTextColor={colors.muted}
               style={styles.aiFollowUpInput}
@@ -615,7 +624,12 @@ export default function SearchScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding }]}>
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoiding}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+      <View style={[styles.container, { paddingTop: topPadding }]}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <View>
@@ -703,11 +717,15 @@ export default function SearchScreen() {
         initialLayout={{ width: layout.width }}
         style={styles.tabView}
       />
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoiding: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -911,7 +929,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   aiDictContent: {
-    paddingBottom: spacing.l,
+    paddingBottom: spacing.xl,
   },
   aiDictIntroCard: {
     backgroundColor: colors.card,
