@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import * as Speech from 'expo-speech';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import KanaPracticePanel from '../components/KanaPracticePanel';
+import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
@@ -345,10 +347,12 @@ function KanaTable({
   title,
   rows,
   headers = VOWELS,
+  onPressKana,
 }: {
   title: string;
   rows: Array<Array<KanaCell | null>>;
   headers?: string[];
+  onPressKana?: (cell: KanaCell) => void;
 }) {
   return (
     <View style={styles.card}>
@@ -362,25 +366,29 @@ function KanaTable({
       </View>
       {rows.map((row, rowIndex) => (
         <View key={`row-${rowIndex}`} style={styles.row}>
-          {row.map((cell, cellIndex) => (
-            <View
-              key={`cell-${rowIndex}-${cellIndex}`}
-              style={[
-                styles.cell,
-                cellIndex === row.length - 1 ? styles.cellLast : null,
-                cell ? null : styles.cellEmpty,
-              ]}
-            >
-              {cell ? (
-                <>
-                  <Text style={styles.kana}>{cell.kana}</Text>
-                  <Text style={styles.romaji}>{cell.romaji}</Text>
-                </>
-              ) : (
-                <Text style={styles.kanaPlaceholder}>·</Text>
-              )}
-            </View>
-          ))}
+          {row.map((cell, cellIndex) => {
+            const cellStyles = [styles.cell, cellIndex === row.length - 1 ? styles.cellLast : null];
+            if (!cell) {
+              return (
+                <View key={`cell-${rowIndex}-${cellIndex}`} style={[...cellStyles, styles.cellEmpty]}>
+                  <Text style={styles.kanaPlaceholder}>·</Text>
+                </View>
+              );
+            }
+
+            return (
+              <Pressable
+                key={`cell-${rowIndex}-${cellIndex}`}
+                onPress={() => onPressKana?.(cell)}
+                accessibilityRole="button"
+                accessibilityLabel={`播放 ${cell.kana} 发音`}
+                style={({ pressed }) => [...cellStyles, pressed ? styles.cellPressed : null]}
+              >
+                <Text style={styles.kana}>{cell.kana}</Text>
+                <Text style={styles.romaji}>{cell.romaji}</Text>
+              </Pressable>
+            );
+          })}
         </View>
       ))}
     </View>
@@ -389,6 +397,7 @@ function KanaTable({
 
 export default function KanaChartScreen() {
   const topPadding = useScreenTopPadding();
+  const settings = useAppStore((state) => state.settings);
   const [showPractice, setShowPractice] = useState(false);
   const practiceSources = useMemo(
     () => [
@@ -403,6 +412,18 @@ export default function KanaChartScreen() {
     ],
     []
   );
+  const handleSpeakKana = (cell: KanaCell) => {
+    Speech.stop();
+    Speech.speak(cell.kana, {
+      language: 'ja-JP',
+      rate: settings.tts_rate,
+      voice: settings.tts_voice ?? undefined,
+    });
+  };
+
+  useEffect(() => () => {
+    Speech.stop();
+  }, []);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
@@ -412,7 +433,7 @@ export default function KanaChartScreen() {
           onPress={() => setShowPractice((prev) => !prev)}
           style={({ pressed }) => [styles.pageActionBtn, pressed ? styles.pageActionBtnPressed : null]}
         >
-          <Text style={styles.pageActionText}>{showPractice ? '返回音图' : '开始训练'}</Text>
+          <Text style={styles.pageActionText}>{showPractice ? '返回音图' : '开始练习'}</Text>
         </Pressable>
       </View>
 
@@ -423,20 +444,20 @@ export default function KanaChartScreen() {
       ) : (
         <>
           <Text style={styles.pageSubtitle}>基础清音（平假名 / 片假名）</Text>
-          <KanaTable title="平假名" rows={HIRAGANA_ROWS} />
-          <KanaTable title="片假名" rows={KATAKANA_ROWS} />
+          <KanaTable title="平假名" rows={HIRAGANA_ROWS} onPressKana={handleSpeakKana} />
+          <KanaTable title="片假名" rows={KATAKANA_ROWS} onPressKana={handleSpeakKana} />
 
           <Text style={styles.sectionTitle}>浊音 / 半浊音</Text>
           <Text style={styles.sectionSubtitle}>が〜 / ぱ〜 等变化</Text>
-          <KanaTable title="平假名・浊音" rows={HIRAGANA_DAKUTEN_ROWS} />
-          <KanaTable title="平假名・半浊音" rows={HIRAGANA_HANDAKUTEN_ROWS} />
-          <KanaTable title="片假名・浊音" rows={KATAKANA_DAKUTEN_ROWS} />
-          <KanaTable title="片假名・半浊音" rows={KATAKANA_HANDAKUTEN_ROWS} />
+          <KanaTable title="平假名・浊音" rows={HIRAGANA_DAKUTEN_ROWS} onPressKana={handleSpeakKana} />
+          <KanaTable title="平假名・半浊音" rows={HIRAGANA_HANDAKUTEN_ROWS} onPressKana={handleSpeakKana} />
+          <KanaTable title="片假名・浊音" rows={KATAKANA_DAKUTEN_ROWS} onPressKana={handleSpeakKana} />
+          <KanaTable title="片假名・半浊音" rows={KATAKANA_HANDAKUTEN_ROWS} onPressKana={handleSpeakKana} />
 
           <Text style={styles.sectionTitle}>拗音（小ゃ / ゅ / ょ）</Text>
           <Text style={styles.sectionSubtitle}>きゃ / きゅ / きょ 等组合</Text>
-          <KanaTable title="平假名・拗音" rows={HIRAGANA_YOON_ROWS} headers={Y_VOWELS} />
-          <KanaTable title="片假名・拗音" rows={KATAKANA_YOON_ROWS} headers={Y_VOWELS} />
+          <KanaTable title="平假名・拗音" rows={HIRAGANA_YOON_ROWS} headers={Y_VOWELS} onPressKana={handleSpeakKana} />
+          <KanaTable title="片假名・拗音" rows={KATAKANA_YOON_ROWS} headers={Y_VOWELS} onPressKana={handleSpeakKana} />
         </>
       )}
     </ScrollView>
@@ -549,6 +570,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
+  },
+  cellPressed: {
+    opacity: 0.76,
   },
   cellLast: {
     marginRight: 0,
