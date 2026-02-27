@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import PrimaryButton from '../components/PrimaryButton';
 import { colors, radius, spacing } from '../theme';
 import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
@@ -28,6 +29,18 @@ type RequestRow = {
   intro: string;
   exampleJa: string;
   exampleZh: string;
+};
+
+type KeigoPracticeField = 'respectful' | 'humble' | 'polite';
+
+type KeigoPracticeQuestion = {
+  id: string;
+  plain: string;
+  gloss: string;
+  field: KeigoPracticeField;
+  label: string;
+  answer: string;
+  options: string[];
 };
 
 const ROWS: KeigoRow[] = [
@@ -206,6 +219,53 @@ const NOTES: string[] = [
   '遇到固定表达，优先使用固定敬语',
 ];
 
+const KEIGO_PRACTICE_SIZE = 18;
+const KEIGO_PRACTICE_FIELDS: KeigoPracticeField[] = ['respectful', 'humble', 'polite'];
+const KEIGO_FIELD_LABEL: Record<KeigoPracticeField, string> = {
+  respectful: '尊敬语',
+  humble: '谦让语',
+  polite: '丁宁语',
+};
+
+function shuffle<T>(list: T[]) {
+  const next = [...list];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
+function buildKeigoPracticeSession(): KeigoPracticeQuestion[] {
+  const questions: KeigoPracticeQuestion[] = [];
+
+  for (const row of ROWS) {
+    for (const field of KEIGO_PRACTICE_FIELDS) {
+      const answer = row[field];
+      const label = KEIGO_FIELD_LABEL[field];
+      const pool = [...new Set(ROWS.map((item) => item[field]).filter((item) => item !== answer))];
+      const options: string[] = [answer];
+
+      for (const candidate of shuffle(pool)) {
+        if (options.length >= 4) break;
+        options.push(candidate);
+      }
+
+      questions.push({
+        id: `${row.plain}-${field}`,
+        plain: row.plain,
+        gloss: row.gloss,
+        field,
+        label,
+        answer,
+        options: shuffle(options),
+      });
+    }
+  }
+
+  return shuffle(questions).slice(0, KEIGO_PRACTICE_SIZE);
+}
+
 function HeaderRow() {
   return (
     <View style={[styles.row, styles.headerRow]}>
@@ -281,8 +341,98 @@ function RequestRowItem({ pattern, usage, active, onPress }: RequestRowItemProps
   );
 }
 
+function KeigoPracticePanel() {
+  const [session, setSession] = useState<KeigoPracticeQuestion[]>(() => buildKeigoPracticeSession());
+  const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [correctCount, setCorrectCount] = useState(0);
+
+  const finished = index >= session.length;
+  const current = finished ? null : session[index];
+  const answered = selected !== null;
+  const currentCorrect = current ? selected === current.answer : false;
+
+  const handleSelect = (option: string) => {
+    if (!current || answered) return;
+    setSelected(option);
+    if (option === current.answer) {
+      setCorrectCount((prev) => prev + 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (!answered) return;
+    setSelected(null);
+    setIndex((prev) => prev + 1);
+  };
+
+  const handleReset = () => {
+    setSession(buildKeigoPracticeSession());
+    setIndex(0);
+    setSelected(null);
+    setCorrectCount(0);
+  };
+
+  if (finished) {
+    const percent = session.length ? Math.round((correctCount / session.length) * 100) : 0;
+    return (
+      <View style={styles.practiceCard}>
+        <Text style={styles.practiceTitle}>练习完成</Text>
+        <Text style={styles.practiceSummary}>正确 {correctCount} / {session.length}</Text>
+        <Text style={styles.practiceSummary}>正确率 {percent}%</Text>
+        <PrimaryButton title="再来一组" onPress={handleReset} style={styles.practiceButton} />
+      </View>
+    );
+  }
+
+  if (!current) return null;
+
+  return (
+    <View style={styles.practiceCard}>
+      <Text style={styles.practiceProgress}>第 {index + 1} / {session.length} 题</Text>
+      <Text style={styles.practicePrompt}>「{current.plain}（{current.gloss}）」的「{current.label}」是？</Text>
+
+      {current.options.map((option) => {
+        const isSelected = option === selected;
+        const isCorrect = option === current.answer;
+        return (
+          <Pressable
+            key={`${current.id}-${option}`}
+            onPress={() => handleSelect(option)}
+            style={[
+              styles.practiceOption,
+              answered && isCorrect ? styles.practiceOptionCorrect : null,
+              answered && isSelected && !isCorrect ? styles.practiceOptionWrong : null,
+            ]}
+          >
+            <Text
+              style={[
+                styles.practiceOptionText,
+                answered && (isCorrect || isSelected) ? styles.practiceOptionTextStrong : null,
+              ]}
+            >
+              {option}
+            </Text>
+          </Pressable>
+        );
+      })}
+
+      {answered ? (
+        <>
+          <Text style={[styles.practiceFeedback, currentCorrect ? styles.practiceFeedbackOk : styles.practiceFeedbackNg]}>
+            {currentCorrect ? '回答正确' : `回答错误，正确答案：${current.answer}`}
+          </Text>
+          <Text style={styles.practiceHint}>提示：根据说话方与对方关系，判断该用尊敬语、谦让语或丁宁语。</Text>
+          <PrimaryButton title={index === session.length - 1 ? '查看结果' : '下一题'} onPress={handleNext} style={styles.practiceButton} />
+        </>
+      ) : null}
+    </View>
+  );
+}
+
 export default function KeigoChartScreen() {
   const topPadding = useScreenTopPadding();
+  const [showPractice, setShowPractice] = useState(false);
   const [selectedPlain, setSelectedPlain] = useState<string | null>(null);
   const [selectedGiveKey, setSelectedGiveKey] = useState<string | null>(null);
   const [selectedRequestKey, setSelectedRequestKey] = useState<string | null>(null);
@@ -292,104 +442,117 @@ export default function KeigoChartScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
-      <Text style={styles.pageTitle}>敬语表</Text>
-      <Text style={styles.pageSubtitle}>常用动词的尊敬语 / 谦让语 / 丁宁语</Text>
+      <View style={styles.pageHeaderRow}>
+        <Text style={styles.pageTitle}>敬语表</Text>
+        <Pressable
+          onPress={() => setShowPractice((prev) => !prev)}
+          style={({ pressed }) => [styles.pageActionBtn, pressed ? styles.pageActionBtnPressed : null]}
+        >
+          <Text style={styles.pageActionText}>{showPractice ? '返回表格' : '开始练习'}</Text>
+        </Pressable>
+      </View>
 
-      <View style={styles.card}>
-        <HeaderRow />
-        {ROWS.map((row) => {
-          const expanded = selectedPlain === row.plain;
-          return (
-            <View key={row.plain} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
-              <KeigoRowItem
-                {...row}
-                active={expanded}
-                onPress={() => handleToggleRow(row.plain)}
-              />
-              {expanded ? (
-                <View style={styles.inlineIntroCard}>
-                  <Text style={styles.introGloss}>{row.gloss}</Text>
-                  <View style={styles.introLine}>
-                    <Text style={[styles.introLabel, styles.respectfulLabel]}>尊</Text>
-                    <Text style={styles.introValue}>{row.respectfulIntro}</Text>
-                  </View>
-                  <View style={styles.introLine}>
-                    <Text style={[styles.introLabel, styles.humbleLabel]}>谦</Text>
-                    <Text style={styles.introValue}>{row.humbleIntro}</Text>
-                  </View>
+      {showPractice ? (
+        <KeigoPracticePanel />
+      ) : (
+        <>
+          <View style={styles.card}>
+            <HeaderRow />
+            {ROWS.map((row) => {
+              const expanded = selectedPlain === row.plain;
+              return (
+                <View key={row.plain} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
+                  <KeigoRowItem
+                    {...row}
+                    active={expanded}
+                    onPress={() => handleToggleRow(row.plain)}
+                  />
+                  {expanded ? (
+                    <View style={styles.inlineIntroCard}>
+                      <Text style={styles.introGloss}>{row.gloss}</Text>
+                      <View style={styles.introLine}>
+                        <Text style={[styles.introLabel, styles.respectfulLabel]}>尊</Text>
+                        <Text style={styles.introValue}>{row.respectfulIntro}</Text>
+                      </View>
+                      <View style={styles.introLine}>
+                        <Text style={[styles.introLabel, styles.humbleLabel]}>谦</Text>
+                        <Text style={styles.introValue}>{row.humbleIntro}</Text>
+                      </View>
+                    </View>
+                  ) : null}
                 </View>
-              ) : null}
-            </View>
-          );
-        })}
-      </View>
+              );
+            })}
+          </View>
 
-      <Text style={styles.sectionTitle}>授受表达</Text>
-      <Text style={styles.sectionSubtitle}>常用的给与 / 接受敬语表达</Text>
-      <View style={[styles.card, styles.sectionCard]}>
-        <GiveHeaderRow />
-        {GIVE_ROWS.map((row) => {
-          const rowKey = `${row.scene}-${row.plain}`;
-          const expanded = selectedGiveKey === rowKey;
-          return (
-            <View key={rowKey} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
-              <GiveExpandableRowItem
-                {...row}
-                active={expanded}
-                onPress={() => handleToggleGive(rowKey)}
-              />
-              {expanded ? (
-                <View style={styles.inlineIntroCard}>
-                  <Text style={styles.introDetailText}>{row.intro}</Text>
-                  <View style={styles.introLine}>
-                    <Text style={[styles.introLabel, styles.exampleLabel]}>例</Text>
-                    <Text style={styles.introValue}>{row.exampleJa}</Text>
-                  </View>
-                  <Text style={styles.exampleZh}>{row.exampleZh}</Text>
+          <Text style={styles.sectionTitle}>授受表达</Text>
+          <Text style={styles.sectionSubtitle}>常用的给与 / 接受敬语表达</Text>
+          <View style={[styles.card, styles.sectionCard]}>
+            <GiveHeaderRow />
+            {GIVE_ROWS.map((row) => {
+              const rowKey = `${row.scene}-${row.plain}`;
+              const expanded = selectedGiveKey === rowKey;
+              return (
+                <View key={rowKey} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
+                  <GiveExpandableRowItem
+                    {...row}
+                    active={expanded}
+                    onPress={() => handleToggleGive(rowKey)}
+                  />
+                  {expanded ? (
+                    <View style={styles.inlineIntroCard}>
+                      <Text style={styles.introDetailText}>{row.intro}</Text>
+                      <View style={styles.introLine}>
+                        <Text style={[styles.introLabel, styles.exampleLabel]}>例</Text>
+                        <Text style={styles.introValue}>{row.exampleJa}</Text>
+                      </View>
+                      <Text style={styles.exampleZh}>{row.exampleZh}</Text>
+                    </View>
+                  ) : null}
                 </View>
-              ) : null}
-            </View>
-          );
-        })}
-      </View>
+              );
+            })}
+          </View>
 
-      <Text style={styles.sectionTitle}>请求表达</Text>
-      <Text style={styles.sectionSubtitle}>常用的请求/许可表达</Text>
-      <View style={[styles.card, styles.sectionCard]}>
-        <RequestHeaderRow />
-        {REQUEST_ROWS.map((row) => {
-          const rowKey = row.pattern;
-          const expanded = selectedRequestKey === rowKey;
-          return (
-            <View key={rowKey} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
-              <RequestRowItem
-                {...row}
-                active={expanded}
-                onPress={() => handleToggleRequest(rowKey)}
-              />
-              {expanded ? (
-                <View style={styles.inlineIntroCard}>
-                  <Text style={styles.introDetailText}>{row.intro}</Text>
-                  <View style={styles.introLine}>
-                    <Text style={[styles.introLabel, styles.exampleLabel]}>例</Text>
-                    <Text style={styles.introValue}>{row.exampleJa}</Text>
-                  </View>
-                  <Text style={styles.exampleZh}>{row.exampleZh}</Text>
+          <Text style={styles.sectionTitle}>请求表达</Text>
+          <Text style={styles.sectionSubtitle}>常用的请求/许可表达</Text>
+          <View style={[styles.card, styles.sectionCard]}>
+            <RequestHeaderRow />
+            {REQUEST_ROWS.map((row) => {
+              const rowKey = row.pattern;
+              const expanded = selectedRequestKey === rowKey;
+              return (
+                <View key={rowKey} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
+                  <RequestRowItem
+                    {...row}
+                    active={expanded}
+                    onPress={() => handleToggleRequest(rowKey)}
+                  />
+                  {expanded ? (
+                    <View style={styles.inlineIntroCard}>
+                      <Text style={styles.introDetailText}>{row.intro}</Text>
+                      <View style={styles.introLine}>
+                        <Text style={[styles.introLabel, styles.exampleLabel]}>例</Text>
+                        <Text style={styles.introValue}>{row.exampleJa}</Text>
+                      </View>
+                      <Text style={styles.exampleZh}>{row.exampleZh}</Text>
+                    </View>
+                  ) : null}
                 </View>
-              ) : null}
-            </View>
-          );
-        })}
-      </View>
+              );
+            })}
+          </View>
 
-      <View style={styles.noteCard}>
-        <Text style={styles.noteTitle}>使用提示</Text>
-        {NOTES.map((note) => (
-          <Text key={note} style={styles.noteText}>
-            {note}
-          </Text>
-        ))}
-      </View>
+          <View style={styles.noteCard}>
+            <Text style={styles.noteTitle}>使用提示</Text>
+            {NOTES.map((note) => (
+              <Text key={note} style={styles.noteText}>
+                {note}
+              </Text>
+            ))}
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -408,10 +571,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
-  pageSubtitle: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.m,
-    color: colors.muted,
+  pageHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
+  pageActionBtn: {
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    backgroundColor: '#eff6ff',
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 6,
+  },
+  pageActionBtnPressed: {
+    opacity: 0.8,
+  },
+  pageActionText: {
+    color: '#0369a1',
+    fontWeight: '700',
+    fontSize: 12,
   },
   sectionTitle: {
     marginTop: spacing.m,
@@ -540,6 +720,74 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 12,
     lineHeight: 18,
+  },
+  practiceCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.m,
+    marginBottom: spacing.m,
+  },
+  practiceTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  practiceSummary: {
+    marginTop: spacing.s,
+    color: colors.muted,
+  },
+  practiceProgress: {
+    color: colors.muted,
+    fontWeight: '600',
+  },
+  practicePrompt: {
+    marginTop: spacing.s,
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  practiceOption: {
+    marginTop: spacing.s,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.m,
+    backgroundColor: '#fff',
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.s,
+  },
+  practiceOptionCorrect: {
+    borderColor: '#86efac',
+    backgroundColor: '#f0fdf4',
+  },
+  practiceOptionWrong: {
+    borderColor: '#fca5a5',
+    backgroundColor: '#fef2f2',
+  },
+  practiceOptionText: {
+    color: colors.text,
+  },
+  practiceOptionTextStrong: {
+    fontWeight: '700',
+  },
+  practiceFeedback: {
+    marginTop: spacing.s,
+    fontWeight: '700',
+  },
+  practiceFeedbackOk: {
+    color: colors.success,
+  },
+  practiceFeedbackNg: {
+    color: colors.danger,
+  },
+  practiceHint: {
+    marginTop: spacing.xs,
+    color: colors.muted,
+    lineHeight: 20,
+  },
+  practiceButton: {
+    marginTop: spacing.m,
   },
   noteCard: {
     backgroundColor: colors.card,
