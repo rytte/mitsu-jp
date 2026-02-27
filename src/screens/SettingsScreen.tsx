@@ -1,7 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useScreenTopPadding } from '../utils/useScreenTopPadding';
-import PrimaryButton from '../components/PrimaryButton';
 import { updateSettings } from '../db/queries';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
@@ -25,6 +24,7 @@ const NAV_ITEMS = [
   { key: 'nav_show_keigo', label: '敬语表' },
   { key: 'nav_show_settings', label: '设置' },
 ] as const;
+const SWITCH_TRACK_COLOR = { false: colors.border, true: colors.primary };
 
 type NavItemKey = (typeof NAV_ITEMS)[number]['key'];
 
@@ -192,43 +192,79 @@ export default function SettingsScreen() {
     await persist({ ...settings, ...next });
   };
 
+  const renderSwitchRow = (
+    label: string,
+    value: boolean,
+    onValueChange: (value: boolean) => void,
+    isLast = false
+  ) => (
+    <View style={[styles.toggleRow, !isLast ? styles.toggleRowDivider : null]}>
+      <Text style={styles.toggleText}>{label}</Text>
+      <Switch value={value} onValueChange={onValueChange} trackColor={SWITCH_TRACK_COLOR} />
+    </View>
+  );
+
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={[styles.content, { paddingTop: topPadding }]}
+      showsVerticalScrollIndicator={false}
     >
+      <View style={styles.pageHeader}>
+        <Text style={styles.pageTitle}>设置</Text>
+        <Text style={styles.pageSubtitle}>调整学习偏好与界面显示</Text>
+      </View>
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>发音速度</Text>
-        <View style={styles.rateRow}>
+        <View style={styles.optionRow}>
           {RATE_OPTIONS.map((rate, index) => (
-            <PrimaryButton
+            <Pressable
               key={rate}
-              title={`${rate}x`}
               onPress={() => handleRate(rate)}
-              style={[
-                styles.rateBtn,
-                index < RATE_OPTIONS.length - 1 ? styles.rateBtnGap : null,
-                settings.tts_rate === rate ? styles.rateActive : null,
+              style={({ pressed }) => [
+                styles.optionBtn,
+                index < RATE_OPTIONS.length - 1 ? styles.optionBtnGap : null,
+                settings.tts_rate === rate ? styles.optionBtnActive : null,
+                pressed ? styles.optionBtnPressed : null,
               ]}
-            />
+            >
+              <Text
+                style={[
+                  styles.optionBtnText,
+                  settings.tts_rate === rate ? styles.optionBtnTextActive : null,
+                ]}
+              >
+                {`${rate}x`}
+              </Text>
+            </Pressable>
           ))}
         </View>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>词汇字号</Text>
-        <View style={styles.rateRow}>
+        <View style={styles.optionRow}>
           {FONT_OPTIONS.map((option, index) => (
-            <PrimaryButton
+            <Pressable
               key={option.value}
-              title={option.label}
               onPress={() => handleFontScale(option.value)}
-              style={[
-                styles.rateBtn,
-                index < FONT_OPTIONS.length - 1 ? styles.rateBtnGap : null,
-                settings.font_scale === option.value ? styles.rateActive : null,
+              style={({ pressed }) => [
+                styles.optionBtn,
+                index < FONT_OPTIONS.length - 1 ? styles.optionBtnGap : null,
+                settings.font_scale === option.value ? styles.optionBtnActive : null,
+                pressed ? styles.optionBtnPressed : null,
               ]}
-            />
+            >
+              <Text
+                style={[
+                  styles.optionBtnText,
+                  settings.font_scale === option.value ? styles.optionBtnTextActive : null,
+                ]}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
           ))}
         </View>
         <Text style={styles.tip}>词条与释义使用统一字号</Text>
@@ -237,129 +273,72 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>释义语言</Text>
         <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>中文</Text>
-          <Switch
-            value={meaningEnglish}
-            onValueChange={handleMeaningLanguage}
-            trackColor={{ false: colors.primary, true: colors.primary }}
-          />
-          <Text style={styles.toggleText}>英文</Text>
+          <Text style={[styles.toggleText, !meaningEnglish ? styles.toggleTextActive : styles.toggleTextMuted]}>
+            中文
+          </Text>
+          <Switch value={meaningEnglish} onValueChange={handleMeaningLanguage} trackColor={SWITCH_TRACK_COLOR} />
+          <Text style={[styles.toggleText, meaningEnglish ? styles.toggleTextActive : styles.toggleTextMuted]}>
+            英文
+          </Text>
         </View>
-        <Text style={styles.tip}>当英文释义缺失时，自动回退为中文</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>紧凑模式</Text>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>仅展开一个词条</Text>
-          <Switch
-            value={compactSingleExpand}
-            onValueChange={handleCompactSingleExpand}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
+        {renderSwitchRow('仅展开一个词条', compactSingleExpand, handleCompactSingleExpand, true)}
         <Text style={styles.tip}>在紧凑模式下，展开新词条会自动收起上一个</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>例句注音</Text>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>显示假名注音</Text>
-          <Switch
-            value={showExampleFurigana}
-            onValueChange={handleExampleFurigana}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
-        <Text style={styles.tip}>关闭时例句中“汉字[假名]”不会显示注音</Text>
+        {renderSwitchRow('显示假名注音', showExampleFurigana, handleExampleFurigana, true)}
+        <Text style={styles.tip}>关闭时例句中的汉字不会显示注音</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>词汇题型设置</Text>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>日语选释义</Text>
-          <Switch
-            value={mcqJaToMeaningEnabled}
-            onValueChange={(value) => handleMcqModeToggle('ja_to_meaning', value)}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>释义选日语</Text>
-          <Switch
-            value={mcqMeaningToJaEnabled}
-            onValueChange={(value) => handleMcqModeToggle('meaning_to_ja', value)}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>拼写题</Text>
-          <Switch
-            value={spellingEnabled}
-            onValueChange={(value) => handleToggle('spelling', value)}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>听力题</Text>
-          <Switch
-            value={listeningEnabled}
-            onValueChange={(value) => handleToggle('listening', value)}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
+        {renderSwitchRow('日语选释义', mcqJaToMeaningEnabled, (value) =>
+          handleMcqModeToggle('ja_to_meaning', value)
+        )}
+        {renderSwitchRow('释义选日语', mcqMeaningToJaEnabled, (value) =>
+          handleMcqModeToggle('meaning_to_ja', value)
+        )}
+        {renderSwitchRow('拼写题', spellingEnabled, (value) => handleToggle('spelling', value))}
+        {renderSwitchRow('听力题', listeningEnabled, (value) => handleToggle('listening', value), true)}
         <Text style={styles.tip}>至少开启一种题型；关闭后不再出该题型，多选题型等概率出题</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>文法题型设置</Text>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>例句选文法</Text>
-          <Switch
-            value={grammarExampleToPatternEnabled}
-            onValueChange={(value) => handleGrammarModeToggle('example_to_pattern', value)}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>释义选文法</Text>
-          <Switch
-            value={grammarMeaningToPatternEnabled}
-            onValueChange={(value) => handleGrammarModeToggle('meaning_to_pattern', value)}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleText}>文法选释义</Text>
-          <Switch
-            value={grammarPatternToMeaningEnabled}
-            onValueChange={(value) => handleGrammarModeToggle('pattern_to_meaning', value)}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
+        {renderSwitchRow('例句选文法', grammarExampleToPatternEnabled, (value) =>
+          handleGrammarModeToggle('example_to_pattern', value)
+        )}
+        {renderSwitchRow('释义选文法', grammarMeaningToPatternEnabled, (value) =>
+          handleGrammarModeToggle('meaning_to_pattern', value)
+        )}
+        {renderSwitchRow('文法选释义', grammarPatternToMeaningEnabled, (value) =>
+          handleGrammarModeToggle('pattern_to_meaning', value),
+          true
+        )}
         <Text style={styles.tip}>至少开启一种题型；关闭后不再出该题型，多选题型等概率出题</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>导航栏入口</Text>
-        {NAV_ITEMS.map((item) => (
-          <View key={item.key} style={styles.toggleRow}>
+        {NAV_ITEMS.map((item, index) => (
+          <View
+            key={item.key}
+            style={[styles.toggleRow, index < NAV_ITEMS.length - 1 ? styles.toggleRowDivider : null]}
+          >
             <Text style={styles.toggleText}>{item.label}</Text>
             <Switch
               value={navItems[item.key]}
               onValueChange={(value) => updateNavItems(item.key, value)}
-              trackColor={{ false: colors.border, true: colors.primary }}
+              trackColor={SWITCH_TRACK_COLOR}
             />
           </View>
         ))}
         <Text style={styles.tip}>最多显示两个入口，搜索和错题默认开启</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>词库来源</Text>
-        <Text style={styles.sourceText}>词汇：eggrolls JLPT10k（中文释义，CC BY-NC 4.0）</Text>
-        <Text style={styles.sourceText}>文法：蓝宝书语法N1.N2.N3.N4.N5文法含振假名（AnkiWeb 共享牌组）</Text>
-        <Text style={styles.tip}>发布版本中将附带完整授权说明</Text>
       </View>
     </ScrollView>
   );
@@ -371,8 +350,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    padding: spacing.m,
-    paddingBottom: spacing.l,
+    paddingHorizontal: spacing.m,
+    paddingBottom: spacing.xl,
+  },
+  pageHeader: {
+    paddingHorizontal: spacing.xs,
+    marginBottom: spacing.s,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  pageSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    color: colors.muted,
   },
   section: {
     backgroundColor: colors.card,
@@ -381,41 +374,73 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     marginBottom: spacing.m,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: spacing.m,
+    marginBottom: spacing.s,
   },
-  rateRow: {
+  optionRow: {
     flexDirection: 'row',
   },
-  rateBtn: {
+  optionBtn: {
     flex: 1,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.m,
+    paddingVertical: spacing.s,
+    alignItems: 'center',
   },
-  rateBtnGap: {
+  optionBtnGap: {
     marginRight: spacing.s,
   },
-  rateActive: {
-    backgroundColor: colors.success,
+  optionBtnActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  optionBtnPressed: {
+    opacity: 0.8,
+  },
+  optionBtnText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  optionBtnTextActive: {
+    color: '#fff',
   },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.s,
+    minHeight: 46,
+    paddingVertical: spacing.xs,
+  },
+  toggleRowDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   toggleText: {
     fontSize: 16,
     color: colors.text,
   },
+  toggleTextActive: {
+    fontWeight: '700',
+  },
+  toggleTextMuted: {
+    color: colors.muted,
+  },
   tip: {
     color: colors.muted,
     marginTop: spacing.s,
-  },
-  sourceText: {
-    color: colors.text,
-    marginBottom: spacing.xs,
+    fontSize: 13,
+    lineHeight: 19,
   },
 });
