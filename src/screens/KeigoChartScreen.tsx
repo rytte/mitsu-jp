@@ -17,11 +17,17 @@ type GiveRow = {
   scene: string;
   plain: string;
   keigo: string;
+  intro: string;
+  exampleJa: string;
+  exampleZh: string;
 };
 
 type RequestRow = {
   pattern: string;
   usage: string;
+  intro: string;
+  exampleJa: string;
+  exampleZh: string;
 };
 
 const ROWS: KeigoRow[] = [
@@ -136,16 +142,61 @@ const ROWS: KeigoRow[] = [
 ];
 
 const GIVE_ROWS: GiveRow[] = [
-  { scene: '我 → 他人', plain: 'あげる', keigo: '差し上げる（谦）' },
-  { scene: '他人 → 我/我方', plain: 'くれる', keigo: 'くださる（尊）' },
-  { scene: '从他人得到', plain: 'もらう', keigo: 'いただく（谦）' },
+  {
+    scene: '我 → 他人',
+    plain: 'あげる',
+    keigo: '差し上げる（谦）',
+    intro: '当“我方把东西给对方（上级/客户）”时，用「差し上げる」更礼貌。',
+    exampleJa: '資料を先生に差し上げます。',
+    exampleZh: '我把资料交给老师。',
+  },
+  {
+    scene: '他人 → 我/我方',
+    plain: 'くれる',
+    keigo: 'くださる（尊）',
+    intro: '当“对方给我方”时，用「くださる」来抬高对方的行为。',
+    exampleJa: '部長が本をくださいました。',
+    exampleZh: '部长给了我一本书。',
+  },
+  {
+    scene: '从他人得到',
+    plain: 'もらう',
+    keigo: 'いただく（谦）',
+    intro: '当“我方从对方得到东西”时，用「いただく」表示谦逊。',
+    exampleJa: '先輩にアドバイスをいただきました。',
+    exampleZh: '我得到了前辈的建议。',
+  },
 ];
 
 const REQUEST_ROWS: RequestRow[] = [
-  { pattern: '～をください / ～をちょうだい', usage: '请求对方给东西（ちょうだい较随意）' },
-  { pattern: '～てください / ～てちょうだい', usage: '请求对方做某事（ちょうだい较随意）' },
-  { pattern: '～させてください', usage: '请求许可“让我做…”' },
-  { pattern: '～ないでください', usage: '请求不要做某事' },
+  {
+    pattern: '～をください / ～をちょうだい',
+    usage: '请求对方给东西（ちょうだい较随意）',
+    intro: '「ください」较正式，适用于店铺、职场、陌生场合；「ちょうだい」更口语化。',
+    exampleJa: 'お水をください。',
+    exampleZh: '请给我一杯水。',
+  },
+  {
+    pattern: '～てください / ～てちょうだい',
+    usage: '请求对方做某事（ちょうだい较随意）',
+    intro: '用于提出动作请求；正式场景优先用「～てください」。',
+    exampleJa: 'ここに名前を書いてください。',
+    exampleZh: '请在这里写上名字。',
+  },
+  {
+    pattern: '～させてください',
+    usage: '请求许可“让我做…”',
+    intro: '用于向对方申请许可，语气是“请允许我……”。',
+    exampleJa: '先に失礼させてください。',
+    exampleZh: '请允许我先告辞。',
+  },
+  {
+    pattern: '～ないでください',
+    usage: '请求不要做某事',
+    intro: '用于礼貌地制止对方行为，语气比命令式更柔和。',
+    exampleJa: 'ここで写真を撮らないでください。',
+    exampleZh: '请不要在这里拍照。',
+  },
 ];
 
 const NOTES: string[] = [
@@ -192,13 +243,18 @@ function GiveHeaderRow() {
   );
 }
 
-function GiveRowItem({ scene, plain, keigo }: GiveRow) {
+type GiveRowItemProps = GiveRow & {
+  active: boolean;
+  onPress: () => void;
+};
+
+function GiveExpandableRowItem({ scene, plain, keigo, active, onPress }: GiveRowItemProps) {
   return (
-    <View style={styles.row}>
-      <Text style={styles.cell}>{scene}</Text>
-      <Text style={styles.cell}>{plain}</Text>
-      <Text style={styles.cell}>{keigo}</Text>
-    </View>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, styles.pressableRow, active ? styles.activeRow : null, pressed ? styles.pressedRow : null]}>
+      <Text style={[styles.cell, active ? styles.activeCell : null]}>{scene}</Text>
+      <Text style={[styles.cell, active ? styles.activeCell : null]}>{plain}</Text>
+      <Text style={[styles.cell, active ? styles.activeCell : null]}>{keigo}</Text>
+    </Pressable>
   );
 }
 
@@ -211,19 +267,28 @@ function RequestHeaderRow() {
   );
 }
 
-function RequestRowItem({ pattern, usage }: RequestRow) {
+type RequestRowItemProps = RequestRow & {
+  active: boolean;
+  onPress: () => void;
+};
+
+function RequestRowItem({ pattern, usage, active, onPress }: RequestRowItemProps) {
   return (
-    <View style={styles.row}>
-      <Text style={styles.cell}>{pattern}</Text>
-      <Text style={styles.cell}>{usage}</Text>
-    </View>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, styles.pressableRow, active ? styles.activeRow : null, pressed ? styles.pressedRow : null]}>
+      <Text style={[styles.cell, active ? styles.activeCell : null]}>{pattern}</Text>
+      <Text style={[styles.cell, active ? styles.activeCell : null]}>{usage}</Text>
+    </Pressable>
   );
 }
 
 export default function KeigoChartScreen() {
   const topPadding = useScreenTopPadding();
   const [selectedPlain, setSelectedPlain] = useState<string | null>(null);
+  const [selectedGiveKey, setSelectedGiveKey] = useState<string | null>(null);
+  const [selectedRequestKey, setSelectedRequestKey] = useState<string | null>(null);
   const handleToggleRow = (plain: string) => setSelectedPlain((value) => (value === plain ? null : plain));
+  const handleToggleGive = (key: string) => setSelectedGiveKey((value) => (value === key ? null : key));
+  const handleToggleRequest = (key: string) => setSelectedRequestKey((value) => (value === key ? null : key));
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
@@ -264,19 +329,61 @@ export default function KeigoChartScreen() {
       <Text style={styles.sectionSubtitle}>常用的给与 / 接受敬语表达</Text>
       <View style={[styles.card, styles.sectionCard]}>
         <GiveHeaderRow />
-        {GIVE_ROWS.map((row) => (
-          <GiveRowItem key={`${row.scene}-${row.plain}`} {...row} />
-        ))}
+        {GIVE_ROWS.map((row) => {
+          const rowKey = `${row.scene}-${row.plain}`;
+          const expanded = selectedGiveKey === rowKey;
+          return (
+            <View key={rowKey} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
+              <GiveExpandableRowItem
+                {...row}
+                active={expanded}
+                onPress={() => handleToggleGive(rowKey)}
+              />
+              {expanded ? (
+                <View style={styles.inlineIntroCard}>
+                  <Text style={styles.introDetailText}>{row.intro}</Text>
+                  <View style={styles.introLine}>
+                    <Text style={[styles.introLabel, styles.exampleLabel]}>例</Text>
+                    <Text style={styles.introValue}>{row.exampleJa}</Text>
+                  </View>
+                  <Text style={styles.exampleZh}>{row.exampleZh}</Text>
+                </View>
+              ) : null}
+            </View>
+          );
+        })}
       </View>
+      <Text style={styles.tapHint}>点击授受表达行可查看详细说明与例句</Text>
 
       <Text style={styles.sectionTitle}>请求表达</Text>
       <Text style={styles.sectionSubtitle}>常用的请求/许可表达</Text>
       <View style={[styles.card, styles.sectionCard]}>
         <RequestHeaderRow />
-        {REQUEST_ROWS.map((row) => (
-          <RequestRowItem key={row.pattern} {...row} />
-        ))}
+        {REQUEST_ROWS.map((row) => {
+          const rowKey = row.pattern;
+          const expanded = selectedRequestKey === rowKey;
+          return (
+            <View key={rowKey} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
+              <RequestRowItem
+                {...row}
+                active={expanded}
+                onPress={() => handleToggleRequest(rowKey)}
+              />
+              {expanded ? (
+                <View style={styles.inlineIntroCard}>
+                  <Text style={styles.introDetailText}>{row.intro}</Text>
+                  <View style={styles.introLine}>
+                    <Text style={[styles.introLabel, styles.exampleLabel]}>例</Text>
+                    <Text style={styles.introValue}>{row.exampleJa}</Text>
+                  </View>
+                  <Text style={styles.exampleZh}>{row.exampleZh}</Text>
+                </View>
+              ) : null}
+            </View>
+          );
+        })}
       </View>
+      <Text style={styles.tapHint}>点击请求表达行可查看详细说明与例句</Text>
 
       <View style={styles.noteCard}>
         <Text style={styles.noteTitle}>使用提示</Text>
@@ -406,6 +513,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: spacing.xs,
   },
+  introDetailText: {
+    color: '#3f4f63',
+    lineHeight: 20,
+    marginBottom: spacing.s,
+  },
   introValue: {
     flex: 1,
     color: '#3f4f63',
@@ -427,6 +539,15 @@ const styles = StyleSheet.create({
   },
   humbleLabel: {
     backgroundColor: '#7a93b3',
+  },
+  exampleLabel: {
+    backgroundColor: '#7f93af',
+  },
+  exampleZh: {
+    marginLeft: 28,
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 18,
   },
   noteCard: {
     backgroundColor: colors.card,
