@@ -20,8 +20,8 @@ function ConjugationHeaderRow() {
   return (
     <View style={[styles.row, styles.headerRow]}>
       <Text style={[styles.cell, styles.headerText, styles.colForm]}>形态</Text>
-      <Text style={[styles.cell, styles.headerText, styles.colRule]}>五段规则</Text>
-      <Text style={[styles.cell, styles.headerText, styles.colRule]}>一段规则</Text>
+      <Text style={[styles.cell, styles.headerText, styles.ruleHeaderText, styles.colRule]}>五段规则</Text>
+      <Text style={[styles.cell, styles.headerText, styles.ruleHeaderText, styles.colRule]}>一段规则</Text>
     </View>
   );
 }
@@ -36,8 +36,8 @@ function ConjugationRowItem({ row, active, onPress }: ConjugationRowItemProps) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, styles.pressableRow, active ? styles.activeRow : null, pressed ? styles.pressedRow : null]}>
       <Text style={[styles.cell, styles.colForm, styles.formCell, active ? styles.formCellActive : null]}>{row.form}</Text>
-      <Text style={[styles.cell, styles.colRule, styles.ruleCell, active ? styles.activeCell : null]}>{row.godanRule}</Text>
-      <Text style={[styles.cell, styles.colRule, styles.ruleCell, active ? styles.activeCell : null]}>{row.ichidanRule}</Text>
+      <Text style={[styles.cell, styles.colRule, styles.ruleCell, active ? styles.ruleCellActive : null]}>{row.godanRule}</Text>
+      <Text style={[styles.cell, styles.colRule, styles.ruleCell, active ? styles.ruleCellActive : null]}>{row.ichidanRule}</Text>
     </Pressable>
   );
 }
@@ -75,7 +75,9 @@ export default function VerbConjugationScreen() {
       </View>
 
       {showPractice ? (
-        <VerbConjugationPracticePanel />
+        <View style={styles.practicePanelWrap}>
+          <VerbConjugationPracticePanel />
+        </View>
       ) : (
         <>
           <View style={styles.tableSection}>
@@ -173,6 +175,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
   },
+  practicePanelWrap: {
+    marginTop: spacing.s,
+  },
   tableSection: {
     marginBottom: spacing.m,
   },
@@ -225,9 +230,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.muted,
   },
-  activeCell: {
-    color: '#2f558f',
-    fontWeight: '700',
+  ruleHeaderText: {
+    color: '#5b6b84',
   },
   formCell: {
     color: colors.primaryDark,
@@ -244,7 +248,14 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   ruleCell: {
-    color: colors.muted,
+    color: '#55657f',
+    fontSize: 11,
+    lineHeight: 16,
+    fontWeight: '500',
+  },
+  ruleCellActive: {
+    color: '#365b8f',
+    fontWeight: '600',
   },
   expandWrap: {
     backgroundColor: '#fff',
