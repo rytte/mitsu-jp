@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import { colors, radius, spacing } from '../theme';
@@ -32,11 +32,13 @@ type RequestRow = {
 };
 
 type KeigoPracticeField = 'respectful' | 'humble' | 'polite';
+type KeigoPracticeMode = 'plain_to_keigo' | 'gloss_to_keigo' | 'keigo_to_plain' | 'keigo_to_gloss';
 
 type KeigoPracticeQuestion = {
   id: string;
   plain: string;
   gloss: string;
+  keigo: string;
   field: KeigoPracticeField;
   label: string;
   answer: string;
@@ -226,6 +228,19 @@ const KEIGO_FIELD_LABEL: Record<KeigoPracticeField, string> = {
   humble: '谦让语',
   polite: '丁宁语',
 };
+const KEIGO_MODE_ITEMS: Array<{ id: KeigoPracticeMode; label: string }> = [
+  { id: 'plain_to_keigo', label: '原型选敬语' },
+  { id: 'gloss_to_keigo', label: '释义选敬语' },
+  { id: 'keigo_to_plain', label: '敬语选原型' },
+  { id: 'keigo_to_gloss', label: '敬语选释义' },
+];
+const KEIGO_MODE_LABEL: Record<KeigoPracticeMode, string> = {
+  plain_to_keigo: '原型选敬语',
+  gloss_to_keigo: '释义选敬语',
+  keigo_to_plain: '敬语选原型',
+  keigo_to_gloss: '敬语选释义',
+};
+const PRACTICE_OPTION_LABELS = ['A', 'B', 'C', 'D'];
 
 function shuffle<T>(list: T[]) {
   const next = [...list];
@@ -236,25 +251,40 @@ function shuffle<T>(list: T[]) {
   return next;
 }
 
-function buildKeigoPracticeSession(): KeigoPracticeQuestion[] {
+function buildKeigoPracticeSession(mode: KeigoPracticeMode): KeigoPracticeQuestion[] {
   const questions: KeigoPracticeQuestion[] = [];
 
   for (const row of ROWS) {
     for (const field of KEIGO_PRACTICE_FIELDS) {
-      const answer = row[field];
+      const keigo = row[field];
       const label = KEIGO_FIELD_LABEL[field];
-      const pool = [...new Set(ROWS.map((item) => item[field]).filter((item) => item !== answer))];
+      let answer = '';
+      let pool: string[] = [];
+
+      if (mode === 'plain_to_keigo' || mode === 'gloss_to_keigo') {
+        answer = keigo;
+        pool = ROWS.map((item) => item[field]);
+      } else if (mode === 'keigo_to_plain') {
+        answer = row.plain;
+        pool = ROWS.map((item) => item.plain);
+      } else {
+        answer = row.gloss;
+        pool = ROWS.map((item) => item.gloss);
+      }
+
+      const uniquePool = [...new Set(pool.filter((item) => item !== answer))];
       const options: string[] = [answer];
 
-      for (const candidate of shuffle(pool)) {
+      for (const candidate of shuffle(uniquePool)) {
         if (options.length >= 4) break;
         options.push(candidate);
       }
 
       questions.push({
-        id: `${row.plain}-${field}`,
+        id: `${mode}-${row.plain}-${field}`,
         plain: row.plain,
         gloss: row.gloss,
+        keigo,
         field,
         label,
         answer,
@@ -342,7 +372,8 @@ function RequestRowItem({ pattern, usage, active, onPress }: RequestRowItemProps
 }
 
 function KeigoPracticePanel() {
-  const [session, setSession] = useState<KeigoPracticeQuestion[]>(() => buildKeigoPracticeSession());
+  const [mode, setMode] = useState<KeigoPracticeMode>('plain_to_keigo');
+  const [session, setSession] = useState<KeigoPracticeQuestion[]>(() => buildKeigoPracticeSession('plain_to_keigo'));
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -350,7 +381,21 @@ function KeigoPracticePanel() {
   const finished = index >= session.length;
   const current = finished ? null : session[index];
   const answered = selected !== null;
-  const currentCorrect = current ? selected === current.answer : false;
+  const currentCorrect = useMemo(() => (current ? selected === current.answer : false), [current, selected]);
+  const progressRatio = session.length ? (finished ? 1 : (index + 1) / session.length) : 0;
+  const promptMain =
+    mode === 'plain_to_keigo'
+      ? current?.plain ?? ''
+      : mode === 'gloss_to_keigo'
+        ? current?.gloss ?? ''
+        : current?.keigo ?? '';
+
+  const resetSession = (targetMode: KeigoPracticeMode = mode) => {
+    setSession(buildKeigoPracticeSession(targetMode));
+    setIndex(0);
+    setSelected(null);
+    setCorrectCount(0);
+  };
 
   const handleSelect = (option: string) => {
     if (!current || answered) return;
@@ -366,21 +411,35 @@ function KeigoPracticePanel() {
     setIndex((prev) => prev + 1);
   };
 
-  const handleReset = () => {
-    setSession(buildKeigoPracticeSession());
-    setIndex(0);
-    setSelected(null);
-    setCorrectCount(0);
+  const handleModeChange = (nextMode: KeigoPracticeMode) => {
+    if (nextMode === mode) return;
+    setMode(nextMode);
+    resetSession(nextMode);
   };
 
   if (finished) {
     const percent = session.length ? Math.round((correctCount / session.length) * 100) : 0;
     return (
       <View style={styles.practiceCard}>
+        <View style={styles.practiceModeRow}>
+          {KEIGO_MODE_ITEMS.map((item) => {
+            const active = item.id === mode;
+            return (
+              <Pressable
+                key={item.id}
+                onPress={() => handleModeChange(item.id)}
+                style={[styles.practiceModeChip, active ? styles.practiceModeChipActive : null]}
+              >
+                <Text style={[styles.practiceModeChipText, active ? styles.practiceModeChipTextActive : null]}>{item.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
         <Text style={styles.practiceTitle}>练习完成</Text>
+        <Text style={styles.practiceResultRate}>{percent}%</Text>
         <Text style={styles.practiceSummary}>正确 {correctCount} / {session.length}</Text>
-        <Text style={styles.practiceSummary}>正确率 {percent}%</Text>
-        <PrimaryButton title="再来一组" onPress={handleReset} style={styles.practiceButton} />
+        <Text style={styles.practiceSummary}>当前题型：{KEIGO_MODE_LABEL[mode]}</Text>
+        <PrimaryButton title="再来一组" onPress={resetSession} style={styles.practiceButton} />
       </View>
     );
   }
@@ -389,40 +448,86 @@ function KeigoPracticePanel() {
 
   return (
     <View style={styles.practiceCard}>
-      <Text style={styles.practiceProgress}>第 {index + 1} / {session.length} 题</Text>
-      <Text style={styles.practicePrompt}>「{current.plain}（{current.gloss}）」的「{current.label}」是？</Text>
+      <View style={styles.practiceModeRow}>
+        {KEIGO_MODE_ITEMS.map((item) => {
+          const active = item.id === mode;
+          return (
+            <Pressable
+              key={item.id}
+              onPress={() => handleModeChange(item.id)}
+              style={[styles.practiceModeChip, active ? styles.practiceModeChipActive : null]}
+            >
+              <Text style={[styles.practiceModeChipText, active ? styles.practiceModeChipTextActive : null]}>{item.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
-      {current.options.map((option) => {
+      <View style={styles.practiceHeadRow}>
+        <Text style={styles.practiceProgress}>第 {index + 1} / {session.length} 题</Text>
+      </View>
+      <View style={styles.practiceProgressTrack}>
+        <View style={[styles.practiceProgressFill, { width: `${Math.max(0, Math.min(100, Math.round(progressRatio * 100)))}%` }]} />
+      </View>
+
+      <View style={styles.practicePromptCard}>
+        <View style={styles.practiceTargetRow}>
+          <Text style={styles.practiceTargetLabel}>目标敬语</Text>
+          <Text style={styles.practiceTargetValue}>{current.label}</Text>
+        </View>
+        <Text style={styles.practicePrompt}>「{promptMain}」</Text>
+      </View>
+
+      {current.options.map((option, optionIndex) => {
         const isSelected = option === selected;
         const isCorrect = option === current.answer;
         return (
           <Pressable
             key={`${current.id}-${option}`}
             onPress={() => handleSelect(option)}
-            style={[
+            disabled={answered}
+            style={({ pressed }) => [
               styles.practiceOption,
               answered && isCorrect ? styles.practiceOptionCorrect : null,
               answered && isSelected && !isCorrect ? styles.practiceOptionWrong : null,
+              pressed && !answered ? styles.practiceOptionPressed : null,
             ]}
           >
-            <Text
-              style={[
-                styles.practiceOptionText,
-                answered && (isCorrect || isSelected) ? styles.practiceOptionTextStrong : null,
-              ]}
-            >
-              {option}
-            </Text>
+            <View style={styles.practiceOptionInner}>
+              <View
+                style={[
+                  styles.practiceOptionBadge,
+                  answered && isCorrect ? styles.practiceOptionBadgeCorrect : null,
+                  answered && isSelected && !isCorrect ? styles.practiceOptionBadgeWrong : null,
+                ]}
+              >
+                <Text style={styles.practiceOptionBadgeText}>{PRACTICE_OPTION_LABELS[optionIndex] ?? '?'}</Text>
+              </View>
+              <Text
+                style={[
+                  styles.practiceOptionText,
+                  answered && (isCorrect || isSelected) ? styles.practiceOptionTextStrong : null,
+                ]}
+              >
+                {option}
+              </Text>
+              {answered && isCorrect ? <Text style={styles.practiceOptionMark}>正确</Text> : null}
+            </View>
           </Pressable>
         );
       })}
 
       {answered ? (
         <>
-          <Text style={[styles.practiceFeedback, currentCorrect ? styles.practiceFeedbackOk : styles.practiceFeedbackNg]}>
+          <Text
+            style={[
+              styles.practiceFeedback,
+              currentCorrect ? styles.practiceFeedbackOk : styles.practiceFeedbackNg,
+              currentCorrect ? styles.practiceFeedbackCardOk : styles.practiceFeedbackCardNg,
+            ]}
+          >
             {currentCorrect ? '回答正确' : `回答错误，正确答案：${current.answer}`}
           </Text>
-          <Text style={styles.practiceHint}>提示：根据说话方与对方关系，判断该用尊敬语、谦让语或丁宁语。</Text>
           <PrimaryButton title={index === session.length - 1 ? '查看结果' : '下一题'} onPress={handleNext} style={styles.practiceButton} />
         </>
       ) : null}
@@ -734,18 +839,103 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
-  practiceSummary: {
+  practiceResultRate: {
     marginTop: spacing.s,
+    color: colors.primaryDark,
+    fontSize: 34,
+    fontWeight: '800',
+    lineHeight: 40,
+  },
+  practiceSummary: {
+    marginTop: spacing.xs,
     color: colors.muted,
+  },
+  practiceModeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: spacing.xs,
+    gap: 4,
+  },
+  practiceModeChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 999,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 5,
+    backgroundColor: '#fff',
+  },
+  practiceModeChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: '#eff6ff',
+  },
+  practiceModeChipText: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  practiceModeChipTextActive: {
+    color: colors.primary,
+  },
+  practiceHeadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   practiceProgress: {
     color: colors.muted,
     fontWeight: '600',
   },
-  practicePrompt: {
+  practiceProgressTrack: {
     marginTop: spacing.s,
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: '#e5edf8',
+    overflow: 'hidden',
+  },
+  practiceProgressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#3b82f6',
+  },
+  practicePromptCard: {
+    marginTop: spacing.s,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    borderRadius: radius.m,
+    backgroundColor: '#f8fbff',
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.s,
+  },
+  practiceTargetRow: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    backgroundColor: '#eff6ff',
+    borderRadius: radius.s,
+    overflow: 'hidden',
+    marginBottom: spacing.s,
+  },
+  practiceTargetLabel: {
+    color: '#1e3a8a',
+    fontSize: 11,
+    fontWeight: '700',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 4,
+    backgroundColor: '#dbeafe',
+  },
+  practiceTargetValue: {
+    color: '#1d4ed8',
+    fontSize: 12,
+    fontWeight: '700',
+    paddingHorizontal: spacing.s,
+    paddingVertical: 4,
+  },
+  practicePrompt: {
+    marginTop: spacing.xs,
     color: colors.text,
-    fontSize: 17,
+    fontSize: 22,
     fontWeight: '700',
   },
   practiceOption: {
@@ -757,6 +947,33 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.s,
     paddingHorizontal: spacing.s,
   },
+  practiceOptionPressed: {
+    opacity: 0.85,
+  },
+  practiceOptionInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  practiceOptionBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 999,
+    backgroundColor: '#eef2f7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.s,
+  },
+  practiceOptionBadgeCorrect: {
+    backgroundColor: '#dcfce7',
+  },
+  practiceOptionBadgeWrong: {
+    backgroundColor: '#fee2e2',
+  },
+  practiceOptionBadgeText: {
+    color: '#475569',
+    fontWeight: '700',
+    fontSize: 12,
+  },
   practiceOptionCorrect: {
     borderColor: '#86efac',
     backgroundColor: '#f0fdf4',
@@ -767,24 +984,39 @@ const styles = StyleSheet.create({
   },
   practiceOptionText: {
     color: colors.text,
+    flex: 1,
+    fontSize: 15,
   },
   practiceOptionTextStrong: {
+    fontWeight: '700',
+  },
+  practiceOptionMark: {
+    marginLeft: spacing.s,
+    color: colors.success,
+    fontSize: 12,
     fontWeight: '700',
   },
   practiceFeedback: {
     marginTop: spacing.s,
     fontWeight: '700',
+    borderWidth: 1,
+    borderRadius: radius.m,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.s,
+  },
+  practiceFeedbackCardOk: {
+    borderColor: '#86efac',
+    backgroundColor: '#f0fdf4',
+  },
+  practiceFeedbackCardNg: {
+    borderColor: '#fecaca',
+    backgroundColor: '#fef2f2',
   },
   practiceFeedbackOk: {
     color: colors.success,
   },
   practiceFeedbackNg: {
     color: colors.danger,
-  },
-  practiceHint: {
-    marginTop: spacing.xs,
-    color: colors.muted,
-    lineHeight: 20,
   },
   practiceButton: {
     marginTop: spacing.m,
