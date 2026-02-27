@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { CONJUGATION_OVERVIEW_ROWS, CONJUGATION_TABLE_ROWS } from '../features/verbConjugation/data';
+import { CONJUGATION_OVERVIEW_ROWS, CONJUGATION_TABLE_ROWS, PRACTICE_VERB_CONJUGATIONS } from '../features/verbConjugation/data';
 import { colors, radius, spacing } from '../theme';
 import PrimaryButton from './PrimaryButton';
 
-type VerbKey = 'godan' | 'ichidan' | 'suru' | 'kuru';
 type PracticeMode = 'form_to_word' | 'word_to_form';
 
 type Question = {
@@ -27,13 +26,6 @@ const MODE_LABEL: Record<PracticeMode, string> = {
   form_to_word: '选择单词变形',
   word_to_form: '选择单词形态',
 };
-
-const VERB_META: Array<{ key: VerbKey; base: string }> = [
-  { key: 'godan', base: '書く' },
-  { key: 'ichidan', base: '食べる' },
-  { key: 'suru', base: 'する' },
-  { key: 'kuru', base: '来る（くる）' },
-];
 
 function shuffle<T>(list: T[]) {
   const next = [...list];
@@ -59,26 +51,28 @@ function buildSession(mode: PracticeMode): Question[] {
   const valueCountMap = new Map<string, number>();
 
   if (mode === 'word_to_form') {
-    for (const row of CONJUGATION_TABLE_ROWS) {
-      for (const meta of VERB_META) {
-        const value = row[meta.key];
-        const counterKey = `${meta.key}::${value}`;
+    for (const verb of PRACTICE_VERB_CONJUGATIONS) {
+      for (const form of allForms) {
+        const value = verb.forms[form];
+        if (!value) continue;
+        const counterKey = `${verb.base}::${value}`;
         valueCountMap.set(counterKey, (valueCountMap.get(counterKey) ?? 0) + 1);
       }
     }
   }
 
-  for (const row of CONJUGATION_TABLE_ROWS) {
-    for (const meta of VERB_META) {
-      const word = row[meta.key];
-      const duplicateCounterKey = `${meta.key}::${word}`;
+  for (const verb of PRACTICE_VERB_CONJUGATIONS) {
+    for (const form of allForms) {
+      const word = verb.forms[form];
+      if (!word) continue;
+      const duplicateCounterKey = `${verb.base}::${word}`;
       if (mode === 'word_to_form' && (valueCountMap.get(duplicateCounterKey) ?? 0) > 1) continue;
 
-      const rule = ruleMap.get(row.form);
+      const rule = ruleMap.get(form);
       const ruleHint =
-        meta.key === 'godan'
+        verb.group === 'godan'
           ? rule?.godan ?? '五段规则见上方规则表。'
-          : meta.key === 'ichidan'
+          : verb.group === 'ichidan'
             ? rule?.ichidan ?? '一段规则见上方规则表。'
             : '不规则动词，固定变形。';
       let answer = '';
@@ -86,7 +80,7 @@ function buildSession(mode: PracticeMode): Question[] {
 
       if (mode === 'form_to_word') {
         answer = word;
-        const sameBaseValues = CONJUGATION_TABLE_ROWS.map((item) => item[meta.key]).filter((item) => item !== answer);
+        const sameBaseValues = allForms.map((item) => verb.forms[item]).filter((item): item is string => Boolean(item) && item !== answer);
         const candidates = shuffle(sameBaseValues);
         options = [answer];
 
@@ -95,7 +89,7 @@ function buildSession(mode: PracticeMode): Question[] {
           if (!options.includes(candidate)) options.push(candidate);
         }
       } else {
-        answer = row.form;
+        answer = form;
         const candidates = shuffle(allForms.filter((item) => item !== answer));
         options = [answer];
         for (const candidate of candidates) {
@@ -105,9 +99,9 @@ function buildSession(mode: PracticeMode): Question[] {
       }
 
       allQuestions.push({
-        id: `${mode}-${row.form}-${meta.key}`,
-        form: row.form,
-        base: meta.base,
+        id: `${mode}-${verb.id}-${form}`,
+        form,
+        base: verb.base,
         word,
         answer,
         options: shuffle(options),
