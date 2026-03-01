@@ -100,6 +100,16 @@ export default function MyScreen({ navigation }: Props) {
         visible: !navSettings.nav_show_kana,
       },
       {
+        key: 'verb-classification',
+        title: '动词分类表',
+        subtitle: '五段 / 一段 / 不规则动词',
+        icon: 'list-outline' as const,
+        accent: '#0891b2',
+        accentSoft: '#cffafe',
+        onPress: () => navigation.navigate('VerbClassification'),
+        visible: true,
+      },
+      {
         key: 'verb',
         title: '动词变形表',
         subtitle: '一段 / 五段 / 不规则',
