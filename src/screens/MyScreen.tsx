@@ -110,6 +110,16 @@ export default function MyScreen({ navigation }: Props) {
         visible: true,
       },
       {
+        key: 'adjective-guide',
+        title: '形容词分类表',
+        subtitle: 'い形容词 / な形容词 / 基础活用',
+        icon: 'text-outline' as const,
+        accent: '#6366f1',
+        accentSoft: '#e0e7ff',
+        onPress: () => navigation.navigate('AdjectiveGuide'),
+        visible: true,
+      },
+      {
         key: 'verb-classification',
         title: '动词分类表',
         subtitle: '五段 / 一段 / 不规则动词',
