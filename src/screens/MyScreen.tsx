@@ -100,6 +100,16 @@ export default function MyScreen({ navigation }: Props) {
         visible: !navSettings.nav_show_kana,
       },
       {
+        key: 'numeral-guide',
+        title: '数词速查表',
+        subtitle: '数字 / 日期 / 时间 / 助数词',
+        icon: 'calculator-outline' as const,
+        accent: '#0ea5e9',
+        accentSoft: '#e0f2fe',
+        onPress: () => navigation.navigate('NumeralGuide'),
+        visible: true,
+      },
+      {
         key: 'verb-classification',
         title: '动词分类表',
         subtitle: '五段 / 一段 / 不规则动词',

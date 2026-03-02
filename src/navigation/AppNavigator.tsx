@@ -26,6 +26,7 @@ import AiTranslationPracticeScreen from '../screens/AiTranslationPracticeScreen'
 import AiWritingPracticeScreen from '../screens/AiWritingPracticeScreen';
 import AiSentenceAssemblePracticeScreen from '../screens/AiSentenceAssemblePracticeScreen';
 import KanaChartScreen from '../screens/KanaChartScreen';
+import NumeralGuideScreen from '../screens/NumeralGuideScreen';
 import VerbClassificationScreen from '../screens/VerbClassificationScreen';
 import VerbConjugationScreen from '../screens/VerbConjugationScreen';
 import KeigoChartScreen from '../screens/KeigoChartScreen';
@@ -127,6 +128,7 @@ function MyStackScreen() {
       <MyStack.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} />
       <MyStack.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题本' }} />
       <MyStack.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音图' }} />
+      <MyStack.Screen name="NumeralGuide" component={NumeralGuideScreen} options={{ title: '数词速查表' }} />
       <MyStack.Screen name="VerbClassification" component={VerbClassificationScreen} options={{ title: '动词分类表' }} />
       <MyStack.Screen name="VerbConjugation" component={VerbConjugationScreen} options={{ title: '动词变形表' }} />
       <MyStack.Screen name="KeigoChart" component={KeigoChartScreen} options={{ title: '敬语表' }} />
