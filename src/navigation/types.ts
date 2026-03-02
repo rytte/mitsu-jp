@@ -67,6 +67,7 @@ export type MyStackParamList = {
   Mistakes: undefined;
   KanaChart: undefined;
   NumeralGuide: undefined;
+  ParticleGuide: undefined;
   AdjectiveGuide: undefined;
   VerbClassification: undefined;
   VerbConjugation: undefined;

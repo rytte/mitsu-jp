@@ -140,6 +140,16 @@ export default function MyScreen({ navigation }: Props) {
         visible: !navSettings.nav_show_verb_conjugation,
       },
       {
+        key: 'particle-guide',
+        title: '助词表',
+        subtitle: 'は / が / を / に / で 高频用法',
+        icon: 'git-network-outline' as const,
+        accent: '#22c55e',
+        accentSoft: '#dcfce7',
+        onPress: () => navigation.navigate('ParticleGuide'),
+        visible: true,
+      },
+      {
         key: 'keigo',
         title: '敬语表',
         subtitle: '尊敬语 / 谦让语 / 丁宁语',
