@@ -132,7 +132,7 @@ export default function MyScreen({ navigation }: Props) {
       {
         key: 'verb',
         title: '动词变形表',
-        subtitle: '一段 / 五段 / 不规则',
+        subtitle: '五段 / 一段 / 不规则动词',
         icon: 'swap-horizontal-outline' as const,
         accent: '#14b8a6',
         accentSoft: '#ccfbf1',

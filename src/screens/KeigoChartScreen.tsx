@@ -12,6 +12,12 @@ type KeigoRow = {
   gloss: string;
   respectfulIntro: string;
   humbleIntro: string;
+  respectfulExampleJa: string;
+  respectfulExampleZh: string;
+  humbleExampleJa: string;
+  humbleExampleZh: string;
+  politeExampleJa: string;
+  politeExampleZh: string;
 };
 
 type GiveRow = {
@@ -19,6 +25,8 @@ type GiveRow = {
   plain: string;
   keigo: string;
   intro: string;
+  plainExampleJa: string;
+  plainExampleZh: string;
   exampleJa: string;
   exampleZh: string;
 };
@@ -54,6 +62,12 @@ const ROWS: KeigoRow[] = [
     gloss: '看',
     respectfulIntro: '对上级或客户说“看”时，用「ご覧になる」。',
     humbleIntro: '自己“看”对方资料或作品时，用「拝見する」。',
+    respectfulExampleJa: '社長は資料をご覧になります。',
+    respectfulExampleZh: '社长会过目资料。',
+    humbleExampleJa: '私が企画書を拝見します。',
+    humbleExampleZh: '我来拜读企划书。',
+    politeExampleJa: 'その資料を見ます。',
+    politeExampleZh: '我看那份资料。',
   },
   {
     plain: '行く / 来る',
@@ -63,6 +77,12 @@ const ROWS: KeigoRow[] = [
     gloss: '去 / 来',
     respectfulIntro: '谈对方来访或到场时，用「いらっしゃる / おいでになる」。',
     humbleIntro: '自己去拜访对方时，多用「伺う / 参る」。',
+    respectfulExampleJa: '部長は午後にいらっしゃいます。',
+    respectfulExampleZh: '部长下午会来。',
+    humbleExampleJa: '明日、私が先方へ伺います。',
+    humbleExampleZh: '明天我去拜访对方。',
+    politeExampleJa: '明日、東京へ行きます。',
+    politeExampleZh: '明天我去东京。',
   },
   {
     plain: 'いる',
@@ -72,6 +92,12 @@ const ROWS: KeigoRow[] = [
     gloss: '在 / 存在',
     respectfulIntro: '描述对方“在”某地时，用「いらっしゃる」。',
     humbleIntro: '描述自己或己方“在”时，可用「おる」。',
+    respectfulExampleJa: '先生は研究室にいらっしゃいます。',
+    respectfulExampleZh: '老师在研究室。',
+    humbleExampleJa: '私は受付におります。',
+    humbleExampleZh: '我在前台。',
+    politeExampleJa: '彼は今、教室にいます。',
+    politeExampleZh: '他现在在教室。',
   },
   {
     plain: '言う',
@@ -81,6 +107,12 @@ const ROWS: KeigoRow[] = [
     gloss: '说',
     respectfulIntro: '引用客户、老师发言时，用「おっしゃる」。',
     humbleIntro: '自己发言对外表达时，用「申す / 申し上げる」。',
+    respectfulExampleJa: '先生がそうおっしゃいました。',
+    respectfulExampleZh: '老师是这么说的。',
+    humbleExampleJa: '私から申します。',
+    humbleExampleZh: '由我来讲。',
+    politeExampleJa: '後で詳しく言います。',
+    politeExampleZh: '我之后会详细说明。',
   },
   {
     plain: 'する',
@@ -90,6 +122,12 @@ const ROWS: KeigoRow[] = [
     gloss: '做',
     respectfulIntro: '谈对方动作时，用「なさる」。',
     humbleIntro: '谈自己动作时，用「いたす / いたします」。',
+    respectfulExampleJa: '社長が最終確認なさいます。',
+    respectfulExampleZh: '社长会做最终确认。',
+    humbleExampleJa: '私が対応いたします。',
+    humbleExampleZh: '我来处理。',
+    politeExampleJa: '私が確認します。',
+    politeExampleZh: '我来确认。',
   },
   {
     plain: '食べる / 飲む',
@@ -99,6 +137,12 @@ const ROWS: KeigoRow[] = [
     gloss: '吃 / 喝',
     respectfulIntro: '请对方用餐、饮用时，用「召し上がる」。',
     humbleIntro: '自己受邀或受赠进食时，用「いただく」。',
+    respectfulExampleJa: '先生はお茶を召し上がります。',
+    respectfulExampleZh: '老师会喝茶。',
+    humbleExampleJa: '私は昼食をいただきます。',
+    humbleExampleZh: '我来用午餐。',
+    politeExampleJa: '私は水を飲みます。',
+    politeExampleZh: '我喝水。',
   },
   {
     plain: '知る',
@@ -108,6 +152,12 @@ const ROWS: KeigoRow[] = [
     gloss: '知道',
     respectfulIntro: '询问对方是否知道时，用「ご存じだ / ご存じですか」。',
     humbleIntro: '表达自己“知道”时，用「存じる / 存じております」。',
+    respectfulExampleJa: '田中様はその件をご存じです。',
+    respectfulExampleZh: '田中先生知道那件事。',
+    humbleExampleJa: 'その件は存じております。',
+    humbleExampleZh: '那件事我知道。',
+    politeExampleJa: 'その件を知っています。',
+    politeExampleZh: '我知道那件事。',
   },
   {
     plain: '思う',
@@ -117,6 +167,12 @@ const ROWS: KeigoRow[] = [
     gloss: '想 / 认为',
     respectfulIntro: '陈述对方看法时，用「お思いになる」。',
     humbleIntro: '自谦表达自己的意见时，可用「存じる / 存じます」。',
+    respectfulExampleJa: '部長は難しいとお思いになります。',
+    respectfulExampleZh: '部长认为这很难。',
+    humbleExampleJa: '私も同じだと存じます。',
+    humbleExampleZh: '我也认为是一样的。',
+    politeExampleJa: '私は良いと思います。',
+    politeExampleZh: '我觉得很好。',
   },
   {
     plain: '与える',
@@ -126,6 +182,12 @@ const ROWS: KeigoRow[] = [
     gloss: '给',
     respectfulIntro: '对方给我方时，用「くださる」。',
     humbleIntro: '我方给对方时，用「差し上げる」。',
+    respectfulExampleJa: '部長が資料をくださいます。',
+    respectfulExampleZh: '部长会给我资料。',
+    humbleExampleJa: '私が先生に資料を差し上げます。',
+    humbleExampleZh: '我把资料给老师。',
+    politeExampleJa: '私が友だちに本をあげます。',
+    politeExampleZh: '我把书给朋友。',
   },
   {
     plain: 'もらう',
@@ -135,6 +197,12 @@ const ROWS: KeigoRow[] = [
     gloss: '得到 / 收到',
     respectfulIntro: '谈对方“收下、领取”时，可用「お受け取りになる」。',
     humbleIntro: '自己收到他人给予时，常用「いただく」。',
+    respectfulExampleJa: 'お客様がお土産をお受け取りになりました。',
+    respectfulExampleZh: '客户收下了伴手礼。',
+    humbleExampleJa: '先生に本をいただきました。',
+    humbleExampleZh: '我从老师那里收到了书。',
+    politeExampleJa: '友だちに本をもらいました。',
+    politeExampleZh: '我从朋友那里收到了书。',
   },
   {
     plain: '会う',
@@ -144,6 +212,12 @@ const ROWS: KeigoRow[] = [
     gloss: '见面',
     respectfulIntro: '描述对方见面会面时，用「お会いになる」。',
     humbleIntro: '自己见客户或老师时，用「お目にかかる」。',
+    respectfulExampleJa: '社長はお客様にお会いになります。',
+    respectfulExampleZh: '社长会见客户。',
+    humbleExampleJa: '明日、先生にお目にかかります。',
+    humbleExampleZh: '明天我去拜见老师。',
+    politeExampleJa: '明日、友だちに会います。',
+    politeExampleZh: '明天我见朋友。',
   },
   {
     plain: '聞く / 尋ねる',
@@ -153,6 +227,12 @@ const ROWS: KeigoRow[] = [
     gloss: '听 / 询问',
     respectfulIntro: '谈对方“听、询问”时，用「お聞きになる / お尋ねになる」。',
     humbleIntro: '自己向对方请教、询问时，用「伺う / お聞きする」。',
+    respectfulExampleJa: '部長がお客様のご意見をお聞きになります。',
+    respectfulExampleZh: '部长会听取客户的意见。',
+    humbleExampleJa: '不明点は私が伺います。',
+    humbleExampleZh: '有不明白的地方我来请教。',
+    politeExampleJa: '受付で道を尋ねます。',
+    politeExampleZh: '我在前台问路。',
   },
 ];
 
@@ -162,6 +242,8 @@ const GIVE_ROWS: GiveRow[] = [
     plain: 'あげる',
     keigo: '差し上げる（谦）',
     intro: '当“我方把东西给对方（上级/客户）”时，用「差し上げる」更礼貌。',
+    plainExampleJa: '資料を先生にあげます。',
+    plainExampleZh: '我把资料给老师。',
     exampleJa: '資料を先生に差し上げます。',
     exampleZh: '我把资料交给老师。',
   },
@@ -170,6 +252,8 @@ const GIVE_ROWS: GiveRow[] = [
     plain: 'くれる',
     keigo: 'くださる（尊）',
     intro: '当“对方给我方”时，用「くださる」来抬高对方的行为。',
+    plainExampleJa: '部長が本をくれました。',
+    plainExampleZh: '部长给了我一本书。',
     exampleJa: '部長が本をくださいました。',
     exampleZh: '部长给了我一本书。',
   },
@@ -178,6 +262,8 @@ const GIVE_ROWS: GiveRow[] = [
     plain: 'もらう',
     keigo: 'いただく（谦）',
     intro: '当“我方从对方得到东西”时，用「いただく」表示谦逊。',
+    plainExampleJa: '先輩にアドバイスをもらいました。',
+    plainExampleZh: '我从前辈那里得到了建议。',
     exampleJa: '先輩にアドバイスをいただきました。',
     exampleZh: '我得到了前辈的建议。',
   },
@@ -575,7 +661,10 @@ export default function KeigoChartScreen() {
                   />
                   {expanded ? (
                     <View style={styles.inlineIntroCard}>
-                      <Text style={styles.introGloss}>{row.gloss}</Text>
+                      <View style={styles.introGlossRow}>
+                        <Text style={styles.introGlossTag}>释义</Text>
+                        <Text style={styles.introGloss}>{row.gloss}</Text>
+                      </View>
                       <View style={styles.introLine}>
                         <Text style={[styles.introLabel, styles.respectfulLabel]}>尊</Text>
                         <Text style={styles.introValue}>{row.respectfulIntro}</Text>
@@ -583,6 +672,24 @@ export default function KeigoChartScreen() {
                       <View style={styles.introLine}>
                         <Text style={[styles.introLabel, styles.humbleLabel]}>谦</Text>
                         <Text style={styles.introValue}>{row.humbleIntro}</Text>
+                      </View>
+                      <View style={styles.exampleSection}>
+                        <Text style={styles.introExamplesTitle}>例句</Text>
+                        <View style={[styles.introLine, styles.exampleFirstLineGap]}>
+                          <Text style={[styles.introLabel, styles.exampleTypeLabel]}>尊例</Text>
+                          <Text style={styles.introValue}>{row.respectfulExampleJa}</Text>
+                        </View>
+                        <Text style={[styles.exampleZh, styles.exampleZhAligned, styles.exampleZhToNext]}>{row.respectfulExampleZh}</Text>
+                        <View style={styles.introLine}>
+                          <Text style={[styles.introLabel, styles.exampleTypeLabel]}>谦例</Text>
+                          <Text style={styles.introValue}>{row.humbleExampleJa}</Text>
+                        </View>
+                        <Text style={[styles.exampleZh, styles.exampleZhAligned, styles.exampleZhToNext]}>{row.humbleExampleZh}</Text>
+                        <View style={styles.introLine}>
+                          <Text style={[styles.introLabel, styles.exampleTypeLabel]}>丁例</Text>
+                          <Text style={styles.introValue}>{row.politeExampleJa}</Text>
+                        </View>
+                        <Text style={[styles.exampleZh, styles.exampleZhAligned]}>{row.politeExampleZh}</Text>
                       </View>
                     </View>
                   ) : null}
@@ -609,7 +716,12 @@ export default function KeigoChartScreen() {
                     <View style={styles.inlineIntroCard}>
                       <Text style={styles.introDetailText}>{row.intro}</Text>
                       <View style={styles.introLine}>
-                        <Text style={[styles.introLabel, styles.exampleLabel]}>例</Text>
+                        <Text style={[styles.introLabel, styles.exampleLabel]}>普</Text>
+                        <Text style={styles.introValue}>{row.plainExampleJa}</Text>
+                      </View>
+                      <Text style={styles.exampleZh}>{row.plainExampleZh}</Text>
+                      <View style={[styles.introLine, styles.exampleGroupGap]}>
+                        <Text style={[styles.introLabel, styles.exampleLabel]}>敬</Text>
                         <Text style={styles.introValue}>{row.exampleJa}</Text>
                       </View>
                       <Text style={styles.exampleZh}>{row.exampleZh}</Text>
@@ -782,19 +894,67 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.s,
   },
   introGloss: {
-    color: '#3f6eb7',
+    color: '#264f8a',
     fontWeight: '700',
-    marginBottom: spacing.xs,
+    fontSize: 14,
+    lineHeight: 18,
+    marginLeft: spacing.xs,
+  },
+  introGlossRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: spacing.xs,
+    marginBottom: spacing.m,
+  },
+  introGlossTag: {
+    color: '#355a8f',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    backgroundColor: '#dbe9ff',
+    borderColor: '#b8cff3',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 1,
+    marginRight: spacing.xs,
   },
   introLine: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: spacing.xs,
   },
+  exampleGroupGap: {
+    marginTop: spacing.s,
+  },
   introDetailText: {
     color: '#3f4f63',
     lineHeight: 20,
     marginBottom: spacing.s,
+  },
+  exampleSection: {
+    marginTop: spacing.s,
+    paddingTop: spacing.s,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#c7d8ef',
+  },
+  exampleFirstLineGap: {
+    marginTop: spacing.xs,
+  },
+  introExamplesTitle: {
+    alignSelf: 'flex-start',
+    color: '#4b5d78',
+    fontWeight: '700',
+    fontSize: 11,
+    lineHeight: 16,
+    letterSpacing: 0.3,
+    backgroundColor: '#e2e8f4',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 0,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
   },
   introValue: {
     flex: 1,
@@ -818,8 +978,20 @@ const styles = StyleSheet.create({
   humbleLabel: {
     backgroundColor: '#7a93b3',
   },
+  politeLabel: {
+    backgroundColor: '#6f9db8',
+  },
+  exampleTypeLabel: {
+    backgroundColor: '#5f789b',
+  },
   exampleLabel: {
     backgroundColor: '#7f93af',
+  },
+  exampleZhAligned: {
+    marginLeft: 34 + spacing.xs,
+  },
+  exampleZhToNext: {
+    marginBottom: spacing.s,
   },
   exampleZh: {
     marginLeft: 28,
