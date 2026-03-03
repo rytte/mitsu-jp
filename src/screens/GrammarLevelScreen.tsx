@@ -119,14 +119,6 @@ const GRAMMAR_TERMS: GrammarTerm[] = [
     linking: '常位于句首或分句开头',
     example: 'しかし、だから、つまり',
   },
-  {
-    key: 'shuujoshi',
-    title: '终助词',
-    layer: '助词子类',
-    role: '补充句末语气',
-    linking: '附着在句末',
-    example: 'よ、ね、な、ぞ',
-  },
 ];
 
 const IMPORTANT_COMPARISONS = [

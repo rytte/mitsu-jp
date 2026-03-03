@@ -7,7 +7,6 @@ type ParticleUsageRow = {
   label: string;
   rule: string;
   example: string;
-  note: string;
 };
 
 type ParticleGroup = {
@@ -30,6 +29,58 @@ type PatternRow = {
   sample: string;
 };
 
+type ParticleSubclassRow = {
+  name: string;
+  role: string;
+  markers: string;
+  sample: string;
+};
+
+const PARTICLE_SUBCLASS_ROWS: ParticleSubclassRow[] = [
+  {
+    name: '格助词',
+    role: '标记句子成分关系（主语、宾语、到达点、场所等）',
+    markers: 'が / を / に / で / へ / と / から / まで / より',
+    sample: '猫がいます。/ 本を読む。/ 学校に行く。',
+  },
+  {
+    name: '提示助词',
+    role: '把某成分拉到前台，形成话题、对比或强调',
+    markers: 'は / も / こそ / しか / さえ',
+    sample: '私は学生です。/ 水しか飲まない。',
+  },
+  {
+    name: '并列助词',
+    role: '连接两个或多个词语，形成并列关系',
+    markers: 'と / や / とか / に',
+    sample: '本と雑誌。/ 野菜や果物。/ 映画とか音楽とか。',
+  },
+  {
+    name: '副助词',
+    role: '补充范围、程度、限定、类比等附加语义',
+    markers: 'だけ / ばかり / まで / など / ほど / くらい',
+    sample: '一時間だけ休む。/ 子どもまで知っている。',
+  },
+  {
+    name: '接续助词',
+    role: '连接分句，表达因果、转折、条件、并行等关系',
+    markers: 'から / ので / けど / が / て / たら / ば',
+    sample: '雨だから行かない。/ 忙しいけど楽しい。',
+  },
+  {
+    name: '终助词',
+    role: '放在句尾，表达说话人的语气、态度和语用功能',
+    markers: 'か / ね / よ / な / ぞ / わ',
+    sample: '行くよ。/ いいね。/ 本当か。',
+  },
+  {
+    name: '准体助词',
+    role: '把前面的成分名词化，或代用前文信息',
+    markers: 'の',
+    sample: '赤いのをください。/ 来るのが遅い。',
+  },
+];
+
 const PARTICLE_GROUPS: ParticleGroup[] = [
   {
     particle: 'は',
@@ -40,19 +91,16 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '提示主题',
         rule: 'N は ...',
         example: '私は会社員です。',
-        note: '重点在“我”这个话题，不是强调“只有我”。',
       },
       {
         label: '对比两个对象',
         rule: 'A は ... が、B は ...',
         example: '日本語は話せますが、英語はあまり話せません。',
-        note: '同一句里多次用「は」常有“对比”语感。',
       },
       {
         label: '设定场景背景',
         rule: 'Time/Place は ...',
         example: '今日は雨です。',
-        note: '把“今天”先提出来，后面说其状态。',
       },
     ],
   },
@@ -65,19 +113,16 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '引入新信息主语',
         rule: 'N が ...',
         example: '猫がいます。',
-        note: '常用于第一次提到某对象。',
       },
       {
         label: '回答疑问词',
         rule: 'だれが / 何が ...',
         example: 'だれが来ましたか。田中さんが来ました。',
-        note: '问句问的是“谁”，答句也用「が」。',
       },
       {
         label: '从句中的主语',
         rule: 'N が + 动词 + 名词',
         example: '私が作った料理です。',
-        note: '修饰结构中主语多用「が」。',
       },
     ],
   },
@@ -90,19 +135,16 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '宾语标记',
         rule: 'N を V',
         example: '本を読みます。',
-        note: '表示“读”的对象是“书”。',
       },
       {
         label: '经过某场所',
         rule: 'Place を V',
         example: '公園を散歩します。',
-        note: '强调“在公园里走过”，不是停留动作地点。',
       },
       {
         label: '从某处离开',
         rule: 'Place を 出る/離れる',
         example: '7時に家を出ます。',
-        note: '离开点常用「を」，不要误用「で」。',
       },
     ],
   },
@@ -115,37 +157,31 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '目的',
         rule: 'Vます去ます + に 行く/来る',
         example: '本を買いに行きます。',
-        note: '“去做某事”常见结构。',
       },
       {
         label: '动作对象',
         rule: 'Person に あげる/教える/電話する',
         example: '先生にメールを送ります。',
-        note: '表示动作面向的对象。',
       },
       {
         label: '时间点',
         rule: 'Time に V',
         example: '6時に起きます。',
-        note: '表示明确时刻；“今天/明天/毎日”通常不加「に」。',
       },
       {
         label: '到达点',
         rule: 'Place に 行く/来る/着く',
         example: '駅に着きました。',
-        note: '更强调“到达了这个点”。',
       },
       {
         label: '存在地点',
         rule: 'Place に あります/います',
         example: '机の上に辞書があります。',
-        note: '存在句的地点要用「に」。',
       },
       {
         label: '变化结果',
         rule: 'N/形容词语干 に なる',
         example: '医者になりたいです。',
-        note: '表示变成某状态或身份。',
       },
     ],
   },
@@ -158,19 +194,16 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '移动方向',
         rule: 'Place へ 行く/来る/帰る',
         example: '学校へ行きます。',
-        note: '和「に」都可用；「へ」更偏方向。',
       },
       {
         label: '发送对象（书面）',
         rule: 'Person へ 手紙/メールを送る',
         example: '母へ手紙を書きます。',
-        note: '在书信语感里较自然。',
       },
       {
         label: '指向性表达',
         rule: 'N へ の N',
         example: '海外への旅行です。',
-        note: '常见于书面标题和公告。',
       },
     ],
   },
@@ -183,31 +216,26 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '动作场所',
         rule: 'Place で V',
         example: '図書館で勉強します。',
-        note: '只要有动作，地点多用「で」。',
       },
       {
         label: '手段工具',
         rule: 'Tool/Language で V',
         example: '日本語で説明します。',
-        note: '表示“用什么来做”。',
       },
       {
         label: '材料原料',
         rule: 'Material で 作る',
         example: '木で机を作ります。',
-        note: '强调“由某材料制作”。',
       },
       {
         label: '原因理由',
         rule: 'Reason で ...',
         example: '事故で電車が遅れました。',
-        note: '自然原因、事件原因常用「で」。',
       },
       {
         label: '范围/人数',
         rule: 'Quantity で ...',
         example: '三人で旅行します。',
-        note: '表示“以三人为单位/整体”。',
       },
     ],
   },
@@ -220,25 +248,21 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '完整并列',
         rule: 'A と B',
         example: 'りんごとバナナを買いました。',
-        note: '列举完整成员时常用「と」。',
       },
       {
         label: '共同对象',
         rule: 'Person と V',
         example: '友だちと映画を見ます。',
-        note: '表示“和某人一起”。',
       },
       {
         label: '引用内容',
         rule: 'Sentence と 言う/思う/聞く',
         example: '明日休むと言いました。',
-        note: '把前面的句子作为引用内容。',
       },
       {
         label: '恒常条件',
         rule: 'Vる と ...',
         example: '春になると暖かくなります。',
-        note: '多用于规律性“只要……就……”。',
       },
     ],
   },
@@ -251,19 +275,16 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '也',
         rule: 'N も ...',
         example: '私も行きます。',
-        note: '与前文对象并列追加。',
       },
       {
         label: '疑问词全否定',
         rule: '疑问词 + も + 否定',
         example: '何も食べませんでした。',
-        note: '固定高频结构，表示“什么都不……”。',
       },
       {
         label: '数量强调',
         rule: 'Quantity も ...',
         example: '一時間も待ちました。',
-        note: '有“竟然/足足”的语感。',
       },
     ],
   },
@@ -276,25 +297,21 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '所属关系',
         rule: 'A の B',
         example: '私の本です。',
-        note: '最基础的“谁的什么”。',
       },
       {
         label: '属性类别',
         rule: 'Category の N',
         example: '日本語の先生です。',
-        note: '表示“日语方向的老师”。',
       },
       {
         label: '内容/同位',
         rule: 'N の N',
         example: '会議の資料を作ります。',
-        note: '前项表示后项的内容、用途或范围。',
       },
       {
         label: '名词化/代用',
         rule: '普通形 + の',
         example: '赤いのをください。',
-        note: '把前面的描述整体当成名词使用。',
       },
     ],
   },
@@ -307,31 +324,26 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '时间起点',
         rule: 'Time から ...',
         example: '9時から会議です。',
-        note: '常和「まで」配对使用。',
       },
       {
         label: '地点起点',
         rule: 'Place から ...',
         example: '駅から歩きます。',
-        note: '表示动作开始的位置。',
       },
       {
         label: '来源对象',
         rule: 'Person から もらう/聞く',
         example: '先生から連絡をもらいました。',
-        note: '表示信息或物品来源。',
       },
       {
         label: '原因理由',
         rule: 'Clause から ...',
         example: '時間がないから、急ぎます。',
-        note: '口语里最常见的“因为……所以……”。',
       },
       {
         label: '原材料',
         rule: 'Material から 作る',
         example: '米から酒を作ります。',
-        note: '强调“从某原料变化而来”。',
       },
     ],
   },
@@ -344,25 +356,21 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '时间终点',
         rule: 'Time まで ...',
         example: '5時まで働きます。',
-        note: '表示动作持续到某时刻结束。',
       },
       {
         label: '地点终点',
         rule: 'Place まで ...',
         example: '家まで送ります。',
-        note: '表示到达终点位置。',
       },
       {
         label: '范围界限',
         rule: 'A から B まで',
         example: '一ページから十ページまで読みます。',
-        note: '固定高频结构，表示完整区间。',
       },
       {
         label: '程度扩展',
         rule: 'N まで ...',
         example: '子どもまで知っています。',
-        note: '有“连……都……”语感。',
       },
     ],
   },
@@ -375,19 +383,16 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '句末疑问',
         rule: '... か。',
         example: 'これは何ですか。',
-        note: '礼貌疑问句最基础形式。',
       },
       {
         label: '选择关系',
         rule: 'A か B',
         example: 'コーヒーかお茶をください。',
-        note: '表示二选一或多选一。',
       },
       {
         label: '疑问词不确定',
         rule: 'だれか / どこか / 何か',
         example: 'だれかいますか。',
-        note: '表示“某人/某处/某物”。',
       },
     ],
   },
@@ -400,19 +405,16 @@ const PARTICLE_GROUPS: ParticleGroup[] = [
         label: '列举示例',
         rule: 'A や B',
         example: '机の上に本やノートがあります。',
-        note: '暗示还有其他同类项。',
       },
       {
         label: '和「など」搭配',
         rule: 'A や B など',
         example: '休日は映画や音楽などを楽しみます。',
-        note: '书面和口语都很常见。',
       },
       {
         label: '类别提示',
         rule: 'N や N を V',
         example: '野菜や果物を買いました。',
-        note: '表达“买了蔬菜水果之类的东西”。',
       },
     ],
   },
@@ -493,6 +495,7 @@ const TIPS: string[] = [
 export default function ParticleGuideScreen() {
   const topPadding = useScreenTopPadding();
   const [compactMode, setCompactMode] = useState(true);
+  const [expandedSubclass, setExpandedSubclass] = useState(false);
   const [expandedParticle, setExpandedParticle] = useState<string | null>(null);
   const [expandedContrast, setExpandedContrast] = useState(false);
   const [expandedPattern, setExpandedPattern] = useState(false);
@@ -518,6 +521,40 @@ export default function ParticleGuideScreen() {
         <Text style={styles.introHint}>
           {compactMode ? '当前为精简模式：按需点开单个助词查看细节。' : '当前为详细模式：连续展示全部助词用法。'}
         </Text>
+      </View>
+
+      <View style={[styles.card, styles.subclassCard]}>
+        <Pressable
+          onPress={() => {
+            if (!compactMode) return;
+            setExpandedSubclass((prev) => !prev);
+          }}
+          style={({ pressed }) => [styles.sectionHeadRow, compactMode && pressed ? styles.sectionHeadPressed : null]}
+        >
+          <Text style={[styles.sectionTitle, styles.sectionTitleInHead]}>助词子类速览</Text>
+          {compactMode ? (
+            <View style={styles.expandTagWrap}>
+              <Text style={styles.expandTagText}>{expandedSubclass ? '收起' : '展开'}</Text>
+            </View>
+          ) : null}
+        </Pressable>
+
+        {!compactMode || expandedSubclass ? (
+          PARTICLE_SUBCLASS_ROWS.map((item) => (
+            <View key={item.name} style={styles.subclassItem}>
+              <View style={styles.subclassHead}>
+                <Text style={styles.subclassName}>{item.name}</Text>
+                <Text style={styles.subclassRole}>{item.role}</Text>
+              </View>
+              <Text style={styles.subclassMarkers}>{`常见标记：${item.markers}`}</Text>
+              <Text style={styles.subclassSample}>{`例：${item.sample}`}</Text>
+            </View>
+          ))
+        ) : (
+          <Pressable onPress={() => setExpandedSubclass(true)}>
+            <Text style={styles.compactHint}>点击展开查看 7 类助词子类与判断重点</Text>
+          </Pressable>
+        )}
       </View>
 
       <View style={styles.card}>
@@ -555,7 +592,6 @@ export default function ParticleGuideScreen() {
                     <Text style={styles.usageLabel}>{usage.label}</Text>
                     <Text style={styles.usageRule}>{usage.rule}</Text>
                     <Text style={styles.usageExample}>{usage.example}</Text>
-                    <Text style={styles.usageNote}>{usage.note}</Text>
                   </View>
                 </View>
               ))
@@ -718,6 +754,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.l,
     padding: spacing.s,
   },
+  subclassCard: {
+    borderColor: '#d1fae5',
+    backgroundColor: '#f8fffb',
+  },
   sectionTitle: {
     color: colors.text,
     fontSize: 16,
@@ -735,6 +775,42 @@ const styles = StyleSheet.create({
   },
   sectionHeadPressed: {
     opacity: 0.85,
+  },
+  subclassItem: {
+    borderWidth: 1,
+    borderColor: '#d1fae5',
+    backgroundColor: '#ffffff',
+    borderRadius: radius.s,
+    padding: spacing.s,
+    marginBottom: spacing.xs,
+  },
+  subclassHead: {
+    marginBottom: 2,
+  },
+  subclassName: {
+    color: '#166534',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  subclassRole: {
+    marginTop: 2,
+    color: '#475569',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  subclassMarkers: {
+    marginTop: spacing.xs,
+    color: '#0f766e',
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  subclassSample: {
+    marginTop: 2,
+    color: '#1e3a8a',
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 18,
   },
   particleBlock: {
     borderWidth: 1,
@@ -850,12 +926,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 18,
   },
-  usageNote: {
-    marginTop: 2,
-    color: '#475569',
-    fontSize: 12,
-    lineHeight: 18,
-  },
   contrastCard: {
     borderColor: '#fde68a',
     backgroundColor: '#fffef8',
@@ -932,3 +1002,4 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
 });
+
