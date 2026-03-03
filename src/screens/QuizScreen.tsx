@@ -381,7 +381,7 @@ export default function QuizScreen({ navigation, route }: Props) {
   const [addedWordIds, setAddedWordIds] = useState<Set<string>>(new Set());
   const [addingWordId, setAddingWordId] = useState<string | null>(null);
   const lastAutoPlayedId = useRef<string | null>(null);
-  const correctSoundPlayer = useAudioPlayer(require('../../assets/sfx/correct.wav'));
+  const correctSoundPlayer = useAudioPlayer(require('../../assets/sfx/correct.mp3'));
 
   const currentItem = items[currentIndex];
   const meaningLabel = getMeaningLabel(settings.meaning_language);
