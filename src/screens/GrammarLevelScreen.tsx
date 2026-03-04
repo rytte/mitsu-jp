@@ -281,21 +281,32 @@ export default function GrammarLevelScreen({ navigation }: Props) {
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={(
         <>
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionTitle}>学习前置</Text>
+            <Text style={styles.sectionHint}>先过一遍核心名词，再进入速查与等级学习会更顺畅。</Text>
+          </View>
+
           <View style={styles.termCard}>
             <Pressable
               onPress={() => setShowTerms((prev) => !prev)}
               style={({ pressed }) => [styles.termHeaderRow, pressed ? styles.termHeaderRowPressed : null]}
             >
               <View style={styles.termHeaderLeft}>
+                <View style={styles.termLeadRow}>
+                  <View style={styles.termLeadBadge}>
+                    <Ionicons name="bulb-outline" size={12} color="#1d4ed8" />
+                    <Text style={styles.termLeadBadgeText}>建议先看</Text>
+                  </View>
+                </View>
                 <Text style={styles.termTitle}>专业名词速览</Text>
-                <Text style={styles.termSubtitle}>体言 / 用言 / 连体形 / 连用形 / 助词等</Text>
+                <Text style={styles.termSubtitle}>体言 / 用言 / 活用形 / 助词等核心概念</Text>
               </View>
               <Ionicons name={showTerms ? 'chevron-up' : 'chevron-down'} size={18} color={colors.muted} />
             </Pressable>
 
             {showTerms ? (
               <View style={styles.termBody}>
-                <Text style={styles.tableHint}>点击条目展开详情，快速建立名词体系和易混点对比。</Text>
+                <Text style={styles.tableHint}>点击条目展开详情，按词类快速建立概念框架。</Text>
 
                 {GRAMMAR_TERMS.map((term) => {
                   const expanded = expandedTermKey === term.key;
@@ -570,10 +581,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   termCard: {
-    backgroundColor: colors.card,
+    backgroundColor: '#f8fbff',
     borderRadius: radius.l,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#ccddf4',
     marginBottom: spacing.m,
     overflow: 'hidden',
   },
@@ -583,7 +594,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#eef4ff',
   },
   termHeaderRowPressed: {
     opacity: 0.8,
@@ -592,14 +603,34 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: spacing.s,
   },
+  termLeadRow: {
+    marginBottom: 4,
+  },
+  termLeadBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    backgroundColor: '#eff6ff',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  termLeadBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1d4ed8',
+  },
   termTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.text,
+    color: '#1e3a8a',
   },
   termSubtitle: {
     marginTop: 2,
-    color: colors.muted,
+    color: '#475569',
     fontSize: 12,
   },
   termBody: {
@@ -611,7 +642,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fbfdff',
   },
   tableHint: {
-    color: colors.muted,
+    color: '#64748b',
     fontSize: 12,
     marginBottom: spacing.s,
   },
