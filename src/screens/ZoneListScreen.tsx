@@ -20,7 +20,6 @@ export default function ZoneListScreen({ navigation, route }: Props) {
   const levelMeta = useMemo(() => getWordLevelMeta(level), [level]);
   const tone = useMemo(
     () => ({
-      cardBorder: `${levelMeta.accent}40`,
       cardShadow: levelMeta.accent,
       pillBackground: `${levelMeta.accent}1a`,
       pillBorder: `${levelMeta.accent}33`,
@@ -120,7 +119,6 @@ export default function ZoneListScreen({ navigation, route }: Props) {
               style={({ pressed }) => [
                 styles.zoneCard,
                 {
-                  borderColor: tone.cardBorder,
                   shadowColor: tone.cardShadow,
                 },
                 pressed ? styles.zoneCardPressed : null,
