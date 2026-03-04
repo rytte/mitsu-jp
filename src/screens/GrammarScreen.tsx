@@ -59,7 +59,7 @@ const QUICK_ENTRIES: QuickEntry[] = [
   },
   {
     key: 'adjective-guide',
-    title: '形容词分类表',
+    title: '形容词表',
     subtitle: 'い形容词 / な形容词 / 基础活用',
     route: 'AdjectiveGuide',
     icon: 'text-outline',
@@ -235,7 +235,7 @@ export default function GrammarScreen({ navigation }: Props) {
         <>
           <View style={styles.sectionHead}>
             <Text style={styles.sectionTitle}>学习前置</Text>
-            <Text style={styles.sectionHint}>先过一遍核心名词，再进入速查与等级学习会更顺畅。</Text>
+            <Text style={styles.sectionHint}>先看核心名词，再学更顺畅。</Text>
           </View>
 
           <View style={styles.termCard}>
@@ -244,12 +244,6 @@ export default function GrammarScreen({ navigation }: Props) {
               style={({ pressed }) => [styles.termHeaderRow, pressed ? styles.termHeaderRowPressed : null]}
             >
               <View style={styles.termHeaderLeft}>
-                <View style={styles.termLeadRow}>
-                  <View style={styles.termLeadBadge}>
-                    <Ionicons name="bulb-outline" size={12} color="#1d4ed8" />
-                    <Text style={styles.termLeadBadgeText}>建议先看</Text>
-                  </View>
-                </View>
                 <Text style={styles.termTitle}>专业名词速览</Text>
                 <Text style={styles.termSubtitle}>体言 / 用言 / 活用形 / 助词等核心概念</Text>
               </View>
@@ -346,17 +340,24 @@ export default function GrammarScreen({ navigation }: Props) {
                   onPress={() => navigation.navigate(entry.route)}
                   style={({ pressed }) => [
                     styles.quickCard,
-                    { borderColor: entry.accent, backgroundColor: entry.soft },
+                    { borderColor: entry.accent },
                     pressed ? styles.quickCardPressed : null,
                   ]}
                 >
                   <View style={styles.quickHead}>
-                    <View style={[styles.quickIconWrap, { borderColor: entry.accent }]}>
-                      <Ionicons name={entry.icon} size={18} color={entry.accent} />
+                    <View style={styles.quickHeadLeft}>
+                      <View
+                        style={[
+                          styles.quickIconWrap,
+                          { borderColor: entry.accent, backgroundColor: entry.soft },
+                        ]}
+                      >
+                        <Ionicons name={entry.icon} size={18} color={entry.accent} />
+                      </View>
+                      <Text style={[styles.quickTitle, { color: entry.accent }]}>{entry.title}</Text>
                     </View>
                     <Ionicons name="arrow-forward" size={16} color={entry.accent} />
                   </View>
-                  <Text style={[styles.quickTitle, { color: entry.accent }]}>{entry.title}</Text>
                   <Text style={styles.quickSubtitle}>{entry.subtitle}</Text>
                 </Pressable>
               ))}
@@ -437,7 +438,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.l,
     borderWidth: 1,
     padding: spacing.s,
-    minHeight: 118,
+    minHeight: 110,
     marginBottom: spacing.s,
   },
   quickCardPressed: {
@@ -450,6 +451,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.s,
   },
+  quickHeadLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: spacing.s,
+  },
   quickIconWrap: {
     width: 32,
     height: 32,
@@ -460,6 +467,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   quickTitle: {
+    marginLeft: spacing.xs,
+    flexShrink: 1,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -554,26 +563,6 @@ const styles = StyleSheet.create({
   termHeaderLeft: {
     flex: 1,
     paddingRight: spacing.s,
-  },
-  termLeadRow: {
-    marginBottom: 4,
-  },
-  termLeadBadge: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    backgroundColor: '#eff6ff',
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  termLeadBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#1d4ed8',
   },
   termTitle: {
     fontSize: 15,

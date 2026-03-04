@@ -130,7 +130,7 @@ export default function AdjectiveGuideScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: topPadding }]}>
-      <Text style={styles.pageTitle}>形容词分类表</Text>
+      <Text style={styles.pageTitle}>形容词表</Text>
       <Text style={styles.pageSubtitle}>覆盖 い形容词 / な形容词 的判定、活用和常见句型，快速避免高频错误。</Text>
 
       <View style={styles.introCard}>
