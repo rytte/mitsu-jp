@@ -4,44 +4,63 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getWordLevelMeta } from '../data/levelMeta';
-import { getProgressMapByLevel, getStagesByLevel } from '../db/queries';
+import { getProgressMapByLevel, getStagesByLevel, saveProgress } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { Stage } from '../types';
 
 type Props = NativeStackScreenProps<LearnStackParamList, 'StageList'>;
 
-type StageRow = Stage & { stars: number; locked: boolean };
+type StageRow = Stage & { stars: number; locked: boolean; correctCount: number; wrongCount: number };
 const SECTION_SIZE = 10;
+const ENABLE_STAGE_DEBUG_UNLOCK = true;
 
 export default function StageListScreen({ navigation, route }: Props) {
   const { level, zoneIndex } = route.params;
   const [stages, setStages] = useState<StageRow[]>([]);
   const levelMeta = useMemo(() => getWordLevelMeta(level), [level]);
+  const canUseStageDebugUnlock = __DEV__ && ENABLE_STAGE_DEBUG_UNLOCK;
 
-  const load = useCallback(() => {
-    let active = true;
-    Promise.all([getStagesByLevel(level), getProgressMapByLevel(level)]).then(([list, progressMap]) => {
-      if (!active) return;
+  const reloadStages = useCallback(
+    async (isActive?: () => boolean) => {
+      const [list, progressMap] = await Promise.all([getStagesByLevel(level), getProgressMapByLevel(level)]);
+      if (isActive && !isActive()) return;
       const rows = list.map((stage) => {
-        const stars = progressMap[stage.id]?.stars ?? 0;
+        const progress = progressMap[stage.id];
+        const stars = progress?.stars ?? 0;
         const prevId = `${level}-${stage.index - 1}`;
         const prevStars = stage.index === 1 ? 3 : progressMap[prevId]?.stars ?? 0;
         return {
           ...stage,
           stars,
           locked: stage.index !== 1 && prevStars < 2,
+          correctCount: progress?.correct_count ?? 0,
+          wrongCount: progress?.wrong_count ?? 0,
         };
       });
       setStages(rows);
-    });
+    },
+    [level]
+  );
 
-    return () => {
-      active = false;
-    };
-  }, [level]);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      void reloadStages(() => active);
+      return () => {
+        active = false;
+      };
+    }, [reloadStages])
+  );
 
-  useFocusEffect(load);
+  const handleDebugCompleteStage = useCallback(
+    async (stage: StageRow) => {
+      if (!canUseStageDebugUnlock) return;
+      await saveProgress(stage.id, stage.correctCount, stage.wrongCount, 3);
+      await reloadStages();
+    },
+    [canUseStageDebugUnlock, reloadStages]
+  );
 
   const zones = useMemo(() => {
     const map = new Map<number, StageRow[]>();
@@ -144,9 +163,24 @@ export default function StageListScreen({ navigation, route }: Props) {
           const stageDisplay = String(item.index).padStart(2, '0');
           return (
             <View style={[styles.card, { borderColor: levelMeta.soft, borderLeftColor: levelMeta.accent }, item.locked ? styles.locked : null]}>
-              <View style={[styles.stageIndexBadge, { backgroundColor: levelMeta.soft, borderColor: levelMeta.accent }]}>
-                <Text style={[styles.stageIndexText, { color: levelMeta.accent }]}>{stageDisplay}</Text>
-              </View>
+              {canUseStageDebugUnlock ? (
+                <Pressable
+                  onPress={() => {
+                    void handleDebugCompleteStage(item);
+                  }}
+                  style={({ pressed }) => [
+                    styles.stageIndexBadge,
+                    { backgroundColor: levelMeta.soft, borderColor: levelMeta.accent },
+                    pressed ? styles.stageIndexBadgePressed : null,
+                  ]}
+                >
+                  <Text style={[styles.stageIndexText, { color: levelMeta.accent }]}>{stageDisplay}</Text>
+                </Pressable>
+              ) : (
+                <View style={[styles.stageIndexBadge, { backgroundColor: levelMeta.soft, borderColor: levelMeta.accent }]}>
+                  <Text style={[styles.stageIndexText, { color: levelMeta.accent }]}>{stageDisplay}</Text>
+                </View>
+              )}
               <View style={styles.cardMain}>
                 <Text style={styles.cardTitle}>第 {item.index} 关</Text>
                 <View style={styles.starRow}>
@@ -334,6 +368,10 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs,
     marginRight: spacing.s,
     flexShrink: 0,
+  },
+  stageIndexBadgePressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.97 }],
   },
   stageIndexText: {
     fontSize: 18,

@@ -2,6 +2,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { getProgressMapByLevel, getStagesByLevel } from '../db/queries';
 import { getWordLevelMeta } from '../data/levelMeta';
 import { LearnStackParamList } from '../navigation/types';
@@ -26,6 +27,8 @@ export default function ZoneListScreen({ navigation, route }: Props) {
       progressTrack: `${levelMeta.accent}20`,
       progressFill: levelMeta.accent,
       progressKnobBorder: `${levelMeta.accent}66`,
+      doneBadgeBackground: `${levelMeta.accent}14`,
+      doneBadgeBorder: `${levelMeta.accent}4d`,
     }),
     [levelMeta]
   );
@@ -110,6 +113,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
         renderItem={({ item }) => {
           const percent = Math.round((item.completed / item.total) * 100);
           const knobPercent = Math.min(Math.max(percent, 3), 97);
+          const isZoneCompleted = item.total > 0 && item.completed === item.total;
           return (
             <Pressable
               onPress={() => navigation.navigate('StageList', { level, zoneIndex: item.sectionIndex })}
@@ -122,7 +126,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                 pressed ? styles.zoneCardPressed : null,
               ]}
             >
-              <View style={styles.zoneContent}>
+              <View style={[styles.zoneContent, isZoneCompleted ? styles.zoneContentWithBadge : null]}>
                 <View style={styles.zoneTitleRow}>
                   <Text style={styles.zoneTitle}>第{item.sectionIndex}区</Text>
                   <Text
@@ -161,6 +165,20 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                   <Text style={styles.progressText}>{percent}%</Text>
                 </View>
               </View>
+              {isZoneCompleted ? (
+                <View
+                  style={[
+                    styles.doneBadge,
+                    {
+                      backgroundColor: tone.doneBadgeBackground,
+                      borderColor: tone.doneBadgeBorder,
+                    },
+                  ]}
+                >
+                  <Ionicons name="checkmark-circle" size={14} color={levelMeta.accent} />
+                  <Text style={[styles.doneBadgeText, { color: levelMeta.accent }]}>已完成</Text>
+                </View>
+              ) : null}
             </Pressable>
           );
         }}
@@ -248,6 +266,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
+    position: 'relative',
   },
   zoneCardPressed: {
     transform: [{ translateY: 1 }, { scale: 0.997 }],
@@ -258,6 +277,25 @@ const styles = StyleSheet.create({
   },
   zoneContent: {
     flex: 1,
+  },
+  zoneContentWithBadge: {
+    paddingRight: 72,
+  },
+  doneBadge: {
+    position: 'absolute',
+    top: spacing.s,
+    right: spacing.s,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  doneBadgeText: {
+    marginLeft: 4,
+    fontSize: 11,
+    fontWeight: '700',
   },
   zoneTitle: {
     fontSize: 18,
