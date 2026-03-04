@@ -30,6 +30,13 @@ export type GrammarStackParamList = {
   GrammarList: { level: Level };
   GrammarDetail: { level: Level; id: string };
   GrammarQuiz: { level: Level };
+  KanaChart: undefined;
+  NumeralGuide: undefined;
+  AdjectiveGuide: undefined;
+  VerbClassification: undefined;
+  VerbConjugation: undefined;
+  ParticleGuide: undefined;
+  KeigoChart: undefined;
 };
 
 export type ExamQuizStackParamList = {

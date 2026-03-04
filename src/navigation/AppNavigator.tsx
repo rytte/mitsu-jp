@@ -1,4 +1,4 @@
-﻿import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -101,6 +101,13 @@ function GrammarStackScreen() {
       <GrammarStack.Screen name="GrammarList" component={GrammarListScreen} options={{ title: '文法列表' }} />
       <GrammarStack.Screen name="GrammarDetail" component={GrammarDetailScreen} options={{ title: '文法详情' }} />
       <GrammarStack.Screen name="GrammarQuiz" component={GrammarQuizScreen} options={{ title: '文法练习' }} />
+      <GrammarStack.Screen name="KanaChart" component={KanaChartScreen} options={{ title: '五十音图' }} />
+      <GrammarStack.Screen name="NumeralGuide" component={NumeralGuideScreen} options={{ title: '数词速查表' }} />
+      <GrammarStack.Screen name="AdjectiveGuide" component={AdjectiveGuideScreen} options={{ title: '形容词分类表' }} />
+      <GrammarStack.Screen name="VerbClassification" component={VerbClassificationScreen} options={{ title: '动词分类表' }} />
+      <GrammarStack.Screen name="VerbConjugation" component={VerbConjugationScreen} options={{ title: '动词变形表' }} />
+      <GrammarStack.Screen name="ParticleGuide" component={ParticleGuideScreen} options={{ title: '助词表' }} />
+      <GrammarStack.Screen name="KeigoChart" component={KeigoChartScreen} options={{ title: '敬语表' }} />
     </GrammarStack.Navigator>
   );
 }

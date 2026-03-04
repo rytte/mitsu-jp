@@ -1,4 +1,4 @@
-﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -17,6 +17,129 @@ type GrammarTerm = {
   role: string;
   linking: string;
   example: string;
+};
+
+type QuickEntry = {
+  key: string;
+  title: string;
+  subtitle: string;
+  route:
+    | 'KanaChart'
+    | 'NumeralGuide'
+    | 'AdjectiveGuide'
+    | 'VerbClassification'
+    | 'VerbConjugation'
+    | 'ParticleGuide'
+    | 'KeigoChart';
+  icon: keyof typeof Ionicons.glyphMap;
+  accent: string;
+  soft: string;
+};
+
+type LevelMeta = {
+  tag: string;
+  hint: string;
+  accent: string;
+  soft: string;
+};
+
+const QUICK_ENTRIES: QuickEntry[] = [
+  {
+    key: 'kana',
+    title: '五十音图',
+    subtitle: '平假名 / 片假名发音速查',
+    route: 'KanaChart',
+    icon: 'grid-outline',
+    accent: '#4338ca',
+    soft: '#e0e7ff',
+  },
+  {
+    key: 'numeral-guide',
+    title: '数词速查表',
+    subtitle: '数字 / 日期 / 时间 / 助数词',
+    route: 'NumeralGuide',
+    icon: 'calculator-outline',
+    accent: '#0ea5e9',
+    soft: '#e0f2fe',
+  },
+  {
+    key: 'adjective-guide',
+    title: '形容词分类表',
+    subtitle: 'い形容词 / な形容词 / 基础活用',
+    route: 'AdjectiveGuide',
+    icon: 'text-outline',
+    accent: '#6366f1',
+    soft: '#e0e7ff',
+  },
+  {
+    key: 'verb-classification',
+    title: '动词分类表',
+    subtitle: '五段 / 一段 / 不规则动词',
+    route: 'VerbClassification',
+    icon: 'list-outline',
+    accent: '#0891b2',
+    soft: '#cffafe',
+  },
+  {
+    key: 'verb-conjugation',
+    title: '动词变形表',
+    subtitle: 'ます形 / て形 / ない形等',
+    route: 'VerbConjugation',
+    icon: 'swap-horizontal-outline',
+    accent: '#14b8a6',
+    soft: '#ccfbf1',
+  },
+  {
+    key: 'particle-guide',
+    title: '助词表',
+    subtitle: 'は / が / を / に / で 高频用法',
+    route: 'ParticleGuide',
+    icon: 'git-network-outline',
+    accent: '#22c55e',
+    soft: '#dcfce7',
+  },
+  {
+    key: 'keigo',
+    title: '敬语表',
+    subtitle: '尊敬语 / 谦让语 / 丁宁语',
+    route: 'KeigoChart',
+    icon: 'chatbubbles-outline',
+    accent: '#be185d',
+    soft: '#fce7f3',
+  },
+];
+
+const LEVEL_META: Record<string, LevelMeta> = {
+  N5: {
+    tag: '入门',
+    hint: '基础句型与核心表达',
+    accent: '#2563eb',
+    soft: '#dbeafe',
+  },
+  N4: {
+    tag: '夯实',
+    hint: '连接表达与常见口语结构',
+    accent: '#0d9488',
+    soft: '#ccfbf1',
+  },
+  N3: {
+    tag: '进阶',
+    hint: '中级语法与书面表达',
+    accent: '#7c3aed',
+    soft: '#ede9fe',
+  },
+  N2: {
+    tag: '强化',
+    hint: '抽象表达与新闻场景',
+    accent: '#db2777',
+    soft: '#fce7f3',
+  },
+  N1: {
+    tag: '高阶',
+    hint: '细微语感与高难度语境',
+    accent: '#b45309',
+    soft: '#fef3c7',
+  },
 };
 
 const GRAMMAR_TERMS: GrammarTerm[] = [
@@ -134,6 +257,17 @@ function getLayerChip(layer: string) {
   return layer.split('（')[0];
 }
 
+function getLevelMeta(level: string): LevelMeta {
+  return (
+    LEVEL_META[level] ?? {
+      tag: '文法',
+      hint: '按等级组织的文法条目',
+      accent: colors.primary,
+      soft: '#dbeafe',
+    }
+  );
+}
+
 export default function GrammarLevelScreen({ navigation }: Props) {
   const [showTerms, setShowTerms] = useState(false);
   const [expandedTermKey, setExpandedTermKey] = useState<string | null>(null);
@@ -144,13 +278,9 @@ export default function GrammarLevelScreen({ navigation }: Props) {
       data={GRAMMARS}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
       ListHeaderComponent={(
         <>
-          <View style={styles.headerCard}>
-            <Text style={styles.headerTitle}>文法学习</Text>
-            <Text style={styles.headerText}>选择等级开始浏览文法</Text>
-          </View>
-
           <View style={styles.termCard}>
             <Pressable
               onPress={() => setShowTerms((prev) => !prev)}
@@ -158,44 +288,28 @@ export default function GrammarLevelScreen({ navigation }: Props) {
             >
               <View style={styles.termHeaderLeft}>
                 <Text style={styles.termTitle}>专业名词速览</Text>
-                <Text style={styles.termSubtitle}>体言 / 用言 / 连体词 / 连体形等</Text>
+                <Text style={styles.termSubtitle}>体言 / 用言 / 连体形 / 连用形 / 助词等</Text>
               </View>
-              <Ionicons
-                name={showTerms ? 'chevron-up' : 'chevron-down'}
-                size={18}
-                color={colors.muted}
-              />
+              <Ionicons name={showTerms ? 'chevron-up' : 'chevron-down'} size={18} color={colors.muted} />
             </Pressable>
 
             {showTerms ? (
               <View style={styles.termBody}>
-                <Text style={styles.tableHint}>点击条目展开详情，纵向浏览即可完成对比</Text>
+                <Text style={styles.tableHint}>点击条目展开详情，快速建立名词体系和易混点对比。</Text>
 
                 {GRAMMAR_TERMS.map((term) => {
                   const expanded = expandedTermKey === term.key;
                   return (
                     <View key={term.key} style={[styles.termItem, expanded ? styles.termItemExpanded : null]}>
                       <Pressable
-                        onPress={() =>
-                          setExpandedTermKey((prev) => (prev === term.key ? null : term.key))
-                        }
+                        onPress={() => setExpandedTermKey((prev) => (prev === term.key ? null : term.key))}
                         style={({ pressed }) => [styles.termItemHead, pressed ? styles.termItemHeadPressed : null]}
                       >
                         <View style={styles.termItemMainRow}>
-                          <View style={styles.termItemTitleSlot}>
-                            <Text style={styles.termItemTitle}>{term.title}</Text>
-                          </View>
-                          <View style={styles.termItemMetaCol}>
-                            <View style={styles.termItemMetaRow}>
-                              <Text style={styles.termMetaChip}>{getLayerChip(term.layer)}</Text>
-                            </View>
-                          </View>
+                          <Text style={styles.termItemTitle}>{term.title}</Text>
+                          <Text style={styles.termMetaChip}>{getLayerChip(term.layer)}</Text>
                         </View>
-                        <Ionicons
-                          name={expanded ? 'chevron-up' : 'chevron-down'}
-                          size={16}
-                          color={colors.muted}
-                        />
+                        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.muted} />
                       </Pressable>
 
                       {expanded ? (
@@ -237,63 +351,90 @@ export default function GrammarLevelScreen({ navigation }: Props) {
                 })}
 
                 <View style={styles.termCompareCard}>
-                  <View style={styles.termCompareHeadRow}>
-                    <Text style={styles.termCompareTitle}>常见对比</Text>
-                    <Text style={styles.termCompareHint}>高频易混点</Text>
-                  </View>
-                  {IMPORTANT_COMPARISONS.map((item, index) => {
-                    const [pairPart, detailPart = ''] = item.split('：');
-                    const [leftPart, rightPart] = pairPart.split(/\s+vs\s+/i);
-                    const canHighlightPair = Boolean(leftPart && rightPart);
-                    return (
-                      <View
-                        key={item}
-                        style={[
-                          styles.termCompareRow,
-                          index === IMPORTANT_COMPARISONS.length - 1 ? styles.termCompareRowLast : null,
-                        ]}
-                      >
-                        <View style={styles.termCompareIndexBadge}>
-                          <Text style={styles.termCompareIndexText}>{index + 1}</Text>
-                        </View>
-                        {canHighlightPair ? (
-                          <Text style={styles.termCompareItem}>
-                            <Text style={styles.termCompareLeftTerm}>{leftPart.trim()}</Text>
-                            <Text style={styles.termCompareVs}> vs </Text>
-                            <Text style={styles.termCompareRightTerm}>{rightPart.trim()}</Text>
-                            <Text style={styles.termCompareColon}>：</Text>
-                            <Text style={styles.termCompareDetail}> {detailPart.trim()}</Text>
-                          </Text>
-                        ) : (
-                          <Text style={styles.termCompareItem}>{item}</Text>
-                        )}
+                  <Text style={styles.termCompareTitle}>常见对比</Text>
+                  {IMPORTANT_COMPARISONS.map((item, index) => (
+                    <View
+                      key={item}
+                      style={[
+                        styles.termCompareRow,
+                        index === IMPORTANT_COMPARISONS.length - 1 ? styles.termCompareRowLast : null,
+                      ]}
+                    >
+                      <View style={styles.termCompareIndexBadge}>
+                        <Text style={styles.termCompareIndexText}>{index + 1}</Text>
                       </View>
-                    );
-                  })}
+                      <Text style={styles.termCompareItem}>{item}</Text>
+                    </View>
+                  ))}
                 </View>
               </View>
             ) : null}
           </View>
-        </>
-      )}
-      renderItem={({ item }) => (
-        <Pressable
-          onPress={() => navigation.navigate('GrammarList', { level: item.id })}
-          style={({ pressed }) => [styles.levelCard, pressed ? styles.levelCardPressed : null]}
-        >
-          <View style={styles.levelLeft}>
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelBadgeLabel}>JLPT</Text>
-              <Text style={styles.levelBadgeValue}>{item.label}</Text>
+
+          <View style={styles.quickSection}>
+            <View style={styles.sectionHead}>
+              <Text style={styles.sectionTitle}>文法配套速查</Text>
+              <Text style={styles.sectionHint}>常用文法速查入口，建议先查后学。</Text>
             </View>
-            <View style={styles.levelInfo}>
-              <Text style={styles.levelTitle}>文法库</Text>
-              <Text style={styles.levelSubtitle}>共 {item.items.length} 条</Text>
+            <View style={styles.quickGrid}>
+              {QUICK_ENTRIES.map((entry) => (
+                <Pressable
+                  key={entry.key}
+                  onPress={() => navigation.navigate(entry.route)}
+                  style={({ pressed }) => [
+                    styles.quickCard,
+                    { borderColor: entry.accent, backgroundColor: entry.soft },
+                    pressed ? styles.quickCardPressed : null,
+                  ]}
+                >
+                  <View style={styles.quickHead}>
+                    <View style={[styles.quickIconWrap, { borderColor: entry.accent }]}>
+                      <Ionicons name={entry.icon} size={18} color={entry.accent} />
+                    </View>
+                    <Ionicons name="arrow-forward" size={16} color={entry.accent} />
+                  </View>
+                  <Text style={[styles.quickTitle, { color: entry.accent }]}>{entry.title}</Text>
+                  <Text style={styles.quickSubtitle}>{entry.subtitle}</Text>
+                </Pressable>
+              ))}
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-        </Pressable>
+
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionTitle}>JLPT 文法等级</Text>
+            <Text style={styles.sectionHint}>按你的目标等级进入对应文法库。</Text>
+          </View>
+        </>
       )}
+      renderItem={({ item }) => {
+        const meta = getLevelMeta(item.id);
+        return (
+          <Pressable
+            onPress={() => navigation.navigate('GrammarList', { level: item.id })}
+            style={({ pressed }) => [
+              styles.levelCard,
+              { borderColor: meta.soft, borderLeftColor: meta.accent },
+              pressed ? styles.levelCardPressed : null,
+            ]}
+          >
+            <View style={[styles.levelBadge, { backgroundColor: meta.soft, borderColor: meta.accent }]}>
+              <Text style={[styles.levelBadgeLabel, { color: meta.accent }]}>JLPT</Text>
+              <Text style={[styles.levelBadgeValue, { color: meta.accent }]}>{item.label}</Text>
+            </View>
+            <View style={styles.levelInfo}>
+              <View style={styles.levelTitleRow}>
+                <Text style={styles.levelTitle}>{item.label} 文法</Text>
+                <Text style={[styles.levelTag, { backgroundColor: meta.soft, color: meta.accent }]}>
+                  {meta.tag}
+                </Text>
+              </View>
+              <Text style={styles.levelHint}>{meta.hint}</Text>
+              <Text style={styles.levelCount}>共 {item.items.length} 条</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+          </Pressable>
+        );
+      }}
     />
   );
 }
@@ -307,22 +448,126 @@ const styles = StyleSheet.create({
     padding: spacing.m,
     paddingBottom: spacing.l,
   },
-  headerCard: {
-    backgroundColor: colors.card,
-    borderRadius: radius.l,
-    padding: spacing.m,
+  quickSection: {
     marginBottom: spacing.m,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
-  headerTitle: {
+  sectionHead: {
+    marginBottom: spacing.s,
+  },
+  sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
+  },
+  sectionHint: {
+    marginTop: spacing.xs,
+    color: colors.muted,
+    fontSize: 12,
+  },
+  quickGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  quickCard: {
+    width: '48.5%',
+    borderRadius: radius.l,
+    borderWidth: 1,
+    padding: spacing.s,
+    minHeight: 118,
     marginBottom: spacing.s,
   },
-  headerText: {
+  quickCardPressed: {
+    opacity: 0.86,
+    transform: [{ scale: 0.99 }],
+  },
+  quickHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.s,
+  },
+  quickIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+    backgroundColor: '#ffffffaa',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  quickSubtitle: {
+    marginTop: spacing.xs,
+    color: '#475569',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  levelCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    borderWidth: 1,
+    borderLeftWidth: 4,
+    marginBottom: spacing.m,
+    padding: spacing.m,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  levelCardPressed: {
+    opacity: 0.88,
+  },
+  levelBadge: {
+    width: 58,
+    height: 58,
+    borderRadius: radius.m,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.s,
+  },
+  levelBadgeLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  levelBadgeValue: {
+    marginTop: 2,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  levelInfo: {
+    flex: 1,
+    marginRight: spacing.s,
+  },
+  levelTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  levelTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  levelTag: {
+    marginLeft: spacing.s,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  levelHint: {
+    marginTop: spacing.xs,
+    color: '#475569',
+    fontSize: 12,
+  },
+  levelCount: {
+    marginTop: 4,
     color: colors.muted,
+    fontSize: 12,
   },
   termCard: {
     backgroundColor: colors.card,
@@ -338,6 +583,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
+    backgroundColor: '#f8fafc',
   },
   termHeaderRowPressed: {
     opacity: 0.8,
@@ -362,7 +608,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.s,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    backgroundColor: '#f8fbff',
+    backgroundColor: '#fbfdff',
   },
   tableHint: {
     color: colors.muted,
@@ -370,9 +616,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.s,
   },
   termItem: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#dbe5f1',
+    borderColor: '#dde6f2',
     borderRadius: radius.m,
     marginBottom: spacing.s,
   },
@@ -394,39 +640,23 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
     paddingRight: spacing.s,
-  },
-  termItemTitleSlot: {
-    width: 72,
   },
   termItemTitle: {
     color: colors.text,
     fontSize: 15,
-    fontWeight: '600',
-  },
-  termItemMetaCol: {
-    flex: 1,
-    marginLeft: spacing.m,
-    alignItems: 'flex-start',
-  },
-  termItemMetaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    fontWeight: '700',
+    marginRight: spacing.s,
   },
   termMetaChip: {
     fontSize: 11,
-    color: '#33567f',
+    color: '#31557e',
     borderWidth: 1,
     borderColor: '#c9ddf5',
     backgroundColor: '#edf5ff',
     borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    marginRight: 6,
-    marginVertical: 2,
   },
   termItemDetail: {
     borderTopWidth: 1,
@@ -457,7 +687,7 @@ const styles = StyleSheet.create({
   },
   termCompareCard: {
     marginTop: spacing.s,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#d2e1f2',
     borderRadius: radius.m,
@@ -465,29 +695,15 @@ const styles = StyleSheet.create({
     paddingTop: spacing.s,
     paddingBottom: spacing.xs,
   },
-  termCompareHeadRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: spacing.xs,
-    marginBottom: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e7eef7',
-  },
   termCompareTitle: {
     color: '#31557e',
     fontSize: 13,
     fontWeight: '700',
-  },
-  termCompareHint: {
-    color: '#64748b',
-    fontSize: 11,
+    marginBottom: spacing.xs,
   },
   termCompareRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 0,
-    paddingHorizontal: spacing.xs,
     paddingVertical: spacing.s,
     borderBottomWidth: 1,
     borderBottomColor: '#e7eef7',
@@ -518,81 +734,5 @@ const styles = StyleSheet.create({
     color: '#334155',
     fontSize: 12,
     lineHeight: 18,
-  },
-  termCompareLeftTerm: {
-    color: '#1e40af',
-    fontWeight: '700',
-  },
-  termCompareVs: {
-    color: '#64748b',
-    fontWeight: '600',
-  },
-  termCompareRightTerm: {
-    color: '#0f766e',
-    fontWeight: '700',
-  },
-  termCompareColon: {
-    color: '#334155',
-    fontWeight: '600',
-  },
-  termCompareDetail: {
-    color: '#334155',
-  },
-  levelCard: {
-    backgroundColor: colors.card,
-    borderRadius: radius.l,
-    paddingVertical: spacing.m,
-    paddingHorizontal: spacing.m,
-    marginBottom: spacing.m,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  levelCardPressed: {
-    opacity: 0.7,
-  },
-  levelLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    paddingRight: spacing.s,
-  },
-  levelBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.m,
-    backgroundColor: '#eef2ff',
-    borderWidth: 1,
-    borderColor: '#c7d2fe',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.m,
-  },
-  levelBadgeLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    color: colors.primaryDark,
-  },
-  levelBadgeValue: {
-    marginTop: 2,
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.primaryDark,
-  },
-  levelInfo: {
-    flex: 1,
-  },
-  levelTitle: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  levelSubtitle: {
-    color: colors.muted,
-    marginTop: spacing.xs,
-    fontSize: 12,
   },
 });
