@@ -2,7 +2,7 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { LEXICONS } from '../data/lexicons';
 import { getStats, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
@@ -19,7 +19,58 @@ type Stats = {
   wrong: number;
 };
 
+type WordLevelMeta = {
+  tag: string;
+  hint: string;
+  accent: string;
+  soft: string;
+};
+
 const LEVELS = LEXICONS;
+
+const WORD_LEVEL_META: Record<string, WordLevelMeta> = {
+  N5: {
+    tag: '入门',
+    hint: '高频基础词与核心场景词',
+    accent: '#0f766e',
+    soft: '#ccfbf1',
+  },
+  N4: {
+    tag: '基础',
+    hint: '生活会话与常见表达扩展',
+    accent: '#2563eb',
+    soft: '#dbeafe',
+  },
+  N3: {
+    tag: '进阶',
+    hint: '中级阅读与听力常用词',
+    accent: '#7c3aed',
+    soft: '#ede9fe',
+  },
+  N2: {
+    tag: '强化',
+    hint: '书面表达与应试高频词',
+    accent: '#db2777',
+    soft: '#fce7f3',
+  },
+  N1: {
+    tag: '高阶',
+    hint: '抽象语义与高级表达词汇',
+    accent: '#b45309',
+    soft: '#fef3c7',
+  },
+};
+
+function getWordLevelMeta(level: string): WordLevelMeta {
+  return (
+    WORD_LEVEL_META[level] ?? {
+      tag: '词汇',
+      hint: '按等级组织的词汇内容',
+      accent: '#0f766e',
+      soft: '#ccfbf1',
+    }
+  );
+}
 
 export default function WordScreen({ navigation, route }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -51,14 +102,14 @@ export default function WordScreen({ navigation, route }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      if (skipAuto || suppressAuto || autoEntered) return () => {};
+      if (skipAuto || suppressAuto || autoEntered || !settings.lexicon_auto_enter) return () => {};
       const targetLevel = settings.lexicon_level;
       if (targetLevel) {
         setAutoEntered(true);
         navigation.replace('ZoneList', { level: targetLevel });
       }
       return () => {};
-    }, [autoEntered, navigation, settings.lexicon_level, skipAuto, suppressAuto])
+    }, [autoEntered, navigation, settings.lexicon_auto_enter, settings.lexicon_level, skipAuto, suppressAuto])
   );
 
   useFocusEffect(
@@ -82,6 +133,13 @@ export default function WordScreen({ navigation, route }: Props) {
     navigation.navigate('ZoneList', { level });
   };
 
+  const handleAutoEnterToggle = async (value: boolean) => {
+    if (!value) {
+      setAutoEntered(false);
+    }
+    await persistSettings({ ...settings, lexicon_auto_enter: value });
+  };
+
   const accuracy = stats
     ? stats.correct + stats.wrong === 0
       ? 0
@@ -93,60 +151,96 @@ export default function WordScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerCard}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.headerTitle}>学习速览</Text>
-            <Text style={styles.headerSub}>
-              {stats ? `已完成 ${stats.completed}/${stats.stageCount} 关` : '数据加载中'}
-            </Text>
-          </View>
-          <View style={styles.headerBadge}>
-            <Text style={styles.headerBadgeText}>{stats ? `${progressPercent}%` : '--'}</Text>
-          </View>
-        </View>
-
-        <View style={styles.statRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats ? totalAnswers : '--'}</Text>
-            <Text style={styles.statLabel}>累计答题</Text>
-          </View>
-          <View style={[styles.statCard, styles.statCardLast]}>
-            <Text style={styles.statValue}>{stats ? `${accuracy}%` : '--'}</Text>
-            <Text style={styles.statLabel}>正确率</Text>
-          </View>
-        </View>
-
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
-        </View>
-      </View>
-
       <FlatList
         data={LEVELS}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => handleEnter(item.id)}
-            style={({ pressed }) => [styles.levelCard, pressed ? styles.levelCardPressed : null]}
-          >
-            <View style={styles.levelInfoRow}>
-              <View style={styles.levelIcon}>
-                <Text style={styles.levelIconLabel}>LEVEL</Text>
-                <Text style={styles.levelIconText}>{item.label}</Text>
-              </View>
-              <View style={styles.levelMain}>
-                <View style={styles.levelTitleRow}>
-                  <Text style={styles.levelTitle}>词库 {item.label}</Text>
-                  {settings.lexicon_level === item.id && <Text style={styles.defaultTag}>默认</Text>}
+        ListHeaderComponent={(
+          <>
+            <View style={styles.headerCard}>
+              <View style={styles.headerTop}>
+                <View style={styles.headerTitleWrap}>
+                  <View style={styles.headerTitleRow}>
+                    <Ionicons name="analytics-outline" size={18} color="#9a3412" />
+                    <Text style={styles.headerTitle}>词汇训练面板</Text>
+                  </View>
+                  <Text style={styles.headerSub}>
+                    {stats ? `已完成 ${stats.completed}/${stats.stageCount} 关` : '数据加载中'}
+                  </Text>
                 </View>
-                <Text style={styles.levelSubtitle}>共 {item.words.length} 词</Text>
+                <View style={styles.headerBadge}>
+                  <Text style={styles.headerBadgeLabel}>完成度</Text>
+                  <Text style={styles.headerBadgeText}>{stats ? `${progressPercent}%` : '--'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.headerDivider} />
+
+              <View style={styles.statRow}>
+                <View style={styles.statCard}>
+                  <Text style={styles.statValue}>{stats ? totalAnswers : '--'}</Text>
+                  <Text style={styles.statLabel}>累计答题</Text>
+                </View>
+                <View style={[styles.statCard, styles.statCardAlt, styles.statCardLast]}>
+                  <Text style={styles.statValue}>{stats ? `${accuracy}%` : '--'}</Text>
+                  <Text style={styles.statLabel}>正确率</Text>
+                </View>
+              </View>
+
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+              </View>
+              <View style={styles.progressMetaRow}>
+                <Text style={styles.progressMetaText}>总进度</Text>
+                <Text style={styles.progressMetaValue}>{stats ? `${progressPercent}%` : '--'}</Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-          </Pressable>
+
+            <View style={styles.autoEnterPanel}>
+              <View style={styles.autoEnterRow}>
+                <View style={styles.autoEnterTextWrap}>
+                  <Text style={styles.autoEnterTitle}>默认跳转词库</Text>
+                  <Text style={styles.autoEnterHint}>开启后进入此页会自动跳到上次选择的词库等级</Text>
+                </View>
+                <Switch
+                  value={settings.lexicon_auto_enter}
+                  onValueChange={handleAutoEnterToggle}
+                  trackColor={{ false: '#cbd5e1', true: '#5eead4' }}
+                  thumbColor={settings.lexicon_auto_enter ? '#0f766e' : '#f8fafc'}
+                />
+              </View>
+            </View>
+          </>
         )}
+        renderItem={({ item }) => {
+          const meta = getWordLevelMeta(item.id);
+          const isCurrent = settings.lexicon_level === item.id;
+          return (
+            <Pressable
+              onPress={() => handleEnter(item.id)}
+              style={({ pressed }) => [
+                styles.levelCard,
+                { borderColor: meta.soft, borderLeftColor: meta.accent },
+                pressed ? styles.levelCardPressed : null,
+              ]}
+            >
+              <View style={[styles.levelBadge, { backgroundColor: meta.soft, borderColor: meta.accent }]}>
+                <Text style={[styles.levelBadgeLabel, { color: meta.accent }]}>VOCAB</Text>
+                <Text style={[styles.levelBadgeValue, { color: meta.accent }]}>{item.label}</Text>
+              </View>
+              <View style={styles.levelInfo}>
+                <View style={styles.levelTitleRow}>
+                  <Text style={styles.levelTitle}>词库 {item.label}</Text>
+                  <Text style={[styles.levelTag, { backgroundColor: meta.soft, color: meta.accent }]}>{meta.tag}</Text>
+                  {isCurrent ? <Text style={styles.levelCurrentTag}>当前</Text> : null}
+                </View>
+                <Text style={styles.levelHint}>{meta.hint}</Text>
+                <Text style={styles.levelCount}>共 {item.words.length} 词</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+            </Pressable>
+          );
+        }}
       />
     </View>
   );
@@ -156,41 +250,94 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: spacing.m,
   },
   headerCard: {
-    backgroundColor: colors.card,
+    backgroundColor: '#fff9ef',
     borderRadius: radius.l,
     padding: spacing.m,
     marginBottom: spacing.m,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#f4d6a8',
+    borderLeftWidth: 5,
+    borderLeftColor: '#b45309',
   },
   headerTop: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
+  headerTitleWrap: {
+    flex: 1,
+    paddingRight: spacing.s,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#7c2d12',
   },
   headerSub: {
-    color: colors.muted,
+    color: '#9a3412',
     marginTop: spacing.xs,
+    fontSize: 13,
   },
   headerBadge: {
-    backgroundColor: '#e0f2fe',
-    borderRadius: 999,
-    paddingHorizontal: spacing.s,
-    paddingVertical: 4,
+    backgroundColor: '#fff7ed',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#bae6fd',
+    borderColor: '#fdba74',
+    alignItems: 'center',
+    minWidth: 64,
+  },
+  headerBadgeLabel: {
+    color: '#9a3412',
+    fontSize: 10,
+    fontWeight: '700',
+    marginBottom: 1,
   },
   headerBadgeText: {
-    color: '#0369a1',
+    color: '#c2410c',
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  headerDivider: {
+    marginTop: spacing.s,
+    borderBottomWidth: 1,
+    borderBottomColor: '#fed7aa',
+  },
+  autoEnterPanel: {
+    backgroundColor: colors.card,
+    borderRadius: radius.l,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    marginBottom: spacing.m,
+  },
+  autoEnterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.s,
+  },
+  autoEnterTextWrap: {
+    flex: 1,
+    paddingRight: spacing.s,
+  },
+  autoEnterTitle: {
+    color: colors.text,
+    fontSize: 14,
     fontWeight: '700',
+  },
+  autoEnterHint: {
+    marginTop: 2,
+    color: colors.muted,
     fontSize: 12,
   },
   statRow: {
@@ -199,111 +346,134 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#fff7ed',
     borderRadius: radius.m,
     padding: spacing.s,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#fed7aa',
     marginRight: spacing.s,
+  },
+  statCardAlt: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fde68a',
   },
   statCardLast: {
     marginRight: 0,
   },
   statValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#7c2d12',
   },
   statLabel: {
-    color: colors.muted,
+    color: '#92400e',
     marginTop: spacing.xs,
     fontSize: 12,
   },
   progressTrack: {
     marginTop: spacing.m,
-    height: 6,
+    height: 8,
     borderRadius: 999,
-    backgroundColor: colors.border,
+    backgroundColor: '#fde68a',
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: '#c2410c',
+  },
+  progressMetaRow: {
+    marginTop: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  progressMetaText: {
+    color: '#92400e',
+    fontSize: 11,
+  },
+  progressMetaValue: {
+    color: '#c2410c',
+    fontSize: 12,
+    fontWeight: '800',
   },
   list: {
+    padding: spacing.m,
     paddingBottom: spacing.l,
   },
   levelCard: {
     backgroundColor: colors.card,
     borderRadius: radius.l,
-    padding: spacing.m,
-    marginBottom: spacing.m,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderLeftWidth: 4,
+    marginBottom: spacing.m,
+    padding: spacing.m,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
   levelCardPressed: {
-    opacity: 0.7,
+    opacity: 0.88,
   },
-  levelInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    paddingRight: spacing.s,
-  },
-  levelIcon: {
-    width: 54,
-    height: 54,
+  levelBadge: {
+    width: 58,
+    height: 58,
     borderRadius: radius.m,
-    backgroundColor: '#ecfeff',
     borderWidth: 1,
-    borderColor: '#a5f3fc',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.m,
+    marginRight: spacing.s,
   },
-  levelIconLabel: {
-    fontSize: 9,
+  levelBadgeLabel: {
+    fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 0.8,
-    color: '#0e7490',
+    letterSpacing: 0.6,
   },
-  levelIconText: {
+  levelBadgeValue: {
+    marginTop: 2,
     fontSize: 16,
     fontWeight: '800',
-    color: '#0e7490',
   },
-  levelMain: {
+  levelInfo: {
     flex: 1,
-  },
-  levelTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
+    marginRight: spacing.s,
   },
   levelTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
-  defaultTag: {
+  levelTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  levelTag: {
     marginLeft: spacing.s,
-    paddingHorizontal: spacing.s,
+    borderRadius: 999,
+    paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: radius.s,
-    backgroundColor: '#e0f2fe',
-    color: '#0369a1',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  levelCurrentTag: {
+    marginLeft: spacing.s,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    backgroundColor: '#dcfce7',
+    color: '#166534',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  levelHint: {
+    marginTop: spacing.xs,
+    color: '#475569',
     fontSize: 12,
   },
-  levelSubtitle: {
+  levelCount: {
+    marginTop: 4,
     color: colors.muted,
-    marginTop: spacing.xs,
+    fontSize: 12,
   },
 });
 

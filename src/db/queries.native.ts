@@ -278,6 +278,7 @@ export async function getSettings(): Promise<Settings> {
     compact_mode?: number | null;
     compact_single_expand?: number | null;
     lexicon_level?: string | null;
+    lexicon_auto_enter?: number | null;
     font_scale?: string | null;
     nav_show_search?: number | null;
     nav_show_mistakes?: number | null;
@@ -314,6 +315,9 @@ export async function getSettings(): Promise<Settings> {
       row.compact_single_expand ?? (DEFAULT_SETTINGS.compact_single_expand ? 1 : 0)
     ),
     lexicon_level: normalizeLexiconLevel(row.lexicon_level ?? DEFAULT_SETTINGS.lexicon_level),
+    lexicon_auto_enter: normalizeCompactMode(
+      row.lexicon_auto_enter ?? (DEFAULT_SETTINGS.lexicon_auto_enter ? 1 : 0)
+    ),
     font_scale: normalizeFontScale(row.font_scale ?? DEFAULT_SETTINGS.font_scale),
     nav_show_search: normalizeCompactMode(
       row.nav_show_search ?? (DEFAULT_SETTINGS.nav_show_search ? 1 : 0)
@@ -347,7 +351,7 @@ export async function getSettings(): Promise<Settings> {
 
 export async function updateSettings(settings: Settings) {
   await run(
-    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, grammar_quiz_modes = ?, meaning_language = ?, show_example_furigana = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_ai_hub = ?, nav_show_exam_quiz = ?, nav_show_settings = ? WHERE id = ?;',
+    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, grammar_quiz_modes = ?, meaning_language = ?, show_example_furigana = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, lexicon_auto_enter = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_ai_hub = ?, nav_show_exam_quiz = ?, nav_show_settings = ? WHERE id = ?;',
     [
       settings.tts_rate,
       settings.tts_voice,
@@ -359,6 +363,7 @@ export async function updateSettings(settings: Settings) {
       settings.compact_mode ? 1 : 0,
       settings.compact_single_expand ? 1 : 0,
       settings.lexicon_level,
+      settings.lexicon_auto_enter ? 1 : 0,
       settings.font_scale,
       settings.nav_show_search ? 1 : 0,
       settings.nav_show_mistakes ? 1 : 0,

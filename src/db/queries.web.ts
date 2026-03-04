@@ -261,6 +261,7 @@ export async function getSettings(): Promise<Settings> {
     compact_mode: Boolean(settings.compact_mode),
     compact_single_expand: Boolean(settings.compact_single_expand),
     lexicon_level: normalizeLexiconLevel(settings.lexicon_level),
+    lexicon_auto_enter: Boolean(settings.lexicon_auto_enter ?? DEFAULT_SETTINGS.lexicon_auto_enter),
     font_scale: normalizeFontScale(settings.font_scale),
     nav_show_search: Boolean(settings.nav_show_search ?? DEFAULT_SETTINGS.nav_show_search),
     nav_show_mistakes: Boolean(settings.nav_show_mistakes ?? DEFAULT_SETTINGS.nav_show_mistakes),

@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS: Settings = {
   compact_mode: false,
   compact_single_expand: true,
   lexicon_level: LEXICONS[0].id,
+  lexicon_auto_enter: true,
   font_scale: 'm',
   nav_show_search: true,
   nav_show_mistakes: true,

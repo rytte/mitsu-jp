@@ -113,14 +113,14 @@ const LEVEL_META: Record<string, LevelMeta> = {
   N5: {
     tag: '入门',
     hint: '基础句型与核心表达',
-    accent: '#2563eb',
-    soft: '#dbeafe',
-  },
-  N4: {
-    tag: '夯实',
-    hint: '连接表达与常见口语结构',
     accent: '#0d9488',
     soft: '#ccfbf1',
+  },
+  N4: {
+    tag: '基础',
+    hint: '连接表达与常见口语结构',
+    accent: '#2563eb',
+    soft: '#dbeafe',
   },
   N3: {
     tag: '进阶',

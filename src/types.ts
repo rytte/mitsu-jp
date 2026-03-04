@@ -210,6 +210,7 @@ export type Settings = {
   compact_mode: boolean;
   compact_single_expand: boolean;
   lexicon_level: Level;
+  lexicon_auto_enter: boolean;
   font_scale: FontScale;
   nav_show_search: boolean;
   nav_show_mistakes: boolean;
