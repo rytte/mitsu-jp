@@ -1,8 +1,7 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { getProgressMapByLevel, getStagesByLevel } from '../db/queries';
 import { getWordLevelMeta } from '../data/levelMeta';
 import { LearnStackParamList } from '../navigation/types';
@@ -18,6 +17,18 @@ export default function ZoneListScreen({ navigation, route }: Props) {
   const { level } = route.params;
   const [stages, setStages] = useState<StageRow[]>([]);
   const levelMeta = useMemo(() => getWordLevelMeta(level), [level]);
+  const tone = useMemo(
+    () => ({
+      cardBorder: `${levelMeta.accent}40`,
+      cardShadow: levelMeta.accent,
+      pillBackground: `${levelMeta.accent}1a`,
+      pillBorder: `${levelMeta.accent}33`,
+      progressTrack: `${levelMeta.accent}20`,
+      progressFill: levelMeta.accent,
+      progressKnobBorder: `${levelMeta.accent}66`,
+    }),
+    [levelMeta]
+  );
 
   const load = useCallback(() => {
     let active = true;
@@ -98,27 +109,58 @@ export default function ZoneListScreen({ navigation, route }: Props) {
         }
         renderItem={({ item }) => {
           const percent = Math.round((item.completed / item.total) * 100);
+          const knobPercent = Math.min(Math.max(percent, 3), 97);
           return (
             <Pressable
               onPress={() => navigation.navigate('StageList', { level, zoneIndex: item.sectionIndex })}
-              style={({ pressed }) => [styles.zoneCard, pressed ? styles.zoneCardPressed : null]}
+              style={({ pressed }) => [
+                styles.zoneCard,
+                {
+                  borderColor: tone.cardBorder,
+                  shadowColor: tone.cardShadow,
+                },
+                pressed ? styles.zoneCardPressed : null,
+              ]}
             >
-              <View>
+              <View style={styles.zoneContent}>
                 <View style={styles.zoneTitleRow}>
                   <Text style={styles.zoneTitle}>第{item.sectionIndex}区</Text>
-                  <Text style={styles.zonePill}>{item.startIndex}-{item.endIndex}关</Text>
+                  <Text
+                    style={[
+                      styles.zonePill,
+                      {
+                        backgroundColor: tone.pillBackground,
+                        borderColor: tone.pillBorder,
+                        color: levelMeta.accent,
+                      },
+                    ]}
+                  >
+                    {item.startIndex}-{item.endIndex}关
+                  </Text>
                 </View>
                 <Text style={styles.zoneMeta}>
                   完成 {item.completed}/{item.total} · 星级 {item.starsSum}/{item.total * 3}
                 </Text>
                 <View style={styles.progressRow}>
                   <View style={styles.progressTrack}>
-                    <View style={[styles.progressFill, { width: `${percent}%` }]} />
+                    <View style={[styles.progressClip, { backgroundColor: tone.progressTrack }]}>
+                      <View
+                        style={[
+                          styles.progressFill,
+                          { width: `${percent}%`, backgroundColor: tone.progressFill },
+                        ]}
+                      />
+                    </View>
+                    <View
+                      style={[
+                        styles.progressKnob,
+                        { left: `${knobPercent}%`, borderColor: tone.progressKnobBorder },
+                      ]}
+                    />
                   </View>
                   <Text style={styles.progressText}>{percent}%</Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
             </Pressable>
           );
         }}
@@ -193,24 +235,29 @@ const styles = StyleSheet.create({
   },
   zoneCard: {
     backgroundColor: colors.card,
-    borderRadius: radius.l,
+    borderRadius: 22,
     padding: spacing.m,
     marginBottom: spacing.m,
     borderWidth: 1,
     borderColor: '#e3ebf5',
-    borderLeftWidth: 3,
-    borderLeftColor: '#7fb3ff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOpacity: 0.02,
+    shadowColor: '#64748b',
+    shadowOpacity: 0.09,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  zoneCardPressed: {
+    transform: [{ translateY: 1 }, { scale: 0.997 }],
+    shadowOpacity: 0.08,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
-  zoneCardPressed: {
-    opacity: 0.85,
+  zoneContent: {
+    flex: 1,
   },
   zoneTitle: {
     fontSize: 18,
@@ -244,21 +291,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   progressTrack: {
-    flex: 1,
-    height: 6,
+    width: '65%',
+    height: 18,
+    justifyContent: 'center',
+    marginRight: spacing.xs,
+  },
+  progressClip: {
+    height: 10,
     borderRadius: 999,
     backgroundColor: '#edf3ff',
     overflow: 'hidden',
-    marginRight: spacing.s,
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#60a5fa',
   },
+  progressKnob: {
+    position: 'absolute',
+    top: '50%',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: '#93c5fd',
+    backgroundColor: '#ffffff',
+    transform: [{ translateX: -9 }, { translateY: -9 }],
+  },
   progressText: {
     color: colors.muted,
     fontSize: 12,
-    minWidth: 36,
+    minWidth: 32,
     textAlign: 'right',
   },
 });
