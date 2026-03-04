@@ -12,7 +12,6 @@ type Props = NativeStackScreenProps<LearnStackParamList, 'ZoneList'>;
 
 type StageRow = Stage & { stars: number; locked: boolean };
 const SECTION_SIZE = 10;
-const ZONE_ACCENTS = ['#2563eb', '#0f766e', '#f59e0b', '#7c3aed', '#dc2626'];
 
 export default function ZoneListScreen({ navigation, route }: Props) {
   const { level } = route.params;
@@ -94,30 +93,23 @@ export default function ZoneListScreen({ navigation, route }: Props) {
           </View>
         }
         renderItem={({ item }) => {
-          const accent = ZONE_ACCENTS[(item.sectionIndex - 1) % ZONE_ACCENTS.length];
           const percent = Math.round((item.completed / item.total) * 100);
           return (
             <Pressable
               onPress={() => navigation.navigate('StageList', { level, zoneIndex: item.sectionIndex })}
-              style={({ pressed }) => [
-                styles.zoneCard,
-                pressed ? styles.zoneCardPressed : null,
-                { borderLeftColor: accent },
-              ]}
+              style={({ pressed }) => [styles.zoneCard, pressed ? styles.zoneCardPressed : null]}
             >
               <View>
                 <View style={styles.zoneTitleRow}>
                   <Text style={styles.zoneTitle}>第{item.sectionIndex}区</Text>
-                  <Text style={[styles.zonePill, { backgroundColor: `${accent}1A`, color: accent }]}>
-                    {item.startIndex}-{item.endIndex}关
-                  </Text>
+                  <Text style={styles.zonePill}>{item.startIndex}-{item.endIndex}关</Text>
                 </View>
                 <Text style={styles.zoneMeta}>
                   完成 {item.completed}/{item.total} · 星级 {item.starsSum}/{item.total * 3}
                 </Text>
                 <View style={styles.progressRow}>
                   <View style={styles.progressTrack}>
-                    <View style={[styles.progressFill, { width: `${percent}%`, backgroundColor: accent }]} />
+                    <View style={[styles.progressFill, { width: `${percent}%` }]} />
                   </View>
                   <Text style={styles.progressText}>{percent}%</Text>
                 </View>
@@ -201,19 +193,20 @@ const styles = StyleSheet.create({
     padding: spacing.m,
     marginBottom: spacing.m,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderLeftWidth: 6,
+    borderColor: '#e3ebf5',
+    borderLeftWidth: 3,
+    borderLeftColor: '#7fb3ff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     shadowColor: '#000',
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.02,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    elevation: 1,
   },
   zoneCardPressed: {
-    opacity: 0.7,
+    opacity: 0.85,
   },
   zoneTitle: {
     fontSize: 18,
@@ -227,10 +220,14 @@ const styles = StyleSheet.create({
   zonePill: {
     marginLeft: spacing.s,
     paddingHorizontal: spacing.s,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: 999,
     fontSize: 11,
     fontWeight: '600',
+    backgroundColor: '#f2f7ff',
+    color: '#2563eb',
+    borderWidth: 1,
+    borderColor: '#d6e6ff',
   },
   zoneMeta: {
     marginTop: spacing.xs,
@@ -246,13 +243,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 6,
     borderRadius: 999,
-    backgroundColor: colors.border,
+    backgroundColor: '#edf3ff',
     overflow: 'hidden',
     marginRight: spacing.s,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: '#60a5fa',
   },
   progressText: {
     color: colors.muted,
