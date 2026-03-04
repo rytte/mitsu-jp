@@ -9,7 +9,7 @@ import StageWordsScreen from '../screens/StageWordsScreen';
 import ZoneWordsScreen from '../screens/ZoneWordsScreen';
 import QuizScreen from '../screens/QuizScreen';
 import ResultScreen from '../screens/ResultScreen';
-import GrammarLevelScreen from '../screens/GrammarLevelScreen';
+import GrammarScreen from '../screens/GrammarScreen';
 import GrammarListScreen from '../screens/GrammarListScreen';
 import GrammarDetailScreen from '../screens/GrammarDetailScreen';
 import GrammarQuizScreen from '../screens/GrammarQuizScreen';
@@ -97,7 +97,7 @@ function GrammarStackScreen() {
         headerTitleStyle: { color: colors.text },
       }}
     >
-      <GrammarStack.Screen name="GrammarLevel" component={GrammarLevelScreen} options={{ title: '文法等级' }} />
+      <GrammarStack.Screen name="Grammar" component={GrammarScreen} options={{ title: '文法' }} />
       <GrammarStack.Screen name="GrammarList" component={GrammarListScreen} options={{ title: '文法列表' }} />
       <GrammarStack.Screen name="GrammarDetail" component={GrammarDetailScreen} options={{ title: '文法详情' }} />
       <GrammarStack.Screen name="GrammarQuiz" component={GrammarQuizScreen} options={{ title: '文法练习' }} />

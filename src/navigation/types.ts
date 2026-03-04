@@ -26,7 +26,7 @@ export type LearnStackParamList = {
 };
 
 export type GrammarStackParamList = {
-  GrammarLevel: undefined;
+  Grammar: undefined;
   GrammarList: { level: Level };
   GrammarDetail: { level: Level; id: string };
   GrammarQuiz: { level: Level };

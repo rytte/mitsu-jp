@@ -6,7 +6,7 @@ import { GRAMMARS } from '../data/grammars';
 import { GrammarStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 
-type Props = NativeStackScreenProps<GrammarStackParamList, 'GrammarLevel'>;
+type Props = NativeStackScreenProps<GrammarStackParamList, 'Grammar'>;
 
 type GrammarTerm = {
   key: string;
@@ -268,7 +268,7 @@ function getLevelMeta(level: string): LevelMeta {
   );
 }
 
-export default function GrammarLevelScreen({ navigation }: Props) {
+export default function GrammarScreen({ navigation }: Props) {
   const [showTerms, setShowTerms] = useState(false);
   const [expandedTermKey, setExpandedTermKey] = useState<string | null>(null);
 
