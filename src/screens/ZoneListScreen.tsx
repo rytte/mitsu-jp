@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getProgressMapByLevel, getStagesByLevel } from '../db/queries';
+import { getWordLevelMeta } from '../data/levelMeta';
 import { LearnStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { Stage } from '../types';
@@ -16,6 +17,7 @@ const SECTION_SIZE = 10;
 export default function ZoneListScreen({ navigation, route }: Props) {
   const { level } = route.params;
   const [stages, setStages] = useState<StageRow[]>([]);
+  const levelMeta = useMemo(() => getWordLevelMeta(level), [level]);
 
   const load = useCallback(() => {
     let active = true;
@@ -81,7 +83,9 @@ export default function ZoneListScreen({ navigation, route }: Props) {
               <View>
                 <View style={styles.headerBadgeRow}>
                   <Text style={styles.headerBadge}>JLPT</Text>
-                  <Text style={styles.headerBadgeLevel}>{level}</Text>
+                  <Text style={[styles.headerBadgeLevel, { backgroundColor: levelMeta.accent }]}>
+                    {level}
+                  </Text>
                 </View>
                 <Text style={styles.title}>分区列表</Text>
                 <Text style={styles.subtitle}>每 10 关为一区，点击进入查看关卡</Text>

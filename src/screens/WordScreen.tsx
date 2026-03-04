@@ -180,7 +180,7 @@ export default function WordScreen({ navigation, route }: Props) {
               </View>
               <View style={styles.levelInfo}>
                 <View style={styles.levelTitleRow}>
-                  <Text style={styles.levelTitle}>词库 {item.label}</Text>
+                  <Text style={styles.levelTitle}>{item.label} 词汇</Text>
                   <Text style={[styles.levelTag, { backgroundColor: meta.soft, color: meta.accent }]}>{meta.tag}</Text>
                   {isCurrent ? <Text style={styles.levelCurrentTag}>当前</Text> : null}
                 </View>
