@@ -87,7 +87,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                 <Text style={styles.title}>分区选择</Text>
                 <Text style={styles.subtitle}>每 10 关为一区，点击进入查看关卡</Text>
               </View>
-              <Pressable style={styles.headerAction} onPress={() => navigation.replace('LevelSelect', { skipAuto: true })}>
+              <Pressable style={styles.headerAction} onPress={() => navigation.replace('Word', { skipAuto: true })}>
                 <Text style={styles.switchText}>切换词库</Text>
               </Pressable>
             </View>

@@ -10,7 +10,7 @@ import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { Level, Settings } from '../types';
 
-type Props = NativeStackScreenProps<LearnStackParamList, 'LevelSelect'>;
+type Props = NativeStackScreenProps<LearnStackParamList, 'Word'>;
 
 type Stats = {
   stageCount: number;
@@ -21,7 +21,7 @@ type Stats = {
 
 const LEVELS = LEXICONS;
 
-export default function LevelSelectScreen({ navigation, route }: Props) {
+export default function WordScreen({ navigation, route }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);
   const settings = useAppStore((state) => state.settings);
   const setSettings = useAppStore((state) => state.setSettings);

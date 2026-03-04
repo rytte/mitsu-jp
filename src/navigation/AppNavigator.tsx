@@ -2,7 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import LevelSelectScreen from '../screens/LevelSelectScreen';
+import WordScreen from '../screens/WordScreen';
 import ZoneListScreen from '../screens/ZoneListScreen';
 import StageListScreen from '../screens/StageListScreen';
 import StageWordsScreen from '../screens/StageWordsScreen';
@@ -63,7 +63,7 @@ const TAB_ICON_MAP: Record<
 
 function LearnStackScreen() {
   const lexiconLevel = useAppStore((state) => state.settings.lexicon_level);
-  const initialRouteName: keyof LearnStackParamList = lexiconLevel ? 'ZoneList' : 'LevelSelect';
+  const initialRouteName: keyof LearnStackParamList = lexiconLevel ? 'ZoneList' : 'Word';
 
   return (
     <LearnStack.Navigator
@@ -73,7 +73,7 @@ function LearnStackScreen() {
         headerTitleStyle: { color: colors.text },
       }}
     >
-      <LearnStack.Screen name="LevelSelect" component={LevelSelectScreen} options={{ title: '等级选择' }} />
+      <LearnStack.Screen name="Word" component={WordScreen} options={{ title: '词汇' }} />
       <LearnStack.Screen
         name="ZoneList"
         component={ZoneListScreen}

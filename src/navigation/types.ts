@@ -2,7 +2,7 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 import { AiSentenceAssembleItem, BankLevel, ExamQuizItem, Level } from '../types';
 
 export type LearnStackParamList = {
-  LevelSelect: { skipAuto?: boolean } | undefined;
+  Word: { skipAuto?: boolean } | undefined;
   ZoneList: { level: Level };
   StageList: { level: Level; zoneIndex: number };
   StageWords: { stageId: string; level: Level; stageIndex: number };
