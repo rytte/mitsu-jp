@@ -84,7 +84,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                   <Text style={styles.headerBadge}>JLPT</Text>
                   <Text style={styles.headerBadgeLevel}>{level}</Text>
                 </View>
-                <Text style={styles.title}>分区选择</Text>
+                <Text style={styles.title}>分区列表</Text>
                 <Text style={styles.subtitle}>每 10 关为一区，点击进入查看关卡</Text>
               </View>
               <Pressable style={styles.headerAction} onPress={() => navigation.replace('Word', { skipAuto: true })}>

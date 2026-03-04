@@ -78,7 +78,7 @@ function LearnStackScreen() {
         name="ZoneList"
         component={ZoneListScreen}
         initialParams={lexiconLevel ? { level: lexiconLevel } : undefined}
-        options={{ title: '分区选择', headerBackVisible: false, headerLeft: () => null }}
+        options={{ title: '分区列表', headerBackVisible: false, headerLeft: () => null }}
       />
       <LearnStack.Screen name="StageList" component={StageListScreen} options={{ title: '关卡列表' }} />
       <LearnStack.Screen name="StageWords" component={StageWordsScreen} options={{ title: '本关词汇' }} />

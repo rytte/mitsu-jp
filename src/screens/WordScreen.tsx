@@ -161,8 +161,8 @@ export default function WordScreen({ navigation, route }: Props) {
               <View style={styles.headerTop}>
                 <View style={styles.headerTitleWrap}>
                   <View style={styles.headerTitleRow}>
-                    <Ionicons name="analytics-outline" size={18} color="#9a3412" />
                     <Text style={styles.headerTitle}>词汇训练面板</Text>
+                    <Ionicons name="analytics-outline" size={25} color="#9a3412" />
                   </View>
                   <Text style={styles.headerSub}>
                     {stats ? `已完成 ${stats.completed}/${stats.stageCount} 关` : '数据加载中'}
