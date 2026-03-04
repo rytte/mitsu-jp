@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: spacing.m,
+    paddingHorizontal: spacing.m,
   },
   title: {
     fontSize: 22,
@@ -249,6 +249,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   list: {
+    paddingTop: spacing.m,
     paddingBottom: spacing.l,
   },
   zoneCard: {

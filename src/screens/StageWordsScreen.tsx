@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: spacing.m,
+    paddingHorizontal: spacing.m,
   },
   loading: {
     flex: 1,
@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   list: {
+    paddingTop: spacing.m,
     paddingBottom: spacing.l,
   },
   selectBar: {

@@ -13,7 +13,7 @@ import { getMeaning } from '../utils/meaning';
 import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
 export default function VocabBookScreen() {
-  const topPadding = useScreenTopPadding();
+  const topPadding = useScreenTopPadding({ base: 0 });
   const [loading, setLoading] = useState(true);
   const [words, setWords] = useState<Word[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -203,9 +203,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: spacing.m,
+    paddingHorizontal: spacing.m,
   },
   list: {
+    paddingTop: spacing.m,
     paddingBottom: spacing.l,
   },
   loading: {

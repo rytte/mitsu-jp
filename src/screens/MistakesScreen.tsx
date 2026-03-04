@@ -26,7 +26,7 @@ type MistakeGrammar = GrammarPoint & { wrong_times: number };
 type Mode = 'word' | 'grammar';
 
 export default function MistakesScreen() {
-  const topPadding = useScreenTopPadding();
+  const topPadding = useScreenTopPadding({ base: 0 });
   const [tabIndex, setTabIndex] = useState(0);
   const [wordMistakes, setWordMistakes] = useState<MistakeWord[]>([]);
   const [grammarMistakes, setGrammarMistakes] = useState<MistakeGrammar[]>([]);
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: spacing.m,
+    paddingHorizontal: spacing.m,
   },
   header: {
     flexDirection: 'row',

@@ -347,7 +347,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   list: {
-    padding: spacing.m,
+    paddingHorizontal: spacing.m,
+    paddingTop: spacing.m,
     paddingBottom: spacing.l,
   },
   levelCard: {
