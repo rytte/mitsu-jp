@@ -47,7 +47,7 @@ const TAB_ICON_MAP: Record<
   keyof RootTabParamList,
   { focused: keyof typeof Ionicons.glyphMap; unfocused: keyof typeof Ionicons.glyphMap }
 > = {
-  Learn: { focused: 'book', unfocused: 'book-outline' },
+  Word: { focused: 'book', unfocused: 'book-outline' },
   Grammar: { focused: 'reader', unfocused: 'reader-outline' },
   Search: { focused: 'search', unfocused: 'search-outline' },
   Mistakes: { focused: 'alert-circle', unfocused: 'alert-circle-outline' },
@@ -198,7 +198,7 @@ export default function AppNavigator() {
           },
         })}
       >
-        <Tab.Screen name="Learn" component={LearnStackScreen} options={{ title: '学习' }} />
+        <Tab.Screen name="Word" component={LearnStackScreen} options={{ title: '词汇' }} />
         <Tab.Screen name="Grammar" component={GrammarStackScreen} options={{ title: '文法' }} />
         {navSearch ? <Tab.Screen name="Search" component={SearchScreen} options={{ title: '搜索' }} /> : null}
         {navMistakes ? <Tab.Screen name="Mistakes" component={MistakesScreen} options={{ title: '错题' }} /> : null}

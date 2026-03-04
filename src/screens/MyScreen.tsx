@@ -28,8 +28,8 @@ export default function MyScreen({ navigation }: Props) {
 
   useFocusEffect(loadTodayStats);
 
-  const goToLearn = () => {
-    navigation.getParent()?.navigate('Learn' as never);
+  const goToWord = () => {
+    navigation.getParent()?.navigate('Word' as never);
   };
 
   const hasStudyToday = Boolean(todayStats && todayStats.stages > 0);
@@ -152,7 +152,7 @@ export default function MyScreen({ navigation }: Props) {
           </View>
         </View>
         {!hasStudyToday ? (
-          <Pressable style={styles.heroCta} onPress={goToLearn}>
+          <Pressable style={styles.heroCta} onPress={goToWord}>
             <Text style={styles.heroCtaText}>开始学习</Text>
           </Pressable>
         ) : null}

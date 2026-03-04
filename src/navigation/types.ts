@@ -45,7 +45,7 @@ export type ExamQuizStackParamList = {
 };
 
 export type RootTabParamList = {
-  Learn: undefined;
+  Word: undefined;
   Grammar: undefined;
   Search: undefined;
   Mistakes: undefined;
