@@ -15,10 +15,33 @@ type StageRow = Stage & { stars: number; locked: boolean; correctCount: number; 
 const SECTION_SIZE = 10;
 const ENABLE_STAGE_DEBUG_UNLOCK = true;
 
+function withOpacity(hex: string, alpha: number): string {
+  const normalized = hex.replace('#', '');
+  if (normalized.length !== 6) return hex;
+  const colorInt = Number.parseInt(normalized, 16);
+  if (Number.isNaN(colorInt)) return hex;
+  const r = (colorInt >> 16) & 255;
+  const g = (colorInt >> 8) & 255;
+  const b = colorInt & 255;
+  const safeAlpha = Math.max(0, Math.min(1, alpha));
+  return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
+}
+
 export default function StageListScreen({ navigation, route }: Props) {
   const { level, zoneIndex } = route.params;
   const [stages, setStages] = useState<StageRow[]>([]);
   const levelMeta = useMemo(() => getWordLevelMeta(level), [level]);
+  const accentTone = useMemo(
+    () => ({
+      text: withOpacity(levelMeta.accent, 0.98),
+      border: withOpacity(levelMeta.accent, 0.34),
+      softBg: withOpacity(levelMeta.accent, 0.12),
+      vocabBg: withOpacity(levelMeta.accent, 0.08),
+      startBg: withOpacity(levelMeta.accent, 0.22),
+      leftBorder: withOpacity(levelMeta.accent, 0.5),
+    }),
+    [levelMeta.accent]
+  );
   const canUseStageDebugUnlock = __DEV__ && ENABLE_STAGE_DEBUG_UNLOCK;
 
   const reloadStages = useCallback(
@@ -162,7 +185,13 @@ export default function StageListScreen({ navigation, route }: Props) {
         renderItem={({ item }) => {
           const stageDisplay = String(item.index).padStart(2, '0');
           return (
-            <View style={[styles.card, { borderColor: levelMeta.soft, borderLeftColor: levelMeta.accent }, item.locked ? styles.locked : null]}>
+            <View
+              style={[
+                styles.card,
+                { borderColor: colors.border, borderLeftColor: accentTone.leftBorder },
+                item.locked ? styles.locked : null,
+              ]}
+            >
               {canUseStageDebugUnlock ? (
                 <Pressable
                   onPress={() => {
@@ -170,15 +199,15 @@ export default function StageListScreen({ navigation, route }: Props) {
                   }}
                   style={({ pressed }) => [
                     styles.stageIndexBadge,
-                    { backgroundColor: levelMeta.soft, borderColor: levelMeta.accent },
+                    { backgroundColor: accentTone.softBg, borderColor: accentTone.border },
                     pressed ? styles.stageIndexBadgePressed : null,
                   ]}
                 >
-                  <Text style={[styles.stageIndexText, { color: levelMeta.accent }]}>{stageDisplay}</Text>
+                  <Text style={[styles.stageIndexText, { color: accentTone.text }]}>{stageDisplay}</Text>
                 </Pressable>
               ) : (
-                <View style={[styles.stageIndexBadge, { backgroundColor: levelMeta.soft, borderColor: levelMeta.accent }]}>
-                  <Text style={[styles.stageIndexText, { color: levelMeta.accent }]}>{stageDisplay}</Text>
+                <View style={[styles.stageIndexBadge, { backgroundColor: accentTone.softBg, borderColor: accentTone.border }]}>
+                  <Text style={[styles.stageIndexText, { color: accentTone.text }]}>{stageDisplay}</Text>
                 </View>
               )}
               <View style={styles.cardMain}>
@@ -207,11 +236,11 @@ export default function StageListScreen({ navigation, route }: Props) {
                   }
                   style={({ pressed }) => [
                     styles.vocabBtn,
-                    { borderColor: levelMeta.accent, backgroundColor: levelMeta.soft },
+                    { borderColor: colors.border, backgroundColor: accentTone.vocabBg },
                     pressed ? styles.buttonPressed : null,
                   ]}
                 >
-                  <Text style={[styles.vocabBtnText, { color: levelMeta.accent }]}>词汇</Text>
+                  <Text style={[styles.vocabBtnText, { color: colors.text }]}>词汇</Text>
                 </Pressable>
                 <Pressable
                   onPress={() =>
@@ -226,13 +255,15 @@ export default function StageListScreen({ navigation, route }: Props) {
                   style={({ pressed }) => [
                     styles.startBtn,
                     {
-                      backgroundColor: item.locked ? '#cbd5e1' : levelMeta.accent,
+                      backgroundColor: item.locked ? '#e2e8f0' : levelMeta.accent,
                       borderColor: item.locked ? '#cbd5e1' : levelMeta.accent,
                     },
                     pressed && !item.locked ? styles.buttonPressed : null,
                   ]}
                 >
-                  <Text style={styles.startBtnText}>{item.locked ? '未解锁' : '开始'}</Text>
+                  <Text style={[styles.startBtnText, { color: item.locked ? '#64748b' : '#fff' }]}>
+                    {item.locked ? '未解锁' : '开始'}
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -351,8 +382,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
@@ -363,7 +394,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.m,
-    borderWidth: 1.5,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: spacing.xs,
@@ -409,7 +440,7 @@ const styles = StyleSheet.create({
   vocabBtn: {
     minHeight: 32,
     borderRadius: radius.m,
-    borderWidth: 1.5,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xs,
@@ -422,13 +453,12 @@ const styles = StyleSheet.create({
   startBtn: {
     minHeight: 32,
     borderRadius: radius.m,
-    borderWidth: 1.5,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.s,
   },
   startBtnText: {
-    color: '#fff',
     fontSize: 12,
     fontWeight: '700',
   },
