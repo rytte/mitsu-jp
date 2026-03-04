@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import PrimaryButton from '../components/PrimaryButton';
+import { getWordLevelMeta } from '../data/levelMeta';
 import { getProgressMapByLevel, getStagesByLevel } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
@@ -17,6 +17,7 @@ const SECTION_SIZE = 10;
 export default function StageListScreen({ navigation, route }: Props) {
   const { level, zoneIndex } = route.params;
   const [stages, setStages] = useState<StageRow[]>([]);
+  const levelMeta = useMemo(() => getWordLevelMeta(level), [level]);
 
   const load = useCallback(() => {
     let active = true;
@@ -85,7 +86,7 @@ export default function StageListScreen({ navigation, route }: Props) {
                 <View>
                   <View style={styles.headerBadgeRow}>
                     <Text style={styles.headerBadge}>JLPT</Text>
-                    <Text style={styles.headerBadgeLevel}>{level}</Text>
+                    <Text style={[styles.headerBadgeLevel, { backgroundColor: levelMeta.accent }]}>{level}</Text>
                   </View>
                   <Text style={styles.title}>第{zoneIndex}区</Text>
                   {currentZone && (
@@ -139,42 +140,70 @@ export default function StageListScreen({ navigation, route }: Props) {
             </View>
           ) : null
         }
-        renderItem={({ item }) => (
-          <View style={[styles.card, item.locked ? styles.locked : null]}>
-            <View>
-              <Text style={styles.cardTitle}>第 {item.index} 关</Text>
-              <Text style={styles.cardText}>
-                星级：{item.stars} <Ionicons name="star" size={14} color={colors.warn} />
-              </Text>
+        renderItem={({ item }) => {
+          const stageDisplay = String(item.index).padStart(2, '0');
+          return (
+            <View style={[styles.card, { borderColor: levelMeta.soft, borderLeftColor: levelMeta.accent }, item.locked ? styles.locked : null]}>
+              <View style={[styles.stageIndexBadge, { backgroundColor: levelMeta.soft, borderColor: levelMeta.accent }]}>
+                <Text style={[styles.stageIndexText, { color: levelMeta.accent }]}>{stageDisplay}</Text>
+              </View>
+              <View style={styles.cardMain}>
+                <Text style={styles.cardTitle}>第 {item.index} 关</Text>
+                <View style={styles.starRow}>
+                  {[1, 2, 3].map((rank) => (
+                    <Ionicons
+                      key={`${item.id}-star-${rank}`}
+                      name={item.stars >= rank ? 'star' : 'star-outline'}
+                      size={15}
+                      color={item.stars >= rank ? colors.warn : '#cbd5e1'}
+                      style={styles.starIcon}
+                    />
+                  ))}
+                  <Text style={styles.starCount}>{item.stars}/3</Text>
+                </View>
+              </View>
+              <View style={styles.cardButtons}>
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate('StageWords', {
+                      stageId: item.id,
+                      level,
+                      stageIndex: item.index,
+                    })
+                  }
+                  style={({ pressed }) => [
+                    styles.vocabBtn,
+                    { borderColor: levelMeta.accent, backgroundColor: levelMeta.soft },
+                    pressed ? styles.buttonPressed : null,
+                  ]}
+                >
+                  <Text style={[styles.vocabBtnText, { color: levelMeta.accent }]}>词汇</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate('Quiz', {
+                      stageId: item.id,
+                      level,
+                      stageIndex: item.index,
+                      zoneIndex,
+                    })
+                  }
+                  disabled={item.locked}
+                  style={({ pressed }) => [
+                    styles.startBtn,
+                    {
+                      backgroundColor: item.locked ? '#cbd5e1' : levelMeta.accent,
+                      borderColor: item.locked ? '#cbd5e1' : levelMeta.accent,
+                    },
+                    pressed && !item.locked ? styles.buttonPressed : null,
+                  ]}
+                >
+                  <Text style={styles.startBtnText}>{item.locked ? '未解锁' : '开始'}</Text>
+                </Pressable>
+              </View>
             </View>
-            <View style={styles.actions}>
-              <PrimaryButton
-                title="词汇"
-                onPress={() =>
-                  navigation.navigate('StageWords', {
-                    stageId: item.id,
-                    level,
-                    stageIndex: item.index,
-                  })
-                }
-                style={styles.actionBtn}
-              />
-              <PrimaryButton
-                title={item.locked ? '未解锁' : '开始'}
-                onPress={() =>
-                  navigation.navigate('Quiz', {
-                    stageId: item.id,
-                    level,
-                    stageIndex: item.index,
-                    zoneIndex,
-                  })
-                }
-                disabled={item.locked}
-                style={[styles.actionBtn, styles.actionBtnGap]}
-              />
-            </View>
-          </View>
-        )}
+          );
+        }}
       />
     </View>
   );
@@ -277,41 +306,94 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.l,
-    padding: spacing.m,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs,
     marginBottom: spacing.m,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderLeftWidth: 3,
+    minHeight: 96,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
-  actions: {
+  locked: {
+    opacity: 0.75,
+  },
+  stageIndexBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.m,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: spacing.xs,
+    marginRight: spacing.s,
+    flexShrink: 0,
+  },
+  stageIndexText: {
+    fontSize: 18,
+    fontWeight: '800',
+    lineHeight: 20,
+  },
+  cardMain: {
+    flex: 1,
+    marginRight: spacing.s,
+  },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  starRow: {
+    marginTop: spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  actionBtn: {
-    minWidth: 72,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.m,
+  starIcon: {
+    marginRight: 2,
   },
-  actionBtnGap: {
+  starCount: {
     marginLeft: spacing.s,
-  },
-  locked: {
-    opacity: 0.6,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  cardText: {
+    fontSize: 12,
+    fontWeight: '700',
     color: colors.muted,
-    marginTop: spacing.xs,
+  },
+  cardButtons: {
+    width: 72,
+    marginLeft: spacing.xs,
+  },
+  vocabBtn: {
+    minHeight: 32,
+    borderRadius: radius.m,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+    paddingHorizontal: spacing.s,
+  },
+  vocabBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  startBtn: {
+    minHeight: 32,
+    borderRadius: radius.m,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.s,
+  },
+  startBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  buttonPressed: {
+    opacity: 0.85,
   },
 });
