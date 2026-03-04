@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { LEXICONS } from '../data/lexicons';
+import { getWordLevelMeta } from '../data/levelMeta';
 import { getStats, updateSettings } from '../db/queries';
 import { LearnStackParamList } from '../navigation/types';
 import { useAppStore } from '../store/useAppStore';
@@ -19,58 +20,7 @@ type Stats = {
   wrong: number;
 };
 
-type WordLevelMeta = {
-  tag: string;
-  hint: string;
-  accent: string;
-  soft: string;
-};
-
 const LEVELS = LEXICONS;
-
-const WORD_LEVEL_META: Record<string, WordLevelMeta> = {
-  N5: {
-    tag: '入门',
-    hint: '高频基础词与核心场景词',
-    accent: '#0f766e',
-    soft: '#ccfbf1',
-  },
-  N4: {
-    tag: '基础',
-    hint: '生活会话与常见表达扩展',
-    accent: '#2563eb',
-    soft: '#dbeafe',
-  },
-  N3: {
-    tag: '进阶',
-    hint: '中级阅读与听力常用词',
-    accent: '#7c3aed',
-    soft: '#ede9fe',
-  },
-  N2: {
-    tag: '强化',
-    hint: '书面表达与应试高频词',
-    accent: '#db2777',
-    soft: '#fce7f3',
-  },
-  N1: {
-    tag: '高阶',
-    hint: '抽象语义与高级表达词汇',
-    accent: '#b45309',
-    soft: '#fef3c7',
-  },
-};
-
-function getWordLevelMeta(level: string): WordLevelMeta {
-  return (
-    WORD_LEVEL_META[level] ?? {
-      tag: '词汇',
-      hint: '按等级组织的词汇内容',
-      accent: '#0f766e',
-      soft: '#ccfbf1',
-    }
-  );
-}
 
 export default function WordScreen({ navigation, route }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);

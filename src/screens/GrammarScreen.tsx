@@ -1,8 +1,9 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+﻿import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { GRAMMARS } from '../data/grammars';
+import { getGrammarLevelMeta } from '../data/levelMeta';
 import { GrammarStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 
@@ -36,12 +37,6 @@ type QuickEntry = {
   soft: string;
 };
 
-type LevelMeta = {
-  tag: string;
-  hint: string;
-  accent: string;
-  soft: string;
-};
 
 const QUICK_ENTRIES: QuickEntry[] = [
   {
@@ -109,38 +104,6 @@ const QUICK_ENTRIES: QuickEntry[] = [
   },
 ];
 
-const LEVEL_META: Record<string, LevelMeta> = {
-  N5: {
-    tag: '入门',
-    hint: '基础句型与核心表达',
-    accent: '#0d9488',
-    soft: '#ccfbf1',
-  },
-  N4: {
-    tag: '基础',
-    hint: '连接表达与常见口语结构',
-    accent: '#2563eb',
-    soft: '#dbeafe',
-  },
-  N3: {
-    tag: '进阶',
-    hint: '中级语法与书面表达',
-    accent: '#7c3aed',
-    soft: '#ede9fe',
-  },
-  N2: {
-    tag: '强化',
-    hint: '抽象表达与新闻场景',
-    accent: '#db2777',
-    soft: '#fce7f3',
-  },
-  N1: {
-    tag: '高阶',
-    hint: '细微语感与高难度语境',
-    accent: '#b45309',
-    soft: '#fef3c7',
-  },
-};
 
 const GRAMMAR_TERMS: GrammarTerm[] = [
   {
@@ -255,17 +218,6 @@ const IMPORTANT_COMPARISONS = [
 
 function getLayerChip(layer: string) {
   return layer.split('（')[0];
-}
-
-function getLevelMeta(level: string): LevelMeta {
-  return (
-    LEVEL_META[level] ?? {
-      tag: '文法',
-      hint: '按等级组织的文法条目',
-      accent: colors.primary,
-      soft: '#dbeafe',
-    }
-  );
 }
 
 export default function GrammarScreen({ navigation }: Props) {
@@ -418,7 +370,7 @@ export default function GrammarScreen({ navigation }: Props) {
         </>
       )}
       renderItem={({ item }) => {
-        const meta = getLevelMeta(item.id);
+        const meta = getGrammarLevelMeta(item.id);
         return (
           <Pressable
             onPress={() => navigation.navigate('GrammarList', { level: item.id })}
@@ -767,3 +719,4 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
+
