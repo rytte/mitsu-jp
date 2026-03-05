@@ -193,13 +193,12 @@ export default function ZoneWordsScreen({ route, navigation }: Props) {
             <View>
               <View style={styles.headerBadgeRow}>
                 <Text style={styles.headerBadge}>ZONE</Text>
-                <Text style={styles.headerBadgeLevel}>{zoneIndex}</Text>
+                <Text style={styles.headerBadgeLevel}>{zoneIndex}区</Text>
               </View>
               <Text style={styles.title}>第 {zoneIndex} 区词汇</Text>
               <Text style={styles.subtitle}>
-                第 {startIndex}-{endIndex} 关
+                第 {startIndex}-{endIndex} 关 · 共 {words.length} 个
               </Text>
-              {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
             </View>
           </View>
         }
@@ -293,11 +292,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     color: colors.muted,
   },
-  hint: {
-    marginTop: spacing.xs,
-    color: colors.muted,
-    fontSize: 12,
-  },
   headerBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -318,7 +312,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.s,
     paddingVertical: 2,
     borderRadius: radius.s,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDark,
     color: '#fff',
     fontSize: 11,
     fontWeight: '700',

@@ -156,7 +156,6 @@ export default function ZoneListScreen({ navigation, route }: Props) {
             </View>
 
             <Text style={styles.title}>分区列表</Text>
-            <Text style={styles.subtitle}>10关一区，点击进入查看关卡</Text>
 
             <View style={styles.headerStatsRow}>
               <View style={[styles.headerStat, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>

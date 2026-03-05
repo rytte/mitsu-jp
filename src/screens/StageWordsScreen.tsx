@@ -178,7 +178,6 @@ export default function StageWordsScreen({ route, navigation }: Props) {
             <View>
               <Text style={styles.title}>第 {stageIndex} 关词汇</Text>
               <Text style={styles.subtitle}>共 {words.length} 个</Text>
-              {compactMode && <Text style={styles.hint}>点击词条展开/收起</Text>}
             </View>
           </View>
         }
@@ -260,11 +259,6 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: spacing.xs,
     color: colors.muted,
-  },
-  hint: {
-    marginTop: spacing.xs,
-    color: colors.muted,
-    fontSize: 12,
   },
   headerToggle: {
     flexDirection: 'row',
