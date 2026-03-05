@@ -453,6 +453,17 @@ export default function QuizScreen({ navigation, route }: Props) {
   const answerWordId = answerWord?.id ?? null;
   const answerWordAdded = answerWordId ? addedWordIds.has(answerWordId) : false;
   const answerWordAdding = answerWordId ? addingWordId === answerWordId : false;
+  const shouldShowSpeakButton = currentItem?.type === 'listening' || currentItem?.type === 'mcq_ja_to_cn';
+
+  const questionAudioText = useMemo(() => {
+    if (!currentItem) return '';
+    if (currentItem.type === 'listening') return currentItem.audioText;
+    if (currentItem.type === 'mcq_ja_to_cn') {
+      const word = wordMap[currentItem.wordId];
+      return (word?.kana ?? currentItem.prompt).trim();
+    }
+    return '';
+  }, [currentItem, wordMap]);
 
   const speak = (text: string) => {
     Speech.speak(text, {
@@ -476,11 +487,11 @@ export default function QuizScreen({ navigation, route }: Props) {
   };
 
   useEffect(() => {
-    if (!currentItem || currentItem.type !== 'listening') return;
+    if (!currentItem || !shouldShowSpeakButton || !questionAudioText) return;
     if (lastAutoPlayedId.current === currentItem.id) return;
     lastAutoPlayedId.current = currentItem.id;
-    speak(currentItem.audioText);
-  }, [currentItem, settings.tts_rate]);
+    speak(questionAudioText);
+  }, [currentItem, questionAudioText, settings.tts_rate, shouldShowSpeakButton]);
 
   const handleLetterPress = useCallback(
     (letter: string) => {
@@ -638,7 +649,23 @@ export default function QuizScreen({ navigation, route }: Props) {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.card}>
-              {(currentItem.type === 'mcq_ja_to_cn' || currentItem.type === 'mcq_cn_to_ja') && (
+              {currentItem.type === 'mcq_ja_to_cn' && (
+                <>
+                  <View style={styles.listeningRow}>
+                    <Text style={[styles.prompt, styles.listeningPrompt]}>{currentItem.prompt}</Text>
+                    <Pressable
+                      onPress={() => (questionAudioText ? speak(questionAudioText) : undefined)}
+                      accessibilityRole="button"
+                      accessibilityLabel="播放发音"
+                      style={({ pressed }) => [styles.speakIconButton, pressed ? styles.speakIconButtonPressed : null]}
+                    >
+                      <Ionicons name="volume-high" size={20} color="#fff" />
+                    </Pressable>
+                  </View>
+                </>
+              )}
+
+              {currentItem.type === 'mcq_cn_to_ja' && (
                 <>
                   <Text style={styles.prompt}>{currentItem.prompt}</Text>
                 </>
@@ -649,7 +676,7 @@ export default function QuizScreen({ navigation, route }: Props) {
                   <View style={styles.listeningRow}>
                     <Text style={[styles.prompt, styles.listeningPrompt]}>听力选择</Text>
                     <Pressable
-                      onPress={() => speak(currentItem.audioText)}
+                      onPress={() => (questionAudioText ? speak(questionAudioText) : undefined)}
                       accessibilityRole="button"
                       accessibilityLabel="播放发音"
                       style={({ pressed }) => [styles.speakIconButton, pressed ? styles.speakIconButtonPressed : null]}
