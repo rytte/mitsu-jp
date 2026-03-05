@@ -389,7 +389,10 @@ export default function GrammarCard({
 
       {showDetails && usageLines.length > 0 ? (
         <View style={styles.block}>
-          <Text style={styles.blockLabel}>用法</Text>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionAccent, styles.usageAccent]} />
+            <Text style={[styles.sectionLabel, styles.usageLabel]}>用法</Text>
+          </View>
           {usageLines.map((line, index) => (
             <Text key={`usage-${index}`} style={[styles.blockText, { fontSize: fontSizes.detail }]}>
               {renderInlineMarkup(line, styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
@@ -400,7 +403,10 @@ export default function GrammarCard({
 
       {showDetails && noteLines.length > 0 ? (
         <View style={styles.block}>
-          <Text style={styles.blockLabel}>备注</Text>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionAccent, styles.noteAccent]} />
+            <Text style={[styles.sectionLabel, styles.noteLabel]}>备注</Text>
+          </View>
           {noteLines.map((line, index) => (
             <Text key={`note-${index}`} style={[styles.blockText, { fontSize: fontSizes.detail }]}>
               {renderInlineMarkup(stripBracketFurigana(line), styles.inlineBold, styles.inlineUnderline, styles.inlineStrike)}
@@ -566,19 +572,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  blockLabel: {
-    alignSelf: 'flex-start',
-    fontSize: 11,
-    color: colors.primaryDark,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
-    borderRadius: radius.s,
-    backgroundColor: '#eef2ff',
-    borderWidth: 1,
-    borderColor: '#c7d2fe',
-    includeFontPadding: false,
+  usageAccent: {
+    backgroundColor: '#6fb8af',
+  },
+  usageLabel: {
+    color: '#0f766e',
+  },
+  noteAccent: {
+    backgroundColor: '#fdba74',
+  },
+  noteLabel: {
+    color: '#9a3412',
   },
   blockText: {
     color: colors.text,
