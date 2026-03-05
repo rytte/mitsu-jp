@@ -7,6 +7,10 @@ import { colors, radius, spacing } from '../theme';
 import { Settings } from '../types';
 
 const RATE_OPTIONS = [0.8, 1.0, 1.2];
+const PRONUNCIATION_OPTIONS = [
+  { label: '本地 TTS', value: 'tts' },
+  { label: '远端音频', value: 'remote' },
+] as const;
 const MAX_NAV_ITEMS = 2;
 const FONT_OPTIONS = [
   { label: '小', value: 's' },
@@ -167,6 +171,10 @@ export default function SettingsScreen() {
     await persist({ ...settings, tts_rate: rate });
   };
 
+  const handlePronunciationSource = async (value: (typeof PRONUNCIATION_OPTIONS)[number]['value']) => {
+    await persist({ ...settings, pronunciation_source: value });
+  };
+
   const handleMeaningLanguage = async (useEnglish: boolean) => {
     setMeaningEnglish(useEnglish);
     await persist({ ...settings, meaning_language: useEnglish ? 'en' : 'zh' });
@@ -240,6 +248,34 @@ export default function SettingsScreen() {
             </Pressable>
           ))}
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>发音来源</Text>
+        <View style={styles.optionRow}>
+          {PRONUNCIATION_OPTIONS.map((option, index) => (
+            <Pressable
+              key={option.value}
+              onPress={() => handlePronunciationSource(option.value)}
+              style={({ pressed }) => [
+                styles.optionBtn,
+                index < PRONUNCIATION_OPTIONS.length - 1 ? styles.optionBtnGap : null,
+                settings.pronunciation_source === option.value ? styles.optionBtnActive : null,
+                pressed ? styles.optionBtnPressed : null,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.optionBtnText,
+                  settings.pronunciation_source === option.value ? styles.optionBtnTextActive : null,
+                ]}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.tip}>影响词汇卡片与听力题，不影响 AI 听力训练</Text>
       </View>
 
       <View style={styles.section}>

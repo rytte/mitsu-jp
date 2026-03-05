@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { InteractionManager, Pressable, StyleSheet, Text, TextStyle, View } from 'react-native';
-import * as Speech from 'expo-speech';
+import { playPronunciation } from '../features/audio/playback';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { Word } from '../types';
@@ -199,6 +199,7 @@ export default function WordCard({
   const exampleCn = (example?.zh_cn ?? '').trim();
   const showExample = Boolean(exampleJa || exampleCn);
   const exampleSpeechText = stripFurigana(stripBoldTags(exampleJa)).trim();
+  const exampleAudioFile = String(example?.audio ?? '').trim();
   const posText = (word.pos ?? '').trim();
   const pitchText = (word.pitch ?? '').trim();
   const metaItems: string[] = [];
@@ -208,20 +209,19 @@ export default function WordCard({
 
   const ttsText = (word.kana ?? '').trim() || (word.kanji ?? '').trim();
   const hasPressable = Boolean(onPress || onLongPress || ttsText);
-  const scheduleSpeak = (text: string) => {
+  const scheduleSpeak = (text: string, remoteAudioFile?: string | null) => {
     InteractionManager.runAfterInteractions(() => {
-      Speech.stop();
-      Speech.speak(text, {
-        language: 'ja-JP',
-        rate: settings.tts_rate,
-        voice: settings.tts_voice ?? undefined,
+      playPronunciation({
+        text,
+        settings,
+        remoteAudioFile,
       });
     });
   };
   const handleExamplePress = (event: { stopPropagation?: () => void }) => {
     event.stopPropagation?.();
     if (!disabled && exampleSpeechText) {
-      scheduleSpeak(exampleSpeechText);
+      scheduleSpeak(exampleSpeechText, exampleAudioFile);
     }
   };
 
@@ -295,7 +295,7 @@ export default function WordCard({
   const handlePress = () => {
     onPress?.();
     if (!disabled && ttsText) {
-      scheduleSpeak(ttsText);
+      scheduleSpeak(ttsText, word.audio);
     }
   };
 

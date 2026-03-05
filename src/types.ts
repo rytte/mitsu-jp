@@ -8,6 +8,8 @@ export type FontScale = 's' | 'm' | 'l';
 
 export type BankLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
 
+export type PronunciationSource = 'tts' | 'remote';
+
 export type ExamQuestionType = 'reorder_fill' | 'single_blank_fill' | 'kana_kanji_conversion';
 
 export type TranslationDirection = 'zh_to_ja' | 'ja_to_zh';
@@ -128,6 +130,7 @@ export type Word = {
   level: Level;
   kana: string;
   kanji?: string | null;
+  audio?: string | null;
   meaning_cn: string;
   meaning_en: string;
   pos?: string | null;
@@ -202,6 +205,7 @@ export type GrammarQuizModes = {
 export type Settings = {
   tts_rate: number;
   tts_voice: string | null;
+  pronunciation_source: PronunciationSource;
   quiz_mix: QuizMix;
   mcq_modes: McqModes;
   grammar_quiz_modes: GrammarQuizModes;
@@ -231,6 +235,7 @@ export type QuizItem =
       prompt: string;
       options: string[];
       answer: string;
+      audio?: string | null;
     }
   | {
       id: string;
@@ -244,6 +249,7 @@ export type QuizItem =
       wordId: string;
       type: 'listening';
       audioText: string;
+      audio?: string | null;
       options: string[];
       answer: string;
     };

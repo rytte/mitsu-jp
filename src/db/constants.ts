@@ -2,11 +2,12 @@ import { LEXICONS } from '../data/lexicons';
 import { Settings } from '../types';
 
 export const STAGE_SIZE = 15;
-export const LEXICON_VERSION = '2026-02-26-1';
+export const LEXICON_VERSION = '2026-03-05-1';
 
 export const DEFAULT_SETTINGS: Settings = {
   tts_rate: 1.0,
   tts_voice: null,
+  pronunciation_source: 'tts',
   quiz_mix: { mcq: 1 / 3, spelling: 1 / 3, listening: 1 / 3 },
   mcq_modes: { ja_to_meaning: true, meaning_to_ja: true },
   grammar_quiz_modes: { example_to_pattern: true, meaning_to_pattern: true, pattern_to_meaning: true },

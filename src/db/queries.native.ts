@@ -5,6 +5,7 @@ import {
   Level,
   McqModes,
   MeaningLanguage,
+  PronunciationSource,
   Progress,
   Settings,
   Stage,
@@ -27,6 +28,10 @@ function safeParseJson<T>(value: unknown): T | null {
 
 function normalizeMeaningLanguage(value?: string): MeaningLanguage {
   return value === 'en' ? 'en' : 'zh';
+}
+
+function normalizePronunciationSource(value: unknown): PronunciationSource {
+  return value === 'remote' ? 'remote' : 'tts';
 }
 
 function normalizeCompactMode(value: unknown) {
@@ -270,6 +275,7 @@ export async function getSettings(): Promise<Settings> {
   const row = await getFirst<{
     tts_rate: number;
     tts_voice: string | null;
+    pronunciation_source?: string | null;
     quiz_mix: string;
     mcq_modes?: string | null;
     grammar_quiz_modes?: string | null;
@@ -297,6 +303,9 @@ export async function getSettings(): Promise<Settings> {
   return {
     tts_rate: row.tts_rate,
     tts_voice: row.tts_voice,
+    pronunciation_source: normalizePronunciationSource(
+      row.pronunciation_source ?? DEFAULT_SETTINGS.pronunciation_source
+    ),
     quiz_mix: row.quiz_mix ? JSON.parse(row.quiz_mix) : DEFAULT_SETTINGS.quiz_mix,
     mcq_modes: normalizeMcqModes(
       row.mcq_modes ? (JSON.parse(row.mcq_modes) as McqModes) : DEFAULT_SETTINGS.mcq_modes
@@ -351,10 +360,11 @@ export async function getSettings(): Promise<Settings> {
 
 export async function updateSettings(settings: Settings) {
   await run(
-    'UPDATE settings SET tts_rate = ?, tts_voice = ?, quiz_mix = ?, mcq_modes = ?, grammar_quiz_modes = ?, meaning_language = ?, show_example_furigana = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, lexicon_auto_enter = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_ai_hub = ?, nav_show_exam_quiz = ?, nav_show_settings = ? WHERE id = ?;',
+    'UPDATE settings SET tts_rate = ?, tts_voice = ?, pronunciation_source = ?, quiz_mix = ?, mcq_modes = ?, grammar_quiz_modes = ?, meaning_language = ?, show_example_furigana = ?, compact_mode = ?, compact_single_expand = ?, lexicon_level = ?, lexicon_auto_enter = ?, font_scale = ?, nav_show_search = ?, nav_show_mistakes = ?, nav_show_vocab_book = ?, nav_show_kana = ?, nav_show_verb_conjugation = ?, nav_show_keigo = ?, nav_show_ai_hub = ?, nav_show_exam_quiz = ?, nav_show_settings = ? WHERE id = ?;',
     [
       settings.tts_rate,
       settings.tts_voice,
+      settings.pronunciation_source,
       JSON.stringify(settings.quiz_mix),
       JSON.stringify(settings.mcq_modes),
       JSON.stringify(settings.grammar_quiz_modes),

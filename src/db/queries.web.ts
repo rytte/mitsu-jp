@@ -7,6 +7,7 @@ import {
   Level,
   McqModes,
   MeaningLanguage,
+  PronunciationSource,
   Progress,
   Settings,
   Stage,
@@ -35,6 +36,10 @@ function toWordList(data: unknown): Word[] {
 
 function normalizeMeaningLanguage(value?: string): MeaningLanguage {
   return value === 'en' ? 'en' : 'zh';
+}
+
+function normalizePronunciationSource(value: unknown): PronunciationSource {
+  return value === 'remote' ? 'remote' : 'tts';
 }
 
 function normalizeLexiconLevel(value: unknown): Level {
@@ -255,6 +260,7 @@ export async function getSettings(): Promise<Settings> {
   const settings = { ...DEFAULT_SETTINGS, ...(loadSettings() as Partial<Settings>) };
   return {
     ...settings,
+    pronunciation_source: normalizePronunciationSource(settings.pronunciation_source),
     mcq_modes: normalizeMcqModes(settings.mcq_modes),
     grammar_quiz_modes: normalizeGrammarQuizModes(settings.grammar_quiz_modes),
     meaning_language: normalizeMeaningLanguage(settings.meaning_language),

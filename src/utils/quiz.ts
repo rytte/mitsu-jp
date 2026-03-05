@@ -80,6 +80,7 @@ export function generateQuizItems(params: {
           prompt: displayJa(word),
           options,
           answer: meaning,
+          audio: word.audio ?? null,
         });
       } else {
         const options = buildOptions(displayJa(word), jaWords);
@@ -112,6 +113,7 @@ export function generateQuizItems(params: {
       wordId: word.id,
       type: 'listening',
       audioText: word.kana,
+      audio: word.audio ?? null,
       options,
       answer: displayJa(word),
     });

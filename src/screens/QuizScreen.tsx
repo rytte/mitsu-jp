@@ -3,7 +3,6 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAudioPlayer } from 'expo-audio';
 import { Ionicons } from '@expo/vector-icons';
-import * as Speech from 'expo-speech';
 import OptionButton from '../components/OptionButton';
 import PrimaryButton from '../components/PrimaryButton';
 import {
@@ -18,6 +17,7 @@ import { LearnStackParamList } from '../navigation/types';
 import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { QuizItem, Word } from '../types';
+import { playPronunciation, stopPronunciationPlayback } from '../features/audio/playback';
 import { getMeaning, getMeaningLabel } from '../utils/meaning';
 import { generateQuizItems } from '../utils/quiz';
 
@@ -460,12 +460,28 @@ export default function QuizScreen({ navigation, route }: Props) {
     return '';
   }, [currentItem, wordMap]);
 
-  const speak = (text: string) => {
-    Speech.speak(text, {
-      language: 'ja-JP',
-      rate: settings.tts_rate,
-    });
-  };
+  const questionAudioFile = useMemo(() => {
+    if (!currentItem) return '';
+    if (currentItem.type === 'listening') return (currentItem.audio ?? '').trim();
+    if (currentItem.type === 'mcq_ja_to_cn') {
+      const itemAudio = (currentItem.audio ?? '').trim();
+      if (itemAudio) return itemAudio;
+      const word = wordMap[currentItem.wordId];
+      return (word?.audio ?? '').trim();
+    }
+    return '';
+  }, [currentItem, wordMap]);
+
+  const speak = useCallback(
+    (text: string, audioFile?: string) => {
+      playPronunciation({
+        text,
+        settings,
+        remoteAudioFile: audioFile,
+      });
+    },
+    [settings]
+  );
 
   useEffect(() => {
     correctSoundPlayer.volume = 1.0;
@@ -485,8 +501,14 @@ export default function QuizScreen({ navigation, route }: Props) {
     if (!currentItem || !shouldShowSpeakButton || !questionAudioText) return;
     if (lastAutoPlayedId.current === currentItem.id) return;
     lastAutoPlayedId.current = currentItem.id;
-    speak(questionAudioText);
-  }, [currentItem, questionAudioText, settings.tts_rate, shouldShowSpeakButton]);
+    speak(questionAudioText, questionAudioFile);
+  }, [currentItem, questionAudioFile, questionAudioText, shouldShowSpeakButton, speak]);
+
+  useEffect(() => {
+    return () => {
+      stopPronunciationPlayback();
+    };
+  }, []);
 
   const handleLetterPress = useCallback(
     (letter: string) => {
@@ -649,7 +671,7 @@ export default function QuizScreen({ navigation, route }: Props) {
                   <View style={styles.listeningRow}>
                     <Text style={[styles.prompt, styles.listeningPrompt]}>{currentItem.prompt}</Text>
                     <Pressable
-                      onPress={() => (questionAudioText ? speak(questionAudioText) : undefined)}
+                      onPress={() => (questionAudioText ? speak(questionAudioText, questionAudioFile) : undefined)}
                       accessibilityRole="button"
                       accessibilityLabel="播放发音"
                       style={({ pressed }) => [styles.speakIconButton, pressed ? styles.speakIconButtonPressed : null]}
@@ -671,7 +693,7 @@ export default function QuizScreen({ navigation, route }: Props) {
                   <View style={styles.listeningRow}>
                     <Text style={[styles.prompt, styles.listeningPrompt]}>听力选择</Text>
                     <Pressable
-                      onPress={() => (questionAudioText ? speak(questionAudioText) : undefined)}
+                      onPress={() => (questionAudioText ? speak(questionAudioText, questionAudioFile) : undefined)}
                       accessibilityRole="button"
                       accessibilityLabel="播放发音"
                       style={({ pressed }) => [styles.speakIconButton, pressed ? styles.speakIconButtonPressed : null]}
