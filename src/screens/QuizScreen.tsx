@@ -890,7 +890,7 @@ const styles = StyleSheet.create({
     padding: spacing.m,
   },
   topSection: {
-    flex: 42,
+    flex: 46,
     minHeight: 0,
   },
   topBody: {
@@ -1025,7 +1025,7 @@ const styles = StyleSheet.create({
     marginVertical: spacing.m,
   },
   bottomSection: {
-    flex: 58,
+    flex: 54,
     minHeight: 0,
     overflow: 'hidden',
   },
@@ -1074,16 +1074,16 @@ const styles = StyleSheet.create({
   answerHeadText: {
     flex: 1,
     paddingRight: spacing.s,
-    paddingLeft: spacing.xs,
+    paddingLeft: 24,
   },
   answerWord: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '400',
     color: colors.text,
   },
   answerReading: {
-    marginBottom: spacing.xs,
-    fontSize: 24,
+    marginBottom: 4,
+    fontSize: 22,
     fontWeight: '400',
     color: colors.text,
   },
@@ -1158,17 +1158,18 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   answerExample: {
-    padding: spacing.s,
+    padding: 8,
     borderRadius: radius.m,
     backgroundColor: colors.card,
     borderLeftWidth: 3,
     borderLeftColor: colors.border,
+    marginLeft: spacing.l,
   },
   answerExampleJa: {
     color: '#475569',
   },
   answerExampleCn: {
-    marginTop: spacing.s,
+    marginTop: 8,
     color: '#64748b',
   },
   answerText: {
@@ -1188,7 +1189,7 @@ const styles = StyleSheet.create({
   },
   keyboardTopPreview: {
     flex: 1,
-    minHeight: 48,
+    minHeight: 46,
     justifyContent: 'center',
     paddingHorizontal: spacing.m,
     borderRadius: radius.l,
