@@ -191,7 +191,7 @@ const ROMAJI_ROWS = [
   ['—', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '⌫'],
 ];
 const ROMAJI_KEY_HIT_SLOP = { top: 6, bottom: 8, left: 4, right: 4 } as const;
-const ROMAJI_KEY_PRESS_RETENTION = { top: 10, bottom: 14, left: 12, right: 12 } as const;
+const ROMAJI_KEY_PRESS_RETENTION = { top: 2, bottom: 2, left: 2, right: 2 } as const;
 
 type TypingState = {
   inputValue: string;
@@ -220,6 +220,7 @@ const RomajiKey = memo(function RomajiKey({
   const isLongVowel = letter === '—';
   const isBackspace = letter === '⌫';
   const isFunctionKey = isLongVowel || isBackspace;
+  const [visualPressed, setVisualPressed] = useState(false);
 
   const handlePressIn = () => {
     if (!isFunctionKey) {
@@ -239,43 +240,42 @@ const RomajiKey = memo(function RomajiKey({
 
   return (
     <Pressable
+      onTouchStart={() => setVisualPressed(true)}
+      onTouchEnd={() => setVisualPressed(false)}
+      onTouchCancel={() => setVisualPressed(false)}
       onPressIn={handlePressIn}
       onPress={isFunctionKey ? handlePress : undefined}
       onLongPress={isBackspace ? onClearPress : undefined}
       delayLongPress={isBackspace ? 400 : undefined}
       hitSlop={ROMAJI_KEY_HIT_SLOP}
       pressRetentionOffset={ROMAJI_KEY_PRESS_RETENTION}
-      style={({ pressed }) => [
+      style={[
         styles.romajiKey,
         isFunctionKey ? styles.romajiKeyFunction : styles.romajiKeyLetter,
-        pressed ? (isFunctionKey ? styles.romajiKeyFunctionPressed : styles.romajiKeyLetterPressed) : null,
+        visualPressed ? (isFunctionKey ? styles.romajiKeyFunctionPressed : styles.romajiKeyLetterPressed) : null,
         isBackspace ? styles.romajiKeyWide : null,
         isLongVowel ? styles.romajiKeyWide : null,
         !isLast ? styles.romajiKeyGap : null,
-        pressed ? styles.romajiKeyPressed : null,
+        visualPressed ? styles.romajiKeyPressed : null,
       ]}
     >
-      {({ pressed }) => (
-        <>
-          {pressed ? (
-            <View pointerEvents="none" style={styles.keyBubbleWrap}>
-              <View style={styles.keyBubble}>
-                <Text style={styles.keyBubbleText}>{letter}</Text>
-                <View style={styles.keyBubbleCaret} />
-              </View>
-            </View>
-          ) : null}
-          <Text
-            style={[
-              styles.romajiKeyText,
-              isFunctionKey ? styles.romajiKeyTextFunction : styles.romajiKeyTextLetter,
-              pressed ? styles.romajiKeyTextPressed : null,
-            ]}
-          >
-            {letter}
-          </Text>
-        </>
-      )}
+      {visualPressed ? (
+        <View pointerEvents="none" style={styles.keyBubbleWrap}>
+          <View style={styles.keyBubble}>
+            <Text style={styles.keyBubbleText}>{letter}</Text>
+            <View style={styles.keyBubbleCaret} />
+          </View>
+        </View>
+      ) : null}
+      <Text
+        style={[
+          styles.romajiKeyText,
+          isFunctionKey ? styles.romajiKeyTextFunction : styles.romajiKeyTextLetter,
+          visualPressed ? styles.romajiKeyTextPressed : null,
+        ]}
+      >
+        {letter}
+      </Text>
     </Pressable>
   );
 });
