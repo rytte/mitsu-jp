@@ -84,7 +84,7 @@ function LearnStackScreen() {
       <LearnStack.Screen name="StageWords" component={StageWordsScreen} options={{ title: '本关词汇' }} />
       <LearnStack.Screen name="ZoneWords" component={ZoneWordsScreen} options={{ title: '本区词汇' }} />
       <LearnStack.Screen name="Quiz" component={QuizScreen} options={{ title: '闯关测验' }} />
-      <LearnStack.Screen name="Result" component={ResultScreen} options={{ title: '结果' }} />
+      <LearnStack.Screen name="Result" component={ResultScreen} options={{ title: '结果', headerShown: false }} />
     </LearnStack.Navigator>
   );
 }
