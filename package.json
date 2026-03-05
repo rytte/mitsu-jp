@@ -20,6 +20,7 @@
     "expo-speech": "^14.0.8",
     "expo-sqlite": "^16.0.10",
     "expo-status-bar": "~3.0.9",
+    "expo-system-ui": "~6.0.9",
     "hermes-parser": "^0.32.0",
     "pngjs": "^7.0.0",
     "react": "19.1.0",
