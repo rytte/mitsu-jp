@@ -116,7 +116,13 @@ export default function ResultScreen({ navigation, route }: Props) {
           )}
           <PrimaryButton
             title="返回关卡"
-            onPress={() => navigation.navigate('StageList', { level, zoneIndex })}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.pop(1);
+                return;
+              }
+              navigation.replace('StageList', { level, zoneIndex });
+            }}
             style={styles.actionButton}
           />
         </View>
