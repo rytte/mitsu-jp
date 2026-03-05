@@ -132,11 +132,9 @@ export default function ZoneListScreen({ navigation, route }: Props) {
             <View style={[styles.headerOrbBottom, { backgroundColor: tone.headerOrb }]} />
 
             <View style={styles.headerTopRow}>
-              <View style={styles.headerBadgeRow}>
-                <Text style={styles.headerBadge}>JLPT</Text>
-                <Text style={[styles.headerBadgeLevel, { backgroundColor: levelMeta.accent }]}>{level}</Text>
-                <Text style={[styles.headerTag, { color: levelMeta.accent, borderColor: tone.headerBorder }]}>
-                  {levelMeta.tag}
+              <View style={styles.headerTitleWrap}>
+                <Text style={styles.headerTitle}>
+                  <Text style={[styles.headerTitleLevel, { color: levelMeta.accent }]}>{level}</Text> 词汇
                 </Text>
               </View>
               <Pressable
@@ -155,7 +153,24 @@ export default function ZoneListScreen({ navigation, route }: Props) {
               </Pressable>
             </View>
 
-            <Text style={styles.title}>分区列表</Text>
+            <View style={styles.headerProgressCard}>
+              <View style={styles.headerProgressHead}>
+                <Text style={styles.headerProgressLabel}>整体进度</Text>
+                <Text style={[styles.headerProgressValue, { color: levelMeta.accent }]}>{stagePercent}%</Text>
+              </View>
+              <View style={[styles.headerProgressTrack, { backgroundColor: tone.headerProgressTrack }]}>
+                <View
+                  style={[
+                    styles.headerProgressFill,
+                    {
+                      width: `${stagePercent}%`,
+                      backgroundColor: levelMeta.accent,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={styles.headerProgressHint}>已完成 {completedStages}/{stages.length || 0} 关</Text>
+            </View>
 
             <View style={styles.headerStatsRow}>
               <View style={[styles.headerStat, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
@@ -176,22 +191,6 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                   <Text style={styles.headerStatDenominator}>{stages.length * 3}</Text>
                 </Text>
               </View>
-            </View>
-            <View style={styles.headerProgressRow}>
-              <View style={[styles.headerProgressTrack, { backgroundColor: tone.headerProgressTrack }]}>
-                <View
-                  style={[
-                    styles.headerProgressFill,
-                    {
-                      width: `${stagePercent}%`,
-                      backgroundColor: levelMeta.accent,
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={styles.headerProgressMeta}>
-                {completedStages}/{stages.length || 0} · {stagePercent}%
-              </Text>
             </View>
           </View>
         }
@@ -277,11 +276,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingHorizontal: spacing.m,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-  },
   headerCard: {
     backgroundColor: colors.card,
     borderRadius: 22,
@@ -326,6 +320,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.s,
   },
+  headerTitleWrap: {
+    flex: 1,
+    paddingRight: spacing.s,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  headerTitleLevel: {
+    fontWeight: '900',
+  },
   headerAction: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -350,42 +356,6 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 11,
     lineHeight: 16,
-  },
-  headerBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    paddingRight: spacing.s,
-  },
-  headerBadge: {
-    paddingHorizontal: spacing.s,
-    paddingVertical: 3,
-    borderRadius: radius.s,
-    backgroundColor: '#111827',
-    color: '#fff',
-    fontSize: 11,
-    marginRight: 4,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  headerBadgeLevel: {
-    paddingHorizontal: spacing.s,
-    paddingVertical: 3,
-    borderRadius: radius.s,
-    backgroundColor: colors.primary,
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  headerTag: {
-    marginLeft: spacing.xs,
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: spacing.s,
-    paddingVertical: 3,
-    fontSize: 11,
-    fontWeight: '700',
-    backgroundColor: '#ffffffbf',
   },
   headerStatsRow: {
     marginTop: spacing.s,
@@ -425,14 +395,27 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontWeight: '600',
   },
-  headerProgressRow: {
+  headerProgressCard: {
     marginTop: spacing.s,
+  },
+  headerProgressHead: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+  },
+  headerProgressLabel: {
+    fontSize: 12,
+    color: colors.muted,
+    fontWeight: '600',
+  },
+  headerProgressValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   headerProgressTrack: {
-    flex: 1,
-    height: 6,
+    marginTop: spacing.xs,
+    height: 8,
     borderRadius: 999,
     overflow: 'hidden',
     backgroundColor: '#dbeafe',
@@ -441,13 +424,10 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 999,
   },
-  headerProgressMeta: {
-    marginLeft: spacing.xs,
-    minWidth: 76,
-    textAlign: 'right',
+  headerProgressHint: {
+    marginTop: 6,
     fontSize: 11,
     color: colors.muted,
-    fontWeight: '600',
   },
   list: {
     paddingTop: spacing.m,
