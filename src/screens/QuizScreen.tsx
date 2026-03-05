@@ -222,12 +222,6 @@ const RomajiKey = memo(function RomajiKey({
   const isFunctionKey = isLongVowel || isBackspace;
   const [visualPressed, setVisualPressed] = useState(false);
 
-  const handlePressIn = () => {
-    if (!isFunctionKey) {
-      onLetterPress(letter);
-    }
-  };
-
   const handlePress = () => {
     if (isLongVowel) {
       onLongVowelPress();
@@ -235,7 +229,9 @@ const RomajiKey = memo(function RomajiKey({
     }
     if (isBackspace) {
       onBackspacePress();
+      return;
     }
+    onLetterPress(letter);
   };
 
   return (
@@ -243,8 +239,7 @@ const RomajiKey = memo(function RomajiKey({
       onTouchStart={() => setVisualPressed(true)}
       onTouchEnd={() => setVisualPressed(false)}
       onTouchCancel={() => setVisualPressed(false)}
-      onPressIn={handlePressIn}
-      onPress={isFunctionKey ? handlePress : undefined}
+      onPress={handlePress}
       onLongPress={isBackspace ? onClearPress : undefined}
       delayLongPress={isBackspace ? 400 : undefined}
       hitSlop={ROMAJI_KEY_HIT_SLOP}
