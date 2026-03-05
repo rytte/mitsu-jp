@@ -2,6 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { GRAMMARS } from '../data/grammars';
 import { getGrammarLevelMeta } from '../data/levelMeta';
 import { GrammarStackParamList } from '../navigation/types';
@@ -225,13 +226,14 @@ export default function GrammarScreen({ navigation }: Props) {
   const [expandedTermKey, setExpandedTermKey] = useState<string | null>(null);
 
   return (
-    <FlatList
-      style={styles.container}
-      data={GRAMMARS}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      ListHeaderComponent={(
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <FlatList
+        style={styles.list}
+        data={GRAMMARS}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={(
         <>
           <View style={styles.sectionHead}>
             <Text style={styles.sectionTitle}>学习前置</Text>
@@ -370,7 +372,7 @@ export default function GrammarScreen({ navigation }: Props) {
           </View>
         </>
       )}
-      renderItem={({ item }) => {
+        renderItem={({ item }) => {
         const meta = getGrammarLevelMeta(item.id);
         return (
           <Pressable
@@ -398,8 +400,9 @@ export default function GrammarScreen({ navigation }: Props) {
             <Ionicons name="chevron-forward" size={18} color={colors.muted} />
           </Pressable>
         );
-      }}
-    />
+        }}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -407,6 +410,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  list: {
+    flex: 1,
   },
   content: {
     padding: spacing.m,

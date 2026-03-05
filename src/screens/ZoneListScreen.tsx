@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getProgressMapByLevel, getStagesByLevel } from '../db/queries';
 import { getWordLevelMeta } from '../data/levelMeta';
 import { LearnStackParamList } from '../navigation/types';
@@ -119,7 +120,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
         data={zones}
         keyExtractor={(item) => `zone-${item.sectionIndex}`}
@@ -155,13 +156,29 @@ export default function ZoneListScreen({ navigation, route }: Props) {
             </View>
 
             <Text style={styles.title}>分区列表</Text>
-            <Text style={styles.subtitle}>每 10 关为一区，点击进入查看关卡</Text>
+            <Text style={styles.subtitle}>10关一区，点击进入查看关卡</Text>
 
-            <View style={[styles.headerProgressCard, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
-              <View style={styles.headerProgressHead}>
-                <Text style={styles.headerProgressLabel}>整体进度</Text>
-                <Text style={[styles.headerProgressValue, { color: levelMeta.accent }]}>{stagePercent}%</Text>
+            <View style={styles.headerStatsRow}>
+              <View style={[styles.headerStat, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
+                <Text style={styles.headerStatLabel}>学习单词</Text>
+                <Text style={styles.headerStatValueCompact}>
+                  <Text style={[styles.headerStatNumerator, { color: levelMeta.accent }]}>
+                    {learnedWordCount}
+                  </Text>
+                  <Text style={styles.headerStatDivider}>/</Text>
+                  <Text style={styles.headerStatDenominator}>{totalWordCount}</Text>
+                </Text>
               </View>
+              <View style={[styles.headerStat, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
+                <Text style={styles.headerStatLabel}>总星数</Text>
+                <Text style={styles.headerStatValueCompact}>
+                  <Text style={[styles.headerStatNumerator, { color: levelMeta.accent }]}>{totalStars}</Text>
+                  <Text style={styles.headerStatDivider}>/</Text>
+                  <Text style={styles.headerStatDenominator}>{stages.length * 3}</Text>
+                </Text>
+              </View>
+            </View>
+            <View style={styles.headerProgressRow}>
               <View style={[styles.headerProgressTrack, { backgroundColor: tone.headerProgressTrack }]}>
                 <View
                   style={[
@@ -173,30 +190,9 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                   ]}
                 />
               </View>
-              <Text style={styles.headerProgressHint}>
-                已完成 {completedStages}/{stages.length || 0} 关
+              <Text style={styles.headerProgressMeta}>
+                {completedStages}/{stages.length || 0} · {stagePercent}%
               </Text>
-            </View>
-
-            <View style={styles.headerStatsRow}>
-              <View style={[styles.headerStat, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
-                <Text style={styles.headerStatLabel}>学习单词数</Text>
-                <Text style={styles.headerStatValue}>
-                  <Text style={[styles.headerStatNumerator, { color: levelMeta.accent }]}>
-                    {learnedWordCount}
-                  </Text>
-                  <Text style={styles.headerStatDivider}>/</Text>
-                  <Text style={styles.headerStatDenominator}>{totalWordCount}</Text>
-                </Text>
-              </View>
-              <View style={[styles.headerStat, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
-                <Text style={styles.headerStatLabel}>总星数</Text>
-                <Text style={styles.headerStatValue}>
-                  <Text style={[styles.headerStatNumerator, { color: levelMeta.accent }]}>{totalStars}</Text>
-                  <Text style={styles.headerStatDivider}>/</Text>
-                  <Text style={styles.headerStatDenominator}>{stages.length * 3}</Text>
-                </Text>
-              </View>
             </View>
           </View>
         }
@@ -272,7 +268,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
           );
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -283,7 +279,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: colors.text,
   },
@@ -353,8 +349,8 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: 4,
     color: colors.muted,
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 11,
+    lineHeight: 16,
   },
   headerBadgeRow: {
     flexDirection: 'row',
@@ -392,48 +388,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     backgroundColor: '#ffffffbf',
   },
-  headerProgressCard: {
-    marginTop: spacing.s,
-    borderWidth: 1,
-    borderRadius: radius.m,
-    paddingHorizontal: spacing.s,
-    paddingVertical: spacing.xs,
-  },
-  headerProgressHead: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-  },
-  headerProgressLabel: {
-    fontSize: 12,
-    color: colors.muted,
-    fontWeight: '600',
-  },
-  headerProgressValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  headerProgressTrack: {
-    marginTop: spacing.xs,
-    height: 8,
-    borderRadius: 999,
-    overflow: 'hidden',
-    backgroundColor: '#dbeafe',
-  },
-  headerProgressFill: {
-    height: '100%',
-    borderRadius: 999,
-  },
-  headerProgressHint: {
-    marginTop: 6,
-    fontSize: 11,
-    color: colors.muted,
-  },
   headerStatsRow: {
     marginTop: spacing.s,
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
   headerStat: {
@@ -444,14 +402,16 @@ const styles = StyleSheet.create({
     borderRadius: radius.m,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.s,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerStatLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.muted,
   },
-  headerStatValue: {
-    marginTop: 2,
-    fontSize: 13,
+  headerStatValueCompact: {
+    fontSize: 12,
     fontWeight: '700',
     color: colors.text,
   },
@@ -463,6 +423,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   headerStatDenominator: {
+    color: colors.muted,
+    fontWeight: '600',
+  },
+  headerProgressRow: {
+    marginTop: spacing.s,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerProgressTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: '#dbeafe',
+  },
+  headerProgressFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  headerProgressMeta: {
+    marginLeft: spacing.xs,
+    minWidth: 76,
+    textAlign: 'right',
+    fontSize: 11,
     color: colors.muted,
     fontWeight: '600',
   },

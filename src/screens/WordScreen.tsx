@@ -3,6 +3,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LEXICONS } from '../data/lexicons';
 import { getWordLevelMeta } from '../data/levelMeta';
 import { getStats, updateSettings } from '../db/queries';
@@ -100,7 +101,7 @@ export default function WordScreen({ navigation, route }: Props) {
   const totalAnswers = stats ? stats.correct + stats.wrong : 0;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
         data={LEVELS}
         keyExtractor={(item) => item.id}
@@ -192,7 +193,7 @@ export default function WordScreen({ navigation, route }: Props) {
           );
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

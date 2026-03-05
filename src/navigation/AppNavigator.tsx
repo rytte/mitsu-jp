@@ -73,12 +73,12 @@ function LearnStackScreen() {
         headerTitleStyle: { color: colors.text },
       }}
     >
-      <LearnStack.Screen name="Word" component={WordScreen} options={{ title: '词汇' }} />
+      <LearnStack.Screen name="Word" component={WordScreen} options={{ title: '词汇', headerShown: false }} />
       <LearnStack.Screen
         name="ZoneList"
         component={ZoneListScreen}
         initialParams={lexiconLevel ? { level: lexiconLevel } : undefined}
-        options={{ title: '分区列表', headerBackVisible: false, headerLeft: () => null }}
+        options={{ title: '分区列表', headerShown: false, headerBackVisible: false, headerLeft: () => null }}
       />
       <LearnStack.Screen name="StageList" component={StageListScreen} options={{ title: '关卡列表' }} />
       <LearnStack.Screen name="StageWords" component={StageWordsScreen} options={{ title: '本关词汇' }} />
@@ -97,7 +97,7 @@ function GrammarStackScreen() {
         headerTitleStyle: { color: colors.text },
       }}
     >
-      <GrammarStack.Screen name="Grammar" component={GrammarScreen} options={{ title: '文法' }} />
+      <GrammarStack.Screen name="Grammar" component={GrammarScreen} options={{ title: '文法', headerShown: false }} />
       <GrammarStack.Screen name="GrammarList" component={GrammarListScreen} options={{ title: '文法列表' }} />
       <GrammarStack.Screen name="GrammarDetail" component={GrammarDetailScreen} options={{ title: '文法详情' }} />
       <GrammarStack.Screen name="GrammarQuiz" component={GrammarQuizScreen} options={{ title: '文法练习' }} />
