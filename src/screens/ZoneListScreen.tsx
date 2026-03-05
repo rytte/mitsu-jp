@@ -190,7 +190,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                 </Text>
               </View>
               <View style={[styles.headerStat, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
-                <Text style={styles.headerStatLabel}>总星级</Text>
+                <Text style={styles.headerStatLabel}>总星数</Text>
                 <Text style={styles.headerStatValue}>
                   <Text style={[styles.headerStatNumerator, { color: levelMeta.accent }]}>{totalStars}</Text>
                   <Text style={styles.headerStatDivider}>/</Text>
@@ -232,7 +232,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                   </Text>
                 </View>
                 <Text style={styles.zoneMeta}>
-                  完成 {item.completed}/{item.total} · 星级 {item.starsSum}/{item.total * 3}
+                  完成 {item.completed}/{item.total} · 星数 {item.starsSum}/{item.total * 3}
                 </Text>
                 <View style={styles.progressRow}>
                   <View style={styles.progressTrack}>

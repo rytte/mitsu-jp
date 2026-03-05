@@ -134,7 +134,7 @@ export default function StageListScreen({ navigation, route }: Props) {
                   {currentZone && (
                     <Text style={styles.subtitle}>
                       第 {currentZone.startIndex}-{currentZone.endIndex} 关 · 完成 {currentZone.completed}/
-                      {currentZone.total} · 星级 {currentZone.starsSum}/{currentZone.total * 3}
+                      {currentZone.total} · 星数 {currentZone.starsSum}/{currentZone.total * 3}
                     </Text>
                   )}
                 </View>
