@@ -21,6 +21,15 @@ export default function ZoneListScreen({ navigation, route }: Props) {
   const tone = useMemo(
     () => ({
       cardShadow: levelMeta.accent,
+      headerBorder: `${levelMeta.accent}33`,
+      headerGlow: `${levelMeta.accent}0f`,
+      headerOrb: `${levelMeta.accent}14`,
+      actionBackground: `${levelMeta.accent}14`,
+      actionBorder: `${levelMeta.accent}3d`,
+      actionIcon: `${levelMeta.accent}cc`,
+      statBorder: `${levelMeta.accent}29`,
+      statBackground: `${levelMeta.accent}0a`,
+      headerProgressTrack: `${levelMeta.accent}24`,
       pillBackground: `${levelMeta.accent}1a`,
       pillBorder: `${levelMeta.accent}33`,
       progressTrack: `${levelMeta.accent}20`,
@@ -83,6 +92,31 @@ export default function ZoneListScreen({ navigation, route }: Props) {
         };
       });
   }, [stages]);
+  const completedStages = useMemo(() => stages.filter((item) => item.stars >= 1).length, [stages]);
+  const learnedWordCount = useMemo(() => {
+    const learnedWordSet = new Set<string>();
+    for (const stage of stages) {
+      if (stage.stars < 1) continue;
+      for (const wordId of stage.word_ids) {
+        learnedWordSet.add(wordId);
+      }
+    }
+    return learnedWordSet.size;
+  }, [stages]);
+  const totalWordCount = useMemo(() => {
+    const totalWordSet = new Set<string>();
+    for (const stage of stages) {
+      for (const wordId of stage.word_ids) {
+        totalWordSet.add(wordId);
+      }
+    }
+    return totalWordSet.size;
+  }, [stages]);
+  const totalStars = useMemo(() => stages.reduce((sum, item) => sum + item.stars, 0), [stages]);
+  const stagePercent = useMemo(
+    () => (stages.length > 0 ? Math.round((completedStages / stages.length) * 100) : 0),
+    [completedStages, stages.length]
+  );
 
   return (
     <View style={styles.container}>
@@ -91,21 +125,78 @@ export default function ZoneListScreen({ navigation, route }: Props) {
         keyExtractor={(item) => `zone-${item.sectionIndex}`}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <View style={styles.headerCard}>
-            <View style={styles.headerRow}>
-              <View>
-                <View style={styles.headerBadgeRow}>
-                  <Text style={styles.headerBadge}>JLPT</Text>
-                  <Text style={[styles.headerBadgeLevel, { backgroundColor: levelMeta.accent }]}>
-                    {level}
-                  </Text>
-                </View>
-                <Text style={styles.title}>分区列表</Text>
-                <Text style={styles.subtitle}>每 10 关为一区，点击进入查看关卡</Text>
+          <View style={[styles.headerCard, { borderColor: tone.headerBorder }]}>
+            <View style={[styles.headerGlow, { backgroundColor: tone.headerGlow }]} />
+            <View style={[styles.headerOrbTop, { backgroundColor: tone.headerOrb }]} />
+            <View style={[styles.headerOrbBottom, { backgroundColor: tone.headerOrb }]} />
+
+            <View style={styles.headerTopRow}>
+              <View style={styles.headerBadgeRow}>
+                <Text style={styles.headerBadge}>JLPT</Text>
+                <Text style={[styles.headerBadgeLevel, { backgroundColor: levelMeta.accent }]}>{level}</Text>
+                <Text style={[styles.headerTag, { color: levelMeta.accent, borderColor: tone.headerBorder }]}>
+                  {levelMeta.tag}
+                </Text>
               </View>
-              <Pressable style={styles.headerAction} onPress={() => navigation.replace('Word', { skipAuto: true })}>
-                <Text style={styles.switchText}>切换词库</Text>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.headerAction,
+                  {
+                    backgroundColor: tone.actionBackground,
+                    borderColor: tone.actionBorder,
+                  },
+                  pressed ? styles.headerActionPressed : null,
+                ]}
+                onPress={() => navigation.replace('Word', { skipAuto: true })}
+              >
+                <Text style={[styles.switchText, { color: levelMeta.accent }]}>切换词库</Text>
+                <Ionicons name="arrow-forward" size={14} color={tone.actionIcon} />
               </Pressable>
+            </View>
+
+            <Text style={styles.title}>分区列表</Text>
+            <Text style={styles.subtitle}>每 10 关为一区，点击进入查看关卡</Text>
+
+            <View style={[styles.headerProgressCard, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
+              <View style={styles.headerProgressHead}>
+                <Text style={styles.headerProgressLabel}>整体进度</Text>
+                <Text style={[styles.headerProgressValue, { color: levelMeta.accent }]}>{stagePercent}%</Text>
+              </View>
+              <View style={[styles.headerProgressTrack, { backgroundColor: tone.headerProgressTrack }]}>
+                <View
+                  style={[
+                    styles.headerProgressFill,
+                    {
+                      width: `${stagePercent}%`,
+                      backgroundColor: levelMeta.accent,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={styles.headerProgressHint}>
+                已完成 {completedStages}/{stages.length || 0} 关
+              </Text>
+            </View>
+
+            <View style={styles.headerStatsRow}>
+              <View style={[styles.headerStat, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
+                <Text style={styles.headerStatLabel}>学习单词数</Text>
+                <Text style={styles.headerStatValue}>
+                  <Text style={[styles.headerStatNumerator, { color: levelMeta.accent }]}>
+                    {learnedWordCount}
+                  </Text>
+                  <Text style={styles.headerStatDivider}>/</Text>
+                  <Text style={styles.headerStatDenominator}>{totalWordCount}</Text>
+                </Text>
+              </View>
+              <View style={[styles.headerStat, { borderColor: tone.statBorder, backgroundColor: tone.statBackground }]}>
+                <Text style={styles.headerStatLabel}>总星级</Text>
+                <Text style={styles.headerStatValue}>
+                  <Text style={[styles.headerStatNumerator, { color: levelMeta.accent }]}>{totalStars}</Text>
+                  <Text style={styles.headerStatDivider}>/</Text>
+                  <Text style={styles.headerStatDenominator}>{stages.length * 3}</Text>
+                </Text>
+              </View>
             </View>
           </View>
         }
@@ -198,53 +289,182 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     backgroundColor: colors.card,
-    borderRadius: radius.l,
+    borderRadius: 22,
     padding: spacing.m,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#dbe5f0',
     marginBottom: spacing.m,
+    shadowColor: '#94a3b8',
+    shadowOpacity: 0.13,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+    overflow: 'hidden',
   },
-  headerRow: {
+  headerGlow: {
+    position: 'absolute',
+    left: -60,
+    top: -90,
+    width: 220,
+    height: 220,
+    borderRadius: 999,
+  },
+  headerOrbTop: {
+    position: 'absolute',
+    right: -52,
+    top: -36,
+    width: 130,
+    height: 130,
+    borderRadius: 999,
+  },
+  headerOrbBottom: {
+    position: 'absolute',
+    right: 10,
+    bottom: -40,
+    width: 96,
+    height: 96,
+    borderRadius: 999,
+  },
+  headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: spacing.s,
   },
   headerAction: {
-    marginBottom: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderColor: '#d1d5db',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  headerActionPressed: {
+    opacity: 0.86,
   },
   switchText: {
-    color: colors.primary,
+    color: '#374151',
     fontWeight: '600',
+    fontSize: 12,
+    marginRight: 4,
   },
   subtitle: {
-    marginTop: spacing.xs,
+    marginTop: 4,
     color: colors.muted,
     fontSize: 12,
+    lineHeight: 18,
   },
   headerBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    flex: 1,
+    paddingRight: spacing.s,
   },
   headerBadge: {
     paddingHorizontal: spacing.s,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: radius.s,
     backgroundColor: '#111827',
     color: '#fff',
     fontSize: 11,
-    marginRight: spacing.xs,
+    marginRight: 4,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   headerBadgeLevel: {
     paddingHorizontal: spacing.s,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: radius.s,
     backgroundColor: colors.primary,
     color: '#fff',
     fontSize: 11,
     fontWeight: '700',
+  },
+  headerTag: {
+    marginLeft: spacing.xs,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: spacing.s,
+    paddingVertical: 3,
+    fontSize: 11,
+    fontWeight: '700',
+    backgroundColor: '#ffffffbf',
+  },
+  headerProgressCard: {
+    marginTop: spacing.s,
+    borderWidth: 1,
+    borderRadius: radius.m,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+  },
+  headerProgressHead: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+  },
+  headerProgressLabel: {
+    fontSize: 12,
+    color: colors.muted,
+    fontWeight: '600',
+  },
+  headerProgressValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  headerProgressTrack: {
+    marginTop: spacing.xs,
+    height: 8,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: '#dbeafe',
+  },
+  headerProgressFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  headerProgressHint: {
+    marginTop: 6,
+    fontSize: 11,
+    color: colors.muted,
+  },
+  headerStatsRow: {
+    marginTop: spacing.s,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    justifyContent: 'space-between',
+  },
+  headerStat: {
+    width: '48.5%',
+    backgroundColor: '#f8fafc',
+    borderColor: '#e5e7eb',
+    borderWidth: 1,
+    borderRadius: radius.m,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.s,
+  },
+  headerStatLabel: {
+    fontSize: 11,
+    color: colors.muted,
+  },
+  headerStatValue: {
+    marginTop: 2,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  headerStatNumerator: {
+    fontWeight: '800',
+  },
+  headerStatDivider: {
+    color: colors.muted,
+    fontWeight: '600',
+  },
+  headerStatDenominator: {
+    color: colors.muted,
+    fontWeight: '600',
   },
   list: {
     paddingTop: spacing.m,

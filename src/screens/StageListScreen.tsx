@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   switchText: {
-    color: colors.primary,
+    color: '#374151',
     fontWeight: '600',
   },
   subtitle: {
