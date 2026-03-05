@@ -1275,13 +1275,13 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
   },
   romajiKeyLetterPressed: {
-    backgroundColor: '#f3f6fb',
+    backgroundColor: '#e5e7eb',
   },
   romajiKeyFunctionPressed: {
-    backgroundColor: '#e7edf5',
+    backgroundColor: '#d1d5db',
   },
   romajiKeyPressed: {
-    borderColor: colors.primary,
+    borderColor: '#9ca3af',
     transform: [{ scale: 0.97 }],
     shadowOpacity: 0.03,
     shadowRadius: 1,
