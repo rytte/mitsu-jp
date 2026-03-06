@@ -6,12 +6,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import { generateExamQuizWithAi, generateSentenceAssembleWithAi } from '../features/ai/service';
 import { loadAiTokenUsageStats } from '../features/ai/storage';
 import { SESSION_SIZE, sanitizeRawExamItems } from '../features/exam/examBank';
-import { MyStackParamList } from '../navigation/types';
+import { AiHubStackParamList, MyStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { BankLevel } from '../types';
 import { useScreenTopPadding } from '../utils/useScreenTopPadding';
 
-type Props = NativeStackScreenProps<MyStackParamList, 'AiHub'>;
+type AiHubScreenParamList = MyStackParamList & AiHubStackParamList;
+type Props = NativeStackScreenProps<AiHubScreenParamList, 'AiHub' | 'AiHubHome'>;
 
 const LEVELS: BankLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
 type HubActionTone = 'indigo' | 'teal' | 'amber' | 'sky' | 'violet';

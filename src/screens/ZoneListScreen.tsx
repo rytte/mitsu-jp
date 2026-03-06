@@ -134,7 +134,8 @@ export default function ZoneListScreen({ navigation, route }: Props) {
             <View style={styles.headerTopRow}>
               <View style={styles.headerTitleWrap}>
                 <Text style={styles.headerTitle}>
-                  <Text style={[styles.headerTitleLevel, { color: levelMeta.accent }]}>{level}</Text> 词汇
+                  <Text style={[styles.headerTitleLevel, { color: levelMeta.accent }]}>{level}</Text>
+                  <Text style={styles.headerTitleWord}> 词汇</Text>
                 </Text>
               </View>
               <Pressable
@@ -146,7 +147,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                   },
                   pressed ? styles.headerActionPressed : null,
                 ]}
-                onPress={() => navigation.replace('Word', { skipAuto: true })}
+                onPress={() => navigation.replace('WordHome', { skipAuto: true })}
               >
                 <Text style={[styles.switchText, { color: levelMeta.accent }]}>切换词库</Text>
                 <Ionicons name="arrow-forward" size={14} color={tone.actionIcon} />
@@ -331,6 +332,7 @@ const styles = StyleSheet.create({
   },
   headerTitleLevel: {
     fontWeight: '900',
+    fontStyle: 'italic',
   },
   headerAction: {
     flexDirection: 'row',

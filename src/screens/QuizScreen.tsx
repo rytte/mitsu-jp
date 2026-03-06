@@ -448,6 +448,13 @@ export default function QuizScreen({ navigation, route }: Props) {
   const answerWordId = answerWord?.id ?? null;
   const answerWordAdded = answerWordId ? addedWordIds.has(answerWordId) : false;
   const answerWordAdding = answerWordId ? addingWordId === answerWordId : false;
+  const answerWordKanaText = (answerWord?.kana ?? '').trim();
+  const answerWordKanjiText = (answerWord?.kanji ?? '').trim();
+  const answerWordPosText = (answerWord?.pos ?? '').trim();
+  const answerWordPitchText = (answerWord?.pitch ?? '').trim();
+  const answerWordMeaningText = answerWord
+    ? `${answerWordPosText ? `【${answerWordPosText}】` : ''}${getMeaning(answerWord, settings.meaning_language)}`
+    : '';
   const shouldShowSpeakButton = currentItem?.type === 'listening' || currentItem?.type === 'mcq_ja_to_cn';
 
   const questionAudioText = useMemo(() => {
@@ -737,7 +744,7 @@ export default function QuizScreen({ navigation, route }: Props) {
                 {currentItem.options.map((option, index) => (
                   <OptionButton
                     key={`${option}-${index}`}
-                    title={option}
+                    title={<Text style={styles.optionTitle}>{option}</Text>}
                     selected={selected === option}
                     correct={showResult ? option === currentItem.answer : null}
                     onPress={() => handleAnswer(option)}
@@ -771,32 +778,23 @@ export default function QuizScreen({ navigation, route }: Props) {
                 </View>
                 <View style={styles.answerHeader}>
                   <View style={styles.answerHeadText}>
-                    {answerWord.kanji ? <Text style={styles.answerReading}>{answerWord.kana}</Text> : null}
-                    <Text style={styles.answerWord}>{answerWord.kanji ?? answerWord.kana}</Text>
-                  </View>
-                  {(() => {
-                    const metaItems: string[] = [];
-                    const posText = (answerWord.pos ?? '').trim();
-                    const pitchText = (answerWord.pitch ?? '').trim();
-                    if (posText) metaItems.push(posText);
-                    if (pitchText) metaItems.push(pitchText);
-                    if (!metaItems.length) return null;
-                    return (
-                      <View style={styles.answerMetaRow}>
-                        {metaItems.map((item, index) => (
-                          <View key={`${item}-${index}`} style={[styles.answerMetaChip, index > 0 ? styles.answerMetaGap : null]}>
-                            <Text style={styles.answerMetaText}>{item}</Text>
-                          </View>
-                        ))}
+                    <View style={styles.answerReadingRow}>
+                      <View style={styles.answerReadingSide} />
+                      <View style={styles.answerReadingCenter}>
+                        <Text style={styles.answerReading}>{answerWordKanaText}</Text>
                       </View>
-                    );
-                  })()}
+                      <View style={styles.answerReadingSide}>
+                        {answerWordPitchText ? <Text style={styles.answerPitch}>{answerWordPitchText}</Text> : null}
+                      </View>
+                    </View>
+                    {answerWordKanjiText ? <Text style={styles.answerWord}>{answerWordKanjiText}</Text> : null}
+                  </View>
                 </View>
                 <View style={styles.answerMeaningRow}>
                   <View style={styles.answerMeaningTag}>
                     <Text style={styles.answerMeaningTagText}>释义</Text>
                   </View>
-                  <Text style={styles.answerMeaning}>{getMeaning(answerWord, settings.meaning_language)}</Text>
+                  <Text style={styles.answerMeaning}>{answerWordMeaningText}</Text>
                 </View>
                 {(() => {
                   const example = answerWord.examples?.[0];
@@ -1066,6 +1064,11 @@ const styles = StyleSheet.create({
   optionList: {
     paddingBottom: spacing.xs,
   },
+  optionTitle: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: colors.text,
+  },
   answerCard: {
     backgroundColor: colors.card,
     borderRadius: radius.m,
@@ -1095,19 +1098,40 @@ const styles = StyleSheet.create({
   },
   answerHeadText: {
     flex: 1,
-    paddingRight: spacing.s,
-    paddingLeft: 24,
+    alignItems: 'center',
+  },
+  answerReadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    marginBottom: 4,
+  },
+  answerReadingSide: {
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  answerReadingCenter: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   answerWord: {
     fontSize: 22,
     fontWeight: '400',
     color: colors.text,
+    textAlign: 'center',
   },
   answerReading: {
-    marginBottom: 4,
     fontSize: 22,
     fontWeight: '400',
     color: colors.text,
+    textAlign: 'center',
+  },
+  answerPitch: {
+    fontSize: 14,
+    color: colors.muted,
+    marginLeft: 6,
   },
   answerMetaRow: {
     flexDirection: 'row',

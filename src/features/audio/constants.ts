@@ -1,4 +1,4 @@
-export const REMOTE_AUDIO_BASE_URL = 'http://43.138.244.141:8080/audio';
+export const REMOTE_AUDIO_BASE_URL = 'https://rytte.ink/audio';
 
 function encodePathSegment(segment: string) {
   if (!segment) return '';

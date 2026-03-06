@@ -8,7 +8,7 @@ import { getGrammarLevelMeta } from '../data/levelMeta';
 import { GrammarStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 
-type Props = NativeStackScreenProps<GrammarStackParamList, 'Grammar'>;
+type Props = NativeStackScreenProps<GrammarStackParamList, 'GrammarHome'>;
 
 type GrammarTerm = {
   key: string;

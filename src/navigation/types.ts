@@ -2,7 +2,7 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 import { AiSentenceAssembleItem, BankLevel, ExamQuizItem, Level } from '../types';
 
 export type LearnStackParamList = {
-  Word: { skipAuto?: boolean } | undefined;
+  WordHome: { skipAuto?: boolean } | undefined;
   ZoneList: { level: Level };
   StageList: { level: Level; zoneIndex: number };
   StageWords: { stageId: string; level: Level; stageIndex: number };
@@ -26,7 +26,7 @@ export type LearnStackParamList = {
 };
 
 export type GrammarStackParamList = {
-  Grammar: undefined;
+  GrammarHome: undefined;
   GrammarList: { level: Level };
   GrammarDetail: { level: Level; id: string };
   GrammarQuiz: { level: Level };
@@ -81,4 +81,15 @@ export type MyStackParamList = {
   KeigoChart: undefined;
   VocabBook: undefined;
   Settings: undefined;
+};
+
+export type AiHubStackParamList = {
+  AiHubHome: undefined;
+  AiListeningPractice: undefined;
+  AiSettings: undefined;
+  AiConversation: undefined;
+  AiExamQuizPractice: { level: BankLevel; aiItems: ExamQuizItem[] };
+  AiTranslationPractice: undefined;
+  AiWritingPractice: undefined;
+  AiSentenceAssemblePractice: { level: BankLevel; aiItems: AiSentenceAssembleItem[] };
 };
