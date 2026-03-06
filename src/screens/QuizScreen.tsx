@@ -1047,7 +1047,7 @@ const styles = StyleSheet.create({
   bottomSection: {
     flex: 54,
     minHeight: 0,
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   bottomBody: {
     flex: 1,
@@ -1227,6 +1227,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingTop: spacing.s,
+    marginHorizontal: -spacing.m,
+    paddingHorizontal: 4,
   },
   keyboardTopRow: {
     flexDirection: 'row',
@@ -1307,11 +1309,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     position: 'relative',
     overflow: 'visible',
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
   },
   romajiKeyLetter: {
     backgroundColor: '#ffffff',
@@ -1330,27 +1327,23 @@ const styles = StyleSheet.create({
   romajiKeyPressed: {
     borderColor: '#9ca3af',
     transform: [{ scale: 0.97 }],
-    shadowOpacity: 0.03,
-    shadowRadius: 1,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0,
   },
   romajiKeyText: {
-    fontSize: 21,
+    fontSize: 23,
   },
   romajiKeyTextLetter: {
     color: colors.text,
-    fontWeight: '500',
+    fontWeight: '400',
   },
   romajiKeyTextFunction: {
     color: '#0f172a',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   romajiKeyTextPressed: {
     color: '#111827',
   },
   romajiKeyGap: {
-    marginRight: 2,
+    marginRight: 3,
   },
   romajiKeySpacer: {
     flex: 0.5,
