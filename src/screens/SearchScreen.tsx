@@ -1000,8 +1000,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#eff6ff',
   },
   aiUserBubble: {
-    borderColor: '#d1fae5',
-    backgroundColor: '#f0fdf4',
+    borderColor: '#86efac',
+    backgroundColor: '#dcfce7',
   },
   aiMessageRole: {
     color: colors.muted,
