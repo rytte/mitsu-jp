@@ -146,7 +146,7 @@ export default function ZoneListScreen({ navigation, route }: Props) {
                   },
                   pressed ? styles.headerActionPressed : null,
                 ]}
-                onPress={() => navigation.replace('Word', { skipAuto: true })}
+                onPress={() => navigation.replace('WordHome', { skipAuto: true })}
               >
                 <Text style={[styles.switchText, { color: levelMeta.accent }]}>切换词库</Text>
                 <Ionicons name="arrow-forward" size={14} color={tone.actionIcon} />

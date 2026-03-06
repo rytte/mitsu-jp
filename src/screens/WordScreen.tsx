@@ -12,7 +12,7 @@ import { useAppStore } from '../store/useAppStore';
 import { colors, radius, spacing } from '../theme';
 import { Level, Settings } from '../types';
 
-type Props = NativeStackScreenProps<LearnStackParamList, 'Word'>;
+type Props = NativeStackScreenProps<LearnStackParamList, 'WordHome'>;
 
 type Stats = {
   stageCount: number;

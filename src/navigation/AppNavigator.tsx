@@ -34,14 +34,20 @@ import VerbConjugationScreen from '../screens/VerbConjugationScreen';
 import KeigoChartScreen from '../screens/KeigoChartScreen';
 import VocabBookScreen from '../screens/VocabBookScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import { GrammarStackParamList, LearnStackParamList, MyStackParamList, RootTabParamList } from './types';
+import {
+  AiHubStackParamList,
+  GrammarStackParamList,
+  LearnStackParamList,
+  MyStackParamList,
+  RootTabParamList,
+} from './types';
 import { colors } from '../theme';
 import { useAppStore } from '../store/useAppStore';
 
 const LearnStack = createNativeStackNavigator<LearnStackParamList>();
 const GrammarStack = createNativeStackNavigator<GrammarStackParamList>();
 const MyStack = createNativeStackNavigator<MyStackParamList>();
-const AiHubStack = createNativeStackNavigator<MyStackParamList>();
+const AiHubStack = createNativeStackNavigator<AiHubStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const TAB_ICON_MAP: Record<
   keyof RootTabParamList,
@@ -63,7 +69,7 @@ const TAB_ICON_MAP: Record<
 
 function LearnStackScreen() {
   const lexiconLevel = useAppStore((state) => state.settings.lexicon_level);
-  const initialRouteName: keyof LearnStackParamList = lexiconLevel ? 'ZoneList' : 'Word';
+  const initialRouteName: keyof LearnStackParamList = lexiconLevel ? 'ZoneList' : 'WordHome';
 
   return (
     <LearnStack.Navigator
@@ -73,7 +79,7 @@ function LearnStackScreen() {
         headerTitleStyle: { color: colors.text },
       }}
     >
-      <LearnStack.Screen name="Word" component={WordScreen} options={{ title: '词汇', headerShown: false }} />
+      <LearnStack.Screen name="WordHome" component={WordScreen} options={{ title: '词汇', headerShown: false }} />
       <LearnStack.Screen
         name="ZoneList"
         component={ZoneListScreen}
@@ -97,7 +103,7 @@ function GrammarStackScreen() {
         headerTitleStyle: { color: colors.text },
       }}
     >
-      <GrammarStack.Screen name="Grammar" component={GrammarScreen} options={{ title: '文法', headerShown: false }} />
+      <GrammarStack.Screen name="GrammarHome" component={GrammarScreen} options={{ title: '文法', headerShown: false }} />
       <GrammarStack.Screen name="GrammarList" component={GrammarListScreen} options={{ title: '文法列表' }} />
       <GrammarStack.Screen name="GrammarDetail" component={GrammarDetailScreen} options={{ title: '文法详情' }} />
       <GrammarStack.Screen name="GrammarQuiz" component={GrammarQuizScreen} options={{ title: '文法练习' }} />
@@ -157,7 +163,7 @@ function AiHubStackScreen() {
         headerTitleStyle: { color: colors.text },
       }}
     >
-      <AiHubStack.Screen name="AiHub" component={AiHubScreen} options={{ title: 'AI 学习中心', headerShown: false }} />
+      <AiHubStack.Screen name="AiHubHome" component={AiHubScreen} options={{ title: 'AI 学习中心', headerShown: false }} />
       <AiHubStack.Screen name="AiListeningPractice" component={AiListeningPracticeScreen} options={{ title: 'AI 听力训练' }} />
       <AiHubStack.Screen name="AiSettings" component={AiSettingsScreen} options={{ title: 'AI 配置' }} />
       <AiHubStack.Screen name="AiConversation" component={AiConversationScreen} options={{ title: 'AI 场景对话' }} />
