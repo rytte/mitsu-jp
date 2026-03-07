@@ -3,7 +3,6 @@
     "id": "G-N4-0001",
     "level": "N4",
     "subOrder": "1",
-    "totalOrder": "513",
     "pattern": "～ず（に）",
     "formation": [
       "动词「<s>ない</s>形」＋ず（に）",
@@ -29,7 +28,6 @@
     "id": "G-N4-0002",
     "level": "N4",
     "subOrder": "2",
-    "totalOrder": "514",
     "pattern": "～たがる",
     "formation": [
       "动词「ます形」＋たがる"
@@ -54,7 +52,6 @@
     "id": "G-N4-0003",
     "level": "N4",
     "subOrder": "3",
-    "totalOrder": "515",
     "pattern": "～がる",
     "formation": [
       "い形容词词干/な形容词词干＋がる"
@@ -79,7 +76,6 @@
     "id": "G-N4-0004",
     "level": "N4",
     "subOrder": "4",
-    "totalOrder": "516",
     "pattern": "～そうだ",
     "formation": [
       "句子普通形＋そうだ"
@@ -123,7 +119,6 @@
     "id": "G-N4-0005",
     "level": "N4",
     "subOrder": "5",
-    "totalOrder": "517",
     "pattern": "～ようだ",
     "explanation": "“像……一样”“宛如……”。表示比喻。",
     "usage": [
@@ -161,7 +156,6 @@
     "id": "G-N4-0006",
     "level": "N4",
     "subOrder": "6",
-    "totalOrder": "518",
     "pattern": "～らしい",
     "formation": [
       "名词＋らしい"
@@ -205,7 +199,6 @@
     "id": "G-N4-0007",
     "level": "N4",
     "subOrder": "7",
-    "totalOrder": "519",
     "pattern": "～みたいだ",
     "explanation": "“好像……”“似乎……”。表示说话人通过分析自己所感知的信息做出的主观判断，多用于口语。",
     "usage": [
@@ -247,7 +240,6 @@
     "id": "G-N4-0008",
     "level": "N4",
     "subOrder": "8",
-    "totalOrder": "520",
     "pattern": "可能助动词「れる/られる」",
     "formation": [
       "Ⅰ类动词把词尾改为同行「え段」假名＋る",
@@ -274,7 +266,6 @@
     "id": "G-N4-0009",
     "level": "N4",
     "subOrder": "9",
-    "totalOrder": "521",
     "pattern": "使役助动词「せる/させる」",
     "formation": [
       "Ⅰ类动词「<s>ない</s>形」＋せる",
@@ -301,7 +292,6 @@
     "id": "G-N4-0010",
     "level": "N4",
     "subOrder": "10",
-    "totalOrder": "522",
     "pattern": "被动助动词「れる/られる」",
     "formation": [
       "Ⅰ类动词「<s>ない</s>形」＋れる",
@@ -353,7 +343,6 @@
     "id": "G-N4-0011",
     "level": "N4",
     "subOrder": "11",
-    "totalOrder": "523",
     "pattern": "使役被动助动词「される/させられる」",
     "formation": [
       "Ⅰ类动词「<s>ない</s>形」＋される/せられる",
@@ -384,7 +373,6 @@
     "id": "G-N4-0012",
     "level": "N4",
     "subOrder": "12",
-    "totalOrder": "524",
     "pattern": "命令助动词「れ/ろ」",
     "formation": [
       "Ⅰ类动词把词尾改为同行「え段」假名",
@@ -415,7 +403,6 @@
     "id": "G-N4-0013",
     "level": "N4",
     "subOrder": "13",
-    "totalOrder": "525",
     "pattern": "禁止助动词「な」",
     "formation": [
       "动词辞书形＋な"
@@ -440,7 +427,6 @@
     "id": "G-N4-0014",
     "level": "N4",
     "subOrder": "14",
-    "totalOrder": "526",
     "pattern": "～ておく/とく",
     "formation": [
       "动词「て形」＋おく",
@@ -466,7 +452,6 @@
     "id": "G-N4-0015",
     "level": "N4",
     "subOrder": "15",
-    "totalOrder": "527",
     "pattern": "～ていく",
     "formation": [
       "动词「て形」＋いく"
@@ -502,7 +487,6 @@
     "id": "G-N4-0016",
     "level": "N4",
     "subOrder": "16",
-    "totalOrder": "528",
     "pattern": "～てくる",
     "formation": [
       "动词「て形」＋くる"
@@ -548,7 +532,6 @@
     "id": "G-N4-0017",
     "level": "N4",
     "subOrder": "17",
-    "totalOrder": "529",
     "pattern": "～てしまう/ちゃう",
     "formation": [
       "动词「て形」＋しまう",
@@ -574,7 +557,6 @@
     "id": "G-N4-0018",
     "level": "N4",
     "subOrder": "18",
-    "totalOrder": "530",
     "pattern": "～てみる",
     "formation": [
       "动词「て形」＋みる"
@@ -599,7 +581,6 @@
     "id": "G-N4-0019",
     "level": "N4",
     "subOrder": "19",
-    "totalOrder": "531",
     "pattern": "～もの",
     "explanation": "指代句中已经出现或者即将要提及的具体事物。",
     "usage": [],
@@ -621,7 +602,6 @@
     "id": "G-N4-0020",
     "level": "N4",
     "subOrder": "20",
-    "totalOrder": "532",
     "pattern": "～こと",
     "explanation": "形式体言，其作为实质名词的意义已经相对薄弱，故在句中通常不翻译出来。",
     "usage": [],
@@ -647,7 +627,6 @@
     "id": "G-N4-0021",
     "level": "N4",
     "subOrder": "21",
-    "totalOrder": "533",
     "pattern": "～ということ",
     "formation": [
       "句子普通形＋ということ"
@@ -680,7 +659,6 @@
     "id": "G-N4-0022",
     "level": "N4",
     "subOrder": "22",
-    "totalOrder": "534",
     "pattern": "～の/んです",
     "explanation": "“（原因）是……”，表示说明、强调。「～のだ」用于解释说明前项事实、情况发生的原因、理由。用在疑问句中表示说话人要求对方做出某些说明。「～のだ」是书面语，「～んだ」是口语。",
     "usage": [],
@@ -702,7 +680,6 @@
     "id": "G-N4-0023",
     "level": "N4",
     "subOrder": "23",
-    "totalOrder": "535",
     "pattern": "～のに",
     "explanation": "“却……”。表示转折。",
     "usage": [],
@@ -724,7 +701,6 @@
     "id": "G-N4-0024",
     "level": "N4",
     "subOrder": "24",
-    "totalOrder": "536",
     "pattern": "～てもいい",
     "formation": [
       "动词「て形」＋もいい"
@@ -749,7 +725,6 @@
     "id": "G-N4-0025",
     "level": "N4",
     "subOrder": "25",
-    "totalOrder": "537",
     "pattern": "～てもかまわない",
     "explanation": "“……也行”“……也可以”。表示“不妨碍，无伤大雅”等意思。",
     "usage": [],
@@ -771,7 +746,6 @@
     "id": "G-N4-0026",
     "level": "N4",
     "subOrder": "26",
-    "totalOrder": "538",
     "pattern": "～てはいけない",
     "formation": [
       "动词「て形」＋はいけない"
@@ -796,7 +770,6 @@
     "id": "G-N4-0027",
     "level": "N4",
     "subOrder": "27",
-    "totalOrder": "539",
     "pattern": "～なければならない/なければいけない",
     "explanation": "“必须……”“不……是不行的”。表示从社会常识或事情本身性质来看，有某种义务或必要性。",
     "usage": [],
@@ -818,7 +791,6 @@
     "id": "G-N4-0028",
     "level": "N4",
     "subOrder": "28",
-    "totalOrder": "540",
     "pattern": "～なくてもいい",
     "explanation": "“不……也行”。",
     "usage": [],
@@ -840,7 +812,6 @@
     "id": "G-N4-0029",
     "level": "N4",
     "subOrder": "29",
-    "totalOrder": "541",
     "pattern": "～なくてはならない/なくてはいけない",
     "explanation": "“必须……”。",
     "usage": [],
@@ -862,7 +833,6 @@
     "id": "G-N4-0030",
     "level": "N4",
     "subOrder": "30",
-    "totalOrder": "542",
     "pattern": "～すぎる",
     "explanation": "“过于……”。表示某种行为或状态过度。",
     "usage": [],
@@ -888,7 +858,6 @@
     "id": "G-N4-0031",
     "level": "N4",
     "subOrder": "31",
-    "totalOrder": "543",
     "pattern": "～だす",
     "formation": [
       "动词「ます形」＋だす"
@@ -913,7 +882,6 @@
     "id": "G-N4-0032",
     "level": "N4",
     "subOrder": "32",
-    "totalOrder": "544",
     "pattern": "～つづける",
     "formation": [
       "动词「ます形」＋つづける"
@@ -938,7 +906,6 @@
     "id": "G-N4-0033",
     "level": "N4",
     "subOrder": "33",
-    "totalOrder": "545",
     "pattern": "～やすい",
     "formation": [
       "动词「ます形」＋やすい"
@@ -963,7 +930,6 @@
     "id": "G-N4-0034",
     "level": "N4",
     "subOrder": "34",
-    "totalOrder": "546",
     "pattern": "～にくい",
     "formation": [
       "动词「ます形」＋にくい"
@@ -988,7 +954,6 @@
     "id": "G-N4-0035",
     "level": "N4",
     "subOrder": "35",
-    "totalOrder": "547",
     "pattern": "～ 方[か た]",
     "formation": [
       "动词「ます形」＋ 方[か た]"
@@ -1013,7 +978,6 @@
     "id": "G-N4-0036",
     "level": "N4",
     "subOrder": "36",
-    "totalOrder": "548",
     "pattern": "～さ",
     "formation": [
       "い形容词词干/な形容词词干＋さ"
@@ -1038,7 +1002,6 @@
     "id": "G-N4-0037",
     "level": "N4",
     "subOrder": "37",
-    "totalOrder": "549",
     "pattern": "～うちに/ないうちに",
     "formation": [
       "动词「ない形」＋うちに"
@@ -1077,7 +1040,6 @@
     "id": "G-N4-0038",
     "level": "N4",
     "subOrder": "38",
-    "totalOrder": "550",
     "pattern": "～ところ",
     "formation": [
       "动词辞书形＋ところ"
@@ -1102,7 +1064,6 @@
     "id": "G-N4-0039",
     "level": "N4",
     "subOrder": "39",
-    "totalOrder": "551",
     "pattern": "～ているところだ",
     "formation": [
       "动词「ている形」＋ところだ"
@@ -1127,7 +1088,6 @@
     "id": "G-N4-0040",
     "level": "N4",
     "subOrder": "40",
-    "totalOrder": "552",
     "pattern": "～たところだ",
     "formation": [
       "动词「た形」＋ところだ"
@@ -1152,7 +1112,6 @@
     "id": "G-N4-0041",
     "level": "N4",
     "subOrder": "41",
-    "totalOrder": "553",
     "pattern": "～ばかり",
     "formation": [
       "动词辞书形/名词＋ばかり"
@@ -1177,7 +1136,6 @@
     "id": "G-N4-0042",
     "level": "N4",
     "subOrder": "42",
-    "totalOrder": "554",
     "pattern": "～てばかり",
     "formation": [
       "动词「て形」＋ばかり"
@@ -1202,7 +1160,6 @@
     "id": "G-N4-0043",
     "level": "N4",
     "subOrder": "43",
-    "totalOrder": "555",
     "pattern": "～たばかり",
     "formation": [
       "动词「た形」＋ばかり"
@@ -1227,7 +1184,6 @@
     "id": "G-N4-0044",
     "level": "N4",
     "subOrder": "44",
-    "totalOrder": "556",
     "pattern": "～までに",
     "formation": [
       "动词辞书形/名词＋までに"
@@ -1252,7 +1208,6 @@
     "id": "G-N4-0045",
     "level": "N4",
     "subOrder": "45",
-    "totalOrder": "557",
     "pattern": "～でも",
     "formation": [
       "名词＋でも"
@@ -1277,7 +1232,6 @@
     "id": "G-N4-0046",
     "level": "N4",
     "subOrder": "46",
-    "totalOrder": "558",
     "pattern": "～とか",
     "formation": [
       "动词辞书形/名词＋とか"
@@ -1306,7 +1260,6 @@
     "id": "G-N4-0047",
     "level": "N4",
     "subOrder": "47",
-    "totalOrder": "559",
     "pattern": "疑问词＋か",
     "formation": [
       "疑问词＋か"
@@ -1335,7 +1288,6 @@
     "id": "G-N4-0048",
     "level": "N4",
     "subOrder": "48",
-    "totalOrder": "560",
     "pattern": "疑问词＋も",
     "formation": [
       "疑问词＋も"
@@ -1360,7 +1312,6 @@
     "id": "G-N4-0049",
     "level": "N4",
     "subOrder": "49",
-    "totalOrder": "561",
     "pattern": "～または",
     "explanation": "意为“或者”。",
     "usage": [],
@@ -1382,7 +1333,6 @@
     "id": "G-N4-0050",
     "level": "N4",
     "subOrder": "50",
-    "totalOrder": "562",
     "pattern": "～たり/～たり～たり",
     "formation": [
       "名词/な形容词词干＋だったり",
@@ -1417,7 +1367,6 @@
     "id": "G-N4-0051",
     "level": "N4",
     "subOrder": "51",
-    "totalOrder": "563",
     "pattern": "～し/～し～し",
     "formation": [
       "句子普通形＋し"
@@ -1446,7 +1395,6 @@
     "id": "G-N4-0052",
     "level": "N4",
     "subOrder": "52",
-    "totalOrder": "564",
     "pattern": "～ほど～ない",
     "formation": [
       "名词＋ほど～ない"
@@ -1476,7 +1424,6 @@
     "id": "G-N4-0053",
     "level": "N4",
     "subOrder": "53",
-    "totalOrder": "565",
     "pattern": "～より",
     "formation": [
       "动词普通形/名词＋より"
@@ -1505,7 +1452,6 @@
     "id": "G-N4-0054",
     "level": "N4",
     "subOrder": "54",
-    "totalOrder": "566",
     "pattern": "～まま",
     "explanation": "“就那样……”“维持……的原样”。",
     "usage": [],
@@ -1527,7 +1473,6 @@
     "id": "G-N4-0055",
     "level": "N4",
     "subOrder": "55",
-    "totalOrder": "567",
     "pattern": "～のうち",
     "explanation": "「～のうち」意为“在……之中”“……当中”。",
     "usage": [],
@@ -1549,7 +1494,6 @@
     "id": "G-N4-0056",
     "level": "N4",
     "subOrder": "56",
-    "totalOrder": "568",
     "pattern": "必[かなら]ず",
     "explanation": "「 必[かなら]ず」意为“一定，必须，务必”。",
     "usage": [],
@@ -1571,7 +1515,6 @@
     "id": "G-N4-0057",
     "level": "N4",
     "subOrder": "57",
-    "totalOrder": "569",
     "pattern": "～かもしれない",
     "explanation": "“也许……”“可能……”。",
     "usage": [],
@@ -1597,7 +1540,6 @@
     "id": "G-N4-0058",
     "level": "N4",
     "subOrder": "58",
-    "totalOrder": "570",
     "pattern": "～つもりだ",
     "formation": [
       "动词辞书形＋つもりだ"
@@ -1622,7 +1564,6 @@
     "id": "G-N4-0059",
     "level": "N4",
     "subOrder": "59",
-    "totalOrder": "571",
     "pattern": "～たつもりで",
     "formation": [
       "动词「た形」＋つもりで"
@@ -1644,7 +1585,6 @@
     "id": "G-N4-0060",
     "level": "N4",
     "subOrder": "60",
-    "totalOrder": "572",
     "pattern": "～はずだ/はずがない",
     "explanation": "“理应……”“应该……”。表示说话人根据事物的一般常理或发展趋势进行推断、预测。",
     "usage": [
@@ -1676,7 +1616,6 @@
     "id": "G-N4-0061",
     "level": "N4",
     "subOrder": "61",
-    "totalOrder": "573",
     "pattern": "～たら",
     "explanation": "“如果……的话”，表示假定条件。经常和助词「もし」（假如）搭配使用。",
     "usage": [
@@ -1714,7 +1653,6 @@
     "id": "G-N4-0062",
     "level": "N4",
     "subOrder": "62",
-    "totalOrder": "574",
     "pattern": "～なら",
     "explanation": "“如果……的话”。表示假定条件，后项一般是说话人的判断或决定。",
     "usage": [
@@ -1743,7 +1681,6 @@
     "id": "G-N4-0063",
     "level": "N4",
     "subOrder": "63",
-    "totalOrder": "575",
     "pattern": "～ば",
     "formation": [
       "Ⅰ类动词把词尾改为同行「え段」假名＋ば",
@@ -1778,7 +1715,6 @@
     "id": "G-N4-0064",
     "level": "N4",
     "subOrder": "64",
-    "totalOrder": "576",
     "pattern": "～と",
     "explanation": "“一……就……”，表示必然的恒定条件或习惯。",
     "usage": [
@@ -1825,7 +1761,6 @@
     "id": "G-N4-0065",
     "level": "N4",
     "subOrder": "65",
-    "totalOrder": "577",
     "pattern": "もし",
     "formation": [
       "もし＋句子"
@@ -1850,7 +1785,6 @@
     "id": "G-N4-0066",
     "level": "N4",
     "subOrder": "66",
-    "totalOrder": "578",
     "pattern": "もし～ても",
     "explanation": "“就算……”。",
     "usage": [],
@@ -1872,7 +1806,6 @@
     "id": "G-N4-0067",
     "level": "N4",
     "subOrder": "67",
-    "totalOrder": "579",
     "pattern": "～といい",
     "explanation": "“……的话就好了”。表示愿望。",
     "usage": [],
@@ -1894,7 +1827,6 @@
     "id": "G-N4-0068",
     "level": "N4",
     "subOrder": "68",
-    "totalOrder": "580",
     "pattern": "～ため（に）",
     "formation": [
       "名词＋の/动词辞书形＋ために"
@@ -1930,7 +1862,6 @@
     "id": "G-N4-0069",
     "level": "N4",
     "subOrder": "69",
-    "totalOrder": "581",
     "pattern": "～よう（に）",
     "formation": [
       "动词辞书形/动词「ない形」/动词可能形＋よう（に）"
@@ -1955,7 +1886,6 @@
     "id": "G-N4-0070",
     "level": "N4",
     "subOrder": "70",
-    "totalOrder": "582",
     "pattern": "～ようになる",
     "formation": [
       "动词辞书形/动词「ない形」/动词可能形＋ようになる"
@@ -1980,7 +1910,6 @@
     "id": "G-N4-0071",
     "level": "N4",
     "subOrder": "71",
-    "totalOrder": "583",
     "pattern": "～ようにする",
     "formation": [
       "动词辞书形/动词「ない形」＋ようにする"
@@ -2005,7 +1934,6 @@
     "id": "G-N4-0072",
     "level": "N4",
     "subOrder": "72",
-    "totalOrder": "584",
     "pattern": "～（よ）うとする",
     "formation": [
       "动词意志形＋とする"
@@ -2030,7 +1958,6 @@
     "id": "G-N4-0073",
     "level": "N4",
     "subOrder": "73",
-    "totalOrder": "585",
     "pattern": "～ではなく",
     "explanation": "「～ではなく」意为“不是……（而是……）”。",
     "usage": [],
@@ -2052,7 +1979,6 @@
     "id": "G-N4-0074",
     "level": "N4",
     "subOrder": "74",
-    "totalOrder": "586",
     "pattern": "～かわりに",
     "explanation": "“代替……”。",
     "usage": [
@@ -2115,7 +2041,6 @@
     "id": "G-N4-0075",
     "level": "N4",
     "subOrder": "75",
-    "totalOrder": "587",
     "pattern": "ちっとも～ない",
     "formation": [
       "ちっとも＋い形容词词干＋く/动词「<s>ない</s>形」/な形容词词干＋で＋ない"
@@ -2140,7 +2065,6 @@
     "id": "G-N4-0076",
     "level": "N4",
     "subOrder": "76",
-    "totalOrder": "588",
     "pattern": "おもに",
     "explanation": "“主要”。",
     "usage": [],
@@ -2162,7 +2086,6 @@
     "id": "G-N4-0077",
     "level": "N4",
     "subOrder": "77",
-    "totalOrder": "589",
     "pattern": "～ないで",
     "formation": [
       "动词「ない形」＋で"
@@ -2191,7 +2114,6 @@
     "id": "G-N4-0078",
     "level": "N4",
     "subOrder": "78",
-    "totalOrder": "590",
     "pattern": "～なくて",
     "explanation": "“不……”“没……”。",
     "usage": [],
@@ -2213,7 +2135,6 @@
     "id": "G-N4-0079",
     "level": "N4",
     "subOrder": "79",
-    "totalOrder": "591",
     "pattern": "～によると/によれば",
     "formation": [
       "名词＋によると/によれば"
@@ -2238,7 +2159,6 @@
     "id": "G-N4-0080",
     "level": "N4",
     "subOrder": "80",
-    "totalOrder": "592",
     "pattern": "～がする",
     "formation": [
       "名词＋がする"
@@ -2267,7 +2187,6 @@
     "id": "G-N4-0081",
     "level": "N4",
     "subOrder": "81",
-    "totalOrder": "593",
     "pattern": "～か～ないか",
     "formation": [
       "动词辞书形＋か＋动词「ない形」＋か"
@@ -2292,7 +2211,6 @@
     "id": "G-N4-0082",
     "level": "N4",
     "subOrder": "82",
-    "totalOrder": "594",
     "pattern": "～かどうか",
     "explanation": "“是否……”。表示疑问或难以作出判断。",
     "usage": [],
@@ -2314,7 +2232,6 @@
     "id": "G-N4-0083",
     "level": "N4",
     "subOrder": "83",
-    "totalOrder": "595",
     "pattern": "～だい/かい",
     "formation": [
       "句子普通形＋だい/かい"
@@ -2343,7 +2260,6 @@
     "id": "G-N4-0084",
     "level": "N4",
     "subOrder": "84",
-    "totalOrder": "596",
     "pattern": "～ことがある",
     "formation": [
       "动词「た形」＋ことがある",
@@ -2383,7 +2299,6 @@
     "id": "G-N4-0085",
     "level": "N4",
     "subOrder": "85",
-    "totalOrder": "597",
     "pattern": "～ことができる",
     "formation": [
       "动词辞书形＋ことができる"
@@ -2408,7 +2323,6 @@
     "id": "G-N4-0086",
     "level": "N4",
     "subOrder": "86",
-    "totalOrder": "598",
     "pattern": "～という",
     "formation": [
       "名词＋という＋名词",
@@ -2445,7 +2359,6 @@
     "id": "G-N4-0087",
     "level": "N4",
     "subOrder": "87",
-    "totalOrder": "599",
     "pattern": "～（よ）うと 思[おも]う",
     "formation": [
       "动词意志形＋と 思[おも]う"
@@ -2470,7 +2383,6 @@
     "id": "G-N4-0088",
     "level": "N4",
     "subOrder": "88",
-    "totalOrder": "600",
     "pattern": "あげる/さしあげる",
     "explanation": "“给……”，“送上……”。",
     "usage": [],
@@ -2492,7 +2404,6 @@
     "id": "G-N4-0089",
     "level": "N4",
     "subOrder": "89",
-    "totalOrder": "601",
     "pattern": "～てあげる/てさしあげる",
     "formation": [
       "动词「て形」＋あげる/さしあげる"
@@ -2517,7 +2428,6 @@
     "id": "G-N4-0090",
     "level": "N4",
     "subOrder": "90",
-    "totalOrder": "602",
     "pattern": "もらう/いただく",
     "explanation": "“得到……”。",
     "usage": [],
@@ -2543,7 +2453,6 @@
     "id": "G-N4-0091",
     "level": "N4",
     "subOrder": "91",
-    "totalOrder": "603",
     "pattern": "～てもらう/ていただく",
     "formation": [
       "动词「て形」＋もらう/いただく"
@@ -2568,7 +2477,6 @@
     "id": "G-N4-0092",
     "level": "N4",
     "subOrder": "92",
-    "totalOrder": "604",
     "pattern": "くれる/くださる",
     "explanation": "“给……”。",
     "usage": [],
@@ -2594,7 +2502,6 @@
     "id": "G-N4-0093",
     "level": "N4",
     "subOrder": "93",
-    "totalOrder": "605",
     "pattern": "～てくれる/てくださる",
     "formation": [
       "动词「て形」＋くれる/くださる"
@@ -2619,7 +2526,6 @@
     "id": "G-N4-0094",
     "level": "N4",
     "subOrder": "94",
-    "totalOrder": "606",
     "pattern": "やる",
     "explanation": "“给……”。",
     "usage": [],
@@ -2645,7 +2551,6 @@
     "id": "G-N4-0095",
     "level": "N4",
     "subOrder": "95",
-    "totalOrder": "607",
     "pattern": "～てやる",
     "formation": [
       "动词「て形」＋やる"
@@ -2674,7 +2579,6 @@
     "id": "G-N4-0096",
     "level": "N4",
     "subOrder": "96",
-    "totalOrder": "608",
     "pattern": "～てちょうだい",
     "formation": [
       "动词「て形」＋ちょうだい"
@@ -2703,7 +2607,6 @@
     "id": "G-N4-0097",
     "level": "N4",
     "subOrder": "97",
-    "totalOrder": "609",
     "pattern": "～（さ）せてください/（さ）せないでください",
     "formation": [
       "Ⅰ类动词「<s>ない</s>形」＋せてください/せないでください",
@@ -2734,7 +2637,6 @@
     "id": "G-N4-0098",
     "level": "N4",
     "subOrder": "98",
-    "totalOrder": "610",
     "pattern": "いらっしゃる",
     "explanation": "“在”“去”“来”。",
     "usage": [],
@@ -2757,7 +2659,6 @@
     "id": "G-N4-0099",
     "level": "N4",
     "subOrder": "99",
-    "totalOrder": "611",
     "pattern": "見[み]える/お 見[み]えになる",
     "explanation": "“来”。",
     "usage": [],
@@ -2780,7 +2681,6 @@
     "id": "G-N4-0100",
     "level": "N4",
     "subOrder": "100",
-    "totalOrder": "612",
     "pattern": "おいでになる",
     "explanation": "“来”“去”“在”。",
     "usage": [],
@@ -2807,7 +2707,6 @@
     "id": "G-N4-0101",
     "level": "N4",
     "subOrder": "101",
-    "totalOrder": "613",
     "pattern": "お 越[こ]しになる",
     "explanation": "“来”。",
     "usage": [],
@@ -2830,7 +2729,6 @@
     "id": "G-N4-0102",
     "level": "N4",
     "subOrder": "102",
-    "totalOrder": "614",
     "pattern": "おっしゃる",
     "explanation": "“说”。",
     "usage": [],
@@ -2853,7 +2751,6 @@
     "id": "G-N4-0103",
     "level": "N4",
     "subOrder": "103",
-    "totalOrder": "615",
     "pattern": "ご 存[ぞん] 知[じ]です",
     "explanation": "“知道”。",
     "usage": [],
@@ -2876,7 +2773,6 @@
     "id": "G-N4-0104",
     "level": "N4",
     "subOrder": "104",
-    "totalOrder": "616",
     "pattern": "ご 覧[らん]になる",
     "explanation": "“看”“阅读”。",
     "usage": [],
@@ -2899,7 +2795,6 @@
     "id": "G-N4-0105",
     "level": "N4",
     "subOrder": "105",
-    "totalOrder": "617",
     "pattern": "ご 覧[らん]ください",
     "explanation": "“请看”。",
     "usage": [],
@@ -2922,7 +2817,6 @@
     "id": "G-N4-0106",
     "level": "N4",
     "subOrder": "106",
-    "totalOrder": "618",
     "pattern": "召[め]す",
     "explanation": "“吃”“喝”“穿”。",
     "usage": [],
@@ -2949,7 +2843,6 @@
     "id": "G-N4-0107",
     "level": "N4",
     "subOrder": "107",
-    "totalOrder": "619",
     "pattern": "あがる",
     "explanation": "“吃”“喝”。",
     "usage": [],
@@ -2972,7 +2865,6 @@
     "id": "G-N4-0108",
     "level": "N4",
     "subOrder": "108",
-    "totalOrder": "620",
     "pattern": "召[め]し 上[あ]がる",
     "explanation": "“吃”“喝”。",
     "usage": [],
@@ -2995,7 +2887,6 @@
     "id": "G-N4-0109",
     "level": "N4",
     "subOrder": "109",
-    "totalOrder": "621",
     "pattern": "お/ご～なさる",
     "formation": [
       "お＋Ⅰ类动词、Ⅱ类动词「ます形」＋なさる",
@@ -3022,7 +2913,6 @@
     "id": "G-N4-0110",
     "level": "N4",
     "subOrder": "110",
-    "totalOrder": "622",
     "pattern": "お/ご～になる",
     "formation": [
       "お＋Ⅰ类动词、Ⅱ类动词「ます形」＋になる",
@@ -3049,7 +2939,6 @@
     "id": "G-N4-0111",
     "level": "N4",
     "subOrder": "111",
-    "totalOrder": "623",
     "pattern": "お/ご～ください",
     "formation": [
       "お＋Ⅰ类动词、Ⅱ类动词「ます形」＋ください",
@@ -3076,7 +2965,6 @@
     "id": "G-N4-0112",
     "level": "N4",
     "subOrder": "112",
-    "totalOrder": "624",
     "pattern": "敬语助动词「れる/られる」",
     "formation": [
       "Ⅰ类动词「<s>ない</s>形」＋れる",
@@ -3104,7 +2992,6 @@
     "id": "G-N4-0113",
     "level": "N4",
     "subOrder": "113",
-    "totalOrder": "625",
     "pattern": "いたす",
     "explanation": "“做”。",
     "usage": [],
@@ -3127,7 +3014,6 @@
     "id": "G-N4-0114",
     "level": "N4",
     "subOrder": "114",
-    "totalOrder": "626",
     "pattern": "おる",
     "explanation": "“在”。",
     "usage": [],
@@ -3150,7 +3036,6 @@
     "id": "G-N4-0115",
     "level": "N4",
     "subOrder": "115",
-    "totalOrder": "627",
     "pattern": "参[まい]る",
     "explanation": "“来”“去”。",
     "usage": [],
@@ -3173,7 +3058,6 @@
     "id": "G-N4-0116",
     "level": "N4",
     "subOrder": "116",
-    "totalOrder": "628",
     "pattern": "申[もう]す",
     "explanation": "“说”。",
     "usage": [],
@@ -3196,7 +3080,6 @@
     "id": "G-N4-0117",
     "level": "N4",
     "subOrder": "117",
-    "totalOrder": "629",
     "pattern": "申[もう]し 上[あ]げる",
     "explanation": "“致以……”；“说”。",
     "usage": [],
@@ -3219,7 +3102,6 @@
     "id": "G-N4-0118",
     "level": "N4",
     "subOrder": "118",
-    "totalOrder": "630",
     "pattern": "存[ぞん]じている",
     "explanation": "“知道”。",
     "usage": [],
@@ -3242,7 +3124,6 @@
     "id": "G-N4-0119",
     "level": "N4",
     "subOrder": "119",
-    "totalOrder": "631",
     "pattern": "存[ぞん]じあげる",
     "explanation": "“知道”。",
     "usage": [],
@@ -3265,7 +3146,6 @@
     "id": "G-N4-0120",
     "level": "N4",
     "subOrder": "120",
-    "totalOrder": "632",
     "pattern": "お 目[め]にかかる",
     "explanation": "“见到”。",
     "usage": [],
@@ -3284,7 +3164,6 @@
     "id": "G-N4-0121",
     "level": "N4",
     "subOrder": "121",
-    "totalOrder": "633",
     "pattern": "ご 覧[らん]いただく",
     "explanation": "“请……看……”。",
     "usage": [],
@@ -3307,7 +3186,6 @@
     "id": "G-N4-0122",
     "level": "N4",
     "subOrder": "122",
-    "totalOrder": "634",
     "pattern": "拝[はい] 見[けん]する",
     "explanation": "“看”。",
     "usage": [],
@@ -3330,7 +3208,6 @@
     "id": "G-N4-0123",
     "level": "N4",
     "subOrder": "123",
-    "totalOrder": "635",
     "pattern": "拝[はい] 借[しゃく]する",
     "explanation": "“借”。",
     "usage": [],
@@ -3353,7 +3230,6 @@
     "id": "G-N4-0124",
     "level": "N4",
     "subOrder": "124",
-    "totalOrder": "636",
     "pattern": "うかがう",
     "explanation": "“问”；“造访”。",
     "usage": [],
@@ -3376,7 +3252,6 @@
     "id": "G-N4-0125",
     "level": "N4",
     "subOrder": "125",
-    "totalOrder": "637",
     "pattern": "承[うけたまわ]る",
     "explanation": "“接受”；“听”。",
     "usage": [],
@@ -3399,7 +3274,6 @@
     "id": "G-N4-0126",
     "level": "N4",
     "subOrder": "126",
-    "totalOrder": "638",
     "pattern": "お/ご～する",
     "formation": [
       "お＋Ⅰ类动词、Ⅱ类动词「ます形」＋する",
@@ -3426,7 +3300,6 @@
     "id": "G-N4-0127",
     "level": "N4",
     "subOrder": "127",
-    "totalOrder": "639",
     "pattern": "お/ご～いたす",
     "formation": [
       "お＋Ⅰ类动词、Ⅱ类动词「ます形」＋いたす",
@@ -3453,7 +3326,6 @@
     "id": "G-N4-0128",
     "level": "N4",
     "subOrder": "128",
-    "totalOrder": "640",
     "pattern": "～ておる",
     "formation": [
       "动词「て形」＋おる"
@@ -3483,7 +3355,6 @@
     "id": "G-N4-0129",
     "level": "N4",
     "subOrder": "129",
-    "totalOrder": "641",
     "pattern": "ございます",
     "explanation": "「ございます」是「ある」的礼貌语。",
     "usage": [],
@@ -3506,7 +3377,6 @@
     "id": "G-N4-0130",
     "level": "N4",
     "subOrder": "130",
-    "totalOrder": "642",
     "pattern": "～でございます",
     "explanation": "「～でございます」是「～だ/です/である」的礼貌语。",
     "usage": [],

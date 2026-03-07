@@ -3,7 +3,6 @@
     "id": "G-N2-0001",
     "level": "N2",
     "subOrder": "1",
-    "totalOrder": "215",
     "pattern": "～あげく（に）",
     "formation": [
       "動た形/名－の＋あげく（に）"
@@ -32,7 +31,6 @@
     "id": "G-N2-0002",
     "level": "N2",
     "subOrder": "2",
-    "totalOrder": "216",
     "pattern": "～あまり（に）",
     "explanation": "表示由于程度过甚，导致（了）某种结果。“由于过度……因而……”。",
     "usage": [],
@@ -58,7 +56,6 @@
     "id": "G-N2-0003",
     "level": "N2",
     "subOrder": "3",
-    "totalOrder": "217",
     "pattern": "～ 以[い] 上[じょう]（は）",
     "explanation": "前项表示确定的事实，“既然……就……”。",
     "usage": [],
@@ -84,7 +81,6 @@
     "id": "G-N2-0004",
     "level": "N2",
     "subOrder": "4",
-    "totalOrder": "218",
     "pattern": "～ 上[うえ]は",
     "formation": [
       "動辞書形·た形＋上は"
@@ -113,7 +109,6 @@
     "id": "G-N2-0005",
     "level": "N2",
     "subOrder": "5",
-    "totalOrder": "219",
     "pattern": "～（よ）うではないか/（よ）うじゃないか",
     "formation": [
       "動意向形＋ではないか/じゃないか"
@@ -142,7 +137,6 @@
     "id": "G-N2-0006",
     "level": "N2",
     "subOrder": "6",
-    "totalOrder": "220",
     "pattern": "～ 得[う]る/ 得[え]ない",
     "formation": [
       "動ます形＋得る",
@@ -188,7 +182,6 @@
     "id": "G-N2-0007",
     "level": "N2",
     "subOrder": "7",
-    "totalOrder": "221",
     "pattern": "～ 甲[か] 斐[い]があって/甲斐がある/甲斐がない/甲斐もなく",
     "formation": [
       "動た形/名－の＋甲斐がある/甲斐がない/甲斐もなく"
@@ -217,7 +210,6 @@
     "id": "G-N2-0008",
     "level": "N2",
     "subOrder": "8",
-    "totalOrder": "222",
     "pattern": "～がきっかけで/がきっかけになって/をきっかけに（して）/をきっかけとして",
     "formation": [
       "動普通形－の/名＋がきっかけで/がきっかけになって/をきっかけに（して）/をきっかけとして"
@@ -246,7 +238,6 @@
     "id": "G-N2-0009",
     "level": "N2",
     "subOrder": "9（1）",
-    "totalOrder": "223",
     "pattern": "～ 限[かぎ]り（は）",
     "formation": [
       "動辞書形·可能形/名－の＋限り"
@@ -290,7 +281,6 @@
     "id": "G-N2-0010",
     "level": "N2",
     "subOrder": "9（2）",
-    "totalOrder": "224",
     "pattern": "～ 限[かぎ]りでは",
     "formation": [
       "動辞書形·た形·ている形＋限りでは"
@@ -319,7 +309,6 @@
     "id": "G-N2-0011",
     "level": "N2",
     "subOrder": "10",
-    "totalOrder": "225",
     "pattern": "～が 契[けい] 機[き]で/が契機になって/を契機に（して）/を契機として",
     "formation": [
       "動普通形－の/名＋が契機で/が契機になって/を契機に（して）/を契機として"
@@ -348,7 +337,6 @@
     "id": "G-N2-0012",
     "level": "N2",
     "subOrder": "11",
-    "totalOrder": "226",
     "pattern": "～かけだ/かける",
     "formation": [
       "動ます形＋かけだ/かける"
@@ -378,7 +366,6 @@
     "id": "G-N2-0013",
     "level": "N2",
     "subOrder": "12",
-    "totalOrder": "227",
     "pattern": "～がちだ",
     "formation": [
       "動ます形/名＋がちだ"
@@ -409,7 +396,6 @@
     "id": "G-N2-0014",
     "level": "N2",
     "subOrder": "13",
-    "totalOrder": "228",
     "pattern": "～かというと/かといえば",
     "explanation": "“至于是否……”“是不是……就……”。",
     "usage": [],
@@ -432,7 +418,6 @@
     "id": "G-N2-0015",
     "level": "N2",
     "subOrder": "14",
-    "totalOrder": "229",
     "pattern": "～かと 思[おも]えば",
     "formation": [
       "動辞書形·た形/名＋かと思えば",
@@ -473,7 +458,6 @@
     "id": "G-N2-0016",
     "level": "N2",
     "subOrder": "15",
-    "totalOrder": "230",
     "pattern": "～か～ないかのうちに",
     "formation": [
       "動辞書形＋か＋動ない形－ない＋かのうちに"
@@ -504,7 +488,6 @@
     "id": "G-N2-0017",
     "level": "N2",
     "subOrder": "16",
-    "totalOrder": "231",
     "pattern": "～かねる/かねない",
     "formation": [
       "動ます形＋かねる",
@@ -551,7 +534,6 @@
     "id": "G-N2-0018",
     "level": "N2",
     "subOrder": "17",
-    "totalOrder": "232",
     "pattern": "～かのようだ",
     "formation": [
       "動普通形＋かのようだ"
@@ -580,7 +562,6 @@
     "id": "G-N2-0019",
     "level": "N2",
     "subOrder": "18",
-    "totalOrder": "233",
     "pattern": "～からいいようなものの",
     "formation": [
       "文の普通形＋からいいようなものの"
@@ -613,7 +594,6 @@
     "id": "G-N2-0020",
     "level": "N2",
     "subOrder": "19",
-    "totalOrder": "234",
     "pattern": "～からこそ",
     "formation": [
       "文の普通形＋からこそ"
@@ -643,7 +623,6 @@
     "id": "G-N2-0021",
     "level": "N2",
     "subOrder": "20",
-    "totalOrder": "235",
     "pattern": "～からして",
     "formation": [
       "名＋からして"
@@ -672,7 +651,6 @@
     "id": "G-N2-0022",
     "level": "N2",
     "subOrder": "21",
-    "totalOrder": "236",
     "pattern": "～からといって",
     "formation": [
       "文の普通形＋からといって"
@@ -701,7 +679,6 @@
     "id": "G-N2-0023",
     "level": "N2",
     "subOrder": "22",
-    "totalOrder": "237",
     "pattern": "～からには",
     "explanation": "“既然……就……”。",
     "usage": [],
@@ -727,7 +704,6 @@
     "id": "G-N2-0024",
     "level": "N2",
     "subOrder": "23",
-    "totalOrder": "238",
     "pattern": "～ 代[か]わりに",
     "formation": [
       "動/イ形/ナ形/名の名詞修飾形＋代わりに"
@@ -771,7 +747,6 @@
     "id": "G-N2-0025",
     "level": "N2",
     "subOrder": "24",
-    "totalOrder": "239",
     "pattern": "～ 気[ぎ] 味[み]",
     "formation": [
       "動ます形/名＋気味"
@@ -800,7 +775,6 @@
     "id": "G-N2-0026",
     "level": "N2",
     "subOrder": "25",
-    "totalOrder": "240",
     "pattern": "～きり/きりだ",
     "formation": [
       "動辞書形·た形/名＋きり",
@@ -847,7 +821,6 @@
     "id": "G-N2-0027",
     "level": "N2",
     "subOrder": "26",
-    "totalOrder": "241",
     "pattern": "～げ",
     "formation": [
       "動ます形/イ形語幹/ナ形語幹＋げ"
@@ -876,7 +849,6 @@
     "id": "G-N2-0028",
     "level": "N2",
     "subOrder": "27",
-    "totalOrder": "242",
     "pattern": "～ことから",
     "explanation": "表示原因或依据。“因为……”；“从……来看”。",
     "usage": [],
@@ -902,7 +874,6 @@
     "id": "G-N2-0029",
     "level": "N2",
     "subOrder": "28",
-    "totalOrder": "243",
     "pattern": "～ことだから",
     "formation": [
       "名＋の＋ことだから"
@@ -931,7 +902,6 @@
     "id": "G-N2-0030",
     "level": "N2",
     "subOrder": "29",
-    "totalOrder": "244",
     "pattern": "～ことなく",
     "formation": [
       "動辞書形＋ことなく"
@@ -960,7 +930,6 @@
     "id": "G-N2-0031",
     "level": "N2",
     "subOrder": "30",
-    "totalOrder": "245",
     "pattern": "～ごとに",
     "formation": [
       "動辞書形/名＋ごとに"
@@ -989,7 +958,6 @@
     "id": "G-N2-0032",
     "level": "N2",
     "subOrder": "31",
-    "totalOrder": "246",
     "pattern": "～ことにはならない",
     "formation": [
       "動た形＋ことにはならない"
@@ -1018,7 +986,6 @@
     "id": "G-N2-0033",
     "level": "N2",
     "subOrder": "32",
-    "totalOrder": "247",
     "pattern": "～ことは～が",
     "formation": [
       "動/イ形の名詞修飾形＋ことは＋動/イ形普通形＋が",
@@ -1049,7 +1016,6 @@
     "id": "G-N2-0034",
     "level": "N2",
     "subOrder": "33",
-    "totalOrder": "248",
     "pattern": "～ 際[さい]は/際に（は）",
     "explanation": "“在……时候”；“借……时机”。",
     "usage": [],
@@ -1075,7 +1041,6 @@
     "id": "G-N2-0035",
     "level": "N2",
     "subOrder": "34",
-    "totalOrder": "249",
     "pattern": "～ざるを 得[え]ない",
     "formation": [
       "動ない形＋ざるを得ない",
@@ -1105,7 +1070,6 @@
     "id": "G-N2-0036",
     "level": "N2",
     "subOrder": "35（1）",
-    "totalOrder": "250",
     "pattern": "～ 次[し] 第[だい]",
     "formation": [
       "動ます形＋次第"
@@ -1134,7 +1098,6 @@
     "id": "G-N2-0037",
     "level": "N2",
     "subOrder": "35（2）",
-    "totalOrder": "251",
     "pattern": "～ 次[し] 第[だい]だ/次第で（は）",
     "formation": [
       "動/イ形/ナ形の名詞修飾形＋次第だ/次第で",
@@ -1179,7 +1142,6 @@
     "id": "G-N2-0038",
     "level": "N2",
     "subOrder": "36",
-    "totalOrder": "252",
     "pattern": "～ 末[すえ]（に）",
     "formation": [
       "動た形/名－の＋末（に）"
@@ -1208,7 +1170,6 @@
     "id": "G-N2-0039",
     "level": "N2",
     "subOrder": "37",
-    "totalOrder": "253",
     "pattern": "～ずにすむ/ないですむ/なくてすむ",
     "formation": [
       "動ない形＋ずにすむ",
@@ -1240,7 +1201,6 @@
     "id": "G-N2-0040",
     "level": "N2",
     "subOrder": "38",
-    "totalOrder": "254",
     "pattern": "～ずにはいられない/ないではいられない",
     "formation": [
       "動ない形＋ずにはいられない",
@@ -1271,7 +1231,6 @@
     "id": "G-N2-0041",
     "level": "N2",
     "subOrder": "39",
-    "totalOrder": "255",
     "pattern": "～たいばかりに/ほしいばかりに",
     "formation": [
       "動ます形＋たいばかりに",
@@ -1301,7 +1260,6 @@
     "id": "G-N2-0042",
     "level": "N2",
     "subOrder": "40",
-    "totalOrder": "256",
     "pattern": "～だけあって/だけに/だけのことはある",
     "explanation": "“与……相称”“不愧是……”；“到底没白……”。",
     "usage": [
@@ -1356,7 +1314,6 @@
     "id": "G-N2-0043",
     "level": "N2",
     "subOrder": "41",
-    "totalOrder": "257",
     "pattern": "～たところ",
     "formation": [
       "動た形＋ところ"
@@ -1385,7 +1342,6 @@
     "id": "G-N2-0044",
     "level": "N2",
     "subOrder": "42",
-    "totalOrder": "258",
     "pattern": "～たところが",
     "formation": [
       "動た形＋ところが"
@@ -1414,7 +1370,6 @@
     "id": "G-N2-0045",
     "level": "N2",
     "subOrder": "43",
-    "totalOrder": "259",
     "pattern": "～たところで",
     "formation": [
       "動た形＋ところで"
@@ -1443,7 +1398,6 @@
     "id": "G-N2-0046",
     "level": "N2",
     "subOrder": "44",
-    "totalOrder": "260",
     "pattern": "～たとたん（に）",
     "formation": [
       "動た形＋とたん（に）"
@@ -1473,7 +1427,6 @@
     "id": "G-N2-0047",
     "level": "N2",
     "subOrder": "45",
-    "totalOrder": "261",
     "pattern": "～ついでに",
     "explanation": "“顺便……”。",
     "usage": [],
@@ -1499,7 +1452,6 @@
     "id": "G-N2-0048",
     "level": "N2",
     "subOrder": "46",
-    "totalOrder": "262",
     "pattern": "～っこない",
     "formation": [
       "動ます形＋っこない"
@@ -1528,7 +1480,6 @@
     "id": "G-N2-0049",
     "level": "N2",
     "subOrder": "47",
-    "totalOrder": "263",
     "pattern": "～つつ（も）",
     "formation": [
       "動ます形＋つつ",
@@ -1569,7 +1520,6 @@
     "id": "G-N2-0050",
     "level": "N2",
     "subOrder": "48",
-    "totalOrder": "264",
     "pattern": "～つつある",
     "formation": [
       "動ます形＋つつある"
@@ -1598,7 +1548,6 @@
     "id": "G-N2-0051",
     "level": "N2",
     "subOrder": "49",
-    "totalOrder": "265",
     "pattern": "～っぱなし",
     "formation": [
       "動ます形＋っぱなし"
@@ -1643,7 +1592,6 @@
     "id": "G-N2-0052",
     "level": "N2",
     "subOrder": "50",
-    "totalOrder": "266",
     "pattern": "～っぽい",
     "formation": [
       "動ます形/イ形語幹/名＋っぽい"
@@ -1674,7 +1622,6 @@
     "id": "G-N2-0053",
     "level": "N2",
     "subOrder": "51",
-    "totalOrder": "267",
     "pattern": "～てからでないと/てからでなければ",
     "formation": [
       "動て形＋からでないと/からでなければ"
@@ -1703,7 +1650,6 @@
     "id": "G-N2-0054",
     "level": "N2",
     "subOrder": "52",
-    "totalOrder": "268",
     "pattern": "～てでも",
     "formation": [
       "動て形＋でも"
@@ -1732,7 +1678,6 @@
     "id": "G-N2-0055",
     "level": "N2",
     "subOrder": "53",
-    "totalOrder": "269",
     "pattern": "～（の）ではあるまいか",
     "formation": [
       "動/イ形普通形－の",
@@ -1762,7 +1707,6 @@
     "id": "G-N2-0056",
     "level": "N2",
     "subOrder": "54",
-    "totalOrder": "270",
     "pattern": "～てはいられない",
     "formation": [
       "動て形＋はいられない"
@@ -1791,7 +1735,6 @@
     "id": "G-N2-0057",
     "level": "N2",
     "subOrder": "55",
-    "totalOrder": "271",
     "pattern": "～てばかりはいられない/てばかりもいられない",
     "formation": [
       "動て形＋ばかりはいられない/ばかりもいられない"
@@ -1820,7 +1763,6 @@
     "id": "G-N2-0058",
     "level": "N2",
     "subOrder": "56",
-    "totalOrder": "272",
     "pattern": "～てはじめて",
     "formation": [
       "動て形＋はじめて"
@@ -1849,7 +1791,6 @@
     "id": "G-N2-0059",
     "level": "N2",
     "subOrder": "57",
-    "totalOrder": "273",
     "pattern": "～ではすまされない",
     "formation": [
       "名/動普通形（－の）＋ではすまされない"
@@ -1878,7 +1819,6 @@
     "id": "G-N2-0060",
     "level": "N2",
     "subOrder": "58",
-    "totalOrder": "274",
     "pattern": "～てまで",
     "formation": [
       "動て形＋まで"
@@ -1907,7 +1847,6 @@
     "id": "G-N2-0061",
     "level": "N2",
     "subOrder": "59",
-    "totalOrder": "275",
     "pattern": "～ということだ",
     "formation": [
       "文の普通形＋ということだ"
@@ -1943,7 +1882,6 @@
     "id": "G-N2-0062",
     "level": "N2",
     "subOrder": "60",
-    "totalOrder": "276",
     "pattern": "～というものだ",
     "formation": [
       "動/イ形普通形/ナ形語幹/名＋というものだ"
@@ -1972,7 +1910,6 @@
     "id": "G-N2-0063",
     "level": "N2",
     "subOrder": "61",
-    "totalOrder": "277",
     "pattern": "～というものではない/というものでもない",
     "formation": [
       "文の普通形＋というものではない/というものでもない"
@@ -2001,7 +1938,6 @@
     "id": "G-N2-0064",
     "level": "N2",
     "subOrder": "62",
-    "totalOrder": "278",
     "pattern": "～というより",
     "explanation": "“与其说……，还不如说……”。",
     "usage": [],
@@ -2027,7 +1963,6 @@
     "id": "G-N2-0065",
     "level": "N2",
     "subOrder": "63",
-    "totalOrder": "279",
     "pattern": "～といっても 過[か] 言[ごん]ではない/といっても 言[い]い 過[す]ぎではない",
     "formation": [
       "文の普通形＋といっても過言ではない/といっても言い過ぎではない"
@@ -2053,7 +1988,6 @@
     "id": "G-N2-0066",
     "level": "N2",
     "subOrder": "64",
-    "totalOrder": "280",
     "pattern": "～（か）と 思[おも]うと/（か）と思ったら",
     "formation": [
       "動た形＋（か）と思うと/（か）と思ったら",
@@ -2100,7 +2034,6 @@
     "id": "G-N2-0067",
     "level": "N2",
     "subOrder": "65（1）",
-    "totalOrder": "281",
     "pattern": "～とか/とかいう",
     "formation": [
       "文の普通形/名＋とか/とかいう"
@@ -2129,7 +2062,6 @@
     "id": "G-N2-0068",
     "level": "N2",
     "subOrder": "65（2）",
-    "totalOrder": "282",
     "pattern": "～とかいうことだ/とかいう 話[はなし]だ",
     "formation": [
       "文の普通形＋とかいうことだ/とかいう話だ"
@@ -2154,7 +2086,6 @@
     "id": "G-N2-0069",
     "level": "N2",
     "subOrder": "65（3）",
-    "totalOrder": "283",
     "pattern": "～とかで",
     "formation": [
       "文の普通形＋とかで"
@@ -2179,7 +2110,6 @@
     "id": "G-N2-0070",
     "level": "N2",
     "subOrder": "66",
-    "totalOrder": "284",
     "pattern": "～どころか",
     "formation": [
       "動/イ形/ナ形の名詞修飾形",
@@ -2209,7 +2139,6 @@
     "id": "G-N2-0071",
     "level": "N2",
     "subOrder": "67",
-    "totalOrder": "285",
     "pattern": "～ところだった",
     "formation": [
       "動辞書形＋ところだった"
@@ -2238,7 +2167,6 @@
     "id": "G-N2-0072",
     "level": "N2",
     "subOrder": "68",
-    "totalOrder": "286",
     "pattern": "～どころではない",
     "formation": [
       "動辞書形·ている形/名＋どころではない"
@@ -2267,7 +2195,6 @@
     "id": "G-N2-0073",
     "level": "N2",
     "subOrder": "69",
-    "totalOrder": "287",
     "pattern": "～ところに/ところへ",
     "formation": [
       "動辞書形·た形·ている形＋ところに/ところへ"
@@ -2296,7 +2223,6 @@
     "id": "G-N2-0074",
     "level": "N2",
     "subOrder": "70（1）",
-    "totalOrder": "288",
     "pattern": "～ところを",
     "formation": [
       "動辞書形·た形·ている形＋ところを"
@@ -2321,7 +2247,6 @@
     "id": "G-N2-0075",
     "level": "N2",
     "subOrder": "70（2）",
-    "totalOrder": "289",
     "pattern": "～ところを 見[み]ると",
     "formation": [
       "動た形·ている形＋ところを見ると"
@@ -2350,7 +2275,6 @@
     "id": "G-N2-0076",
     "level": "N2",
     "subOrder": "71",
-    "totalOrder": "290",
     "pattern": "～としか 言[い]いようがない",
     "formation": [
       "文の普通形＋としか言いようがない",
@@ -2380,7 +2304,6 @@
     "id": "G-N2-0077",
     "level": "N2",
     "subOrder": "72",
-    "totalOrder": "291",
     "pattern": "～としたら/とすれば/とすると",
     "formation": [
       "文の普通形＋としたら/とすれば/とすると"
@@ -2409,7 +2332,6 @@
     "id": "G-N2-0078",
     "level": "N2",
     "subOrder": "73",
-    "totalOrder": "292",
     "pattern": "～とともに",
     "explanation": "表示伴随，“随着……”“与……的同时”。",
     "usage": [],
@@ -2435,7 +2357,6 @@
     "id": "G-N2-0079",
     "level": "N2",
     "subOrder": "74",
-    "totalOrder": "293",
     "pattern": "～とは 限[かぎ]らない",
     "formation": [
       "文の普通形＋とは限らない"
@@ -2465,7 +2386,6 @@
     "id": "G-N2-0080",
     "level": "N2",
     "subOrder": "75",
-    "totalOrder": "294",
     "pattern": "～ない 限[かぎ]り",
     "formation": [
       "動ない形－ない＋限り"
@@ -2494,7 +2414,6 @@
     "id": "G-N2-0081",
     "level": "N2",
     "subOrder": "76",
-    "totalOrder": "295",
     "pattern": "～ないことには",
     "explanation": "“如果不……（就不……）”。",
     "usage": [],
@@ -2520,7 +2439,6 @@
     "id": "G-N2-0082",
     "level": "N2",
     "subOrder": "77",
-    "totalOrder": "296",
     "pattern": "～ないことはない/ないこともない",
     "explanation": "表示有某种可能性，“不是不……”“有可能……”。",
     "usage": [],
@@ -2546,7 +2464,6 @@
     "id": "G-N2-0083",
     "level": "N2",
     "subOrder": "78",
-    "totalOrder": "297",
     "pattern": "～ないではない/ないでもない",
     "explanation": "表示并非完全没有，“并非不……”“也不是不……”。",
     "usage": [],
@@ -2572,7 +2489,6 @@
     "id": "G-N2-0084",
     "level": "N2",
     "subOrder": "79",
-    "totalOrder": "298",
     "pattern": "～ながら（も）",
     "formation": [
       "動ます形/イ形/ナ形語幹/名＋ながら（も）"
@@ -2601,7 +2517,6 @@
     "id": "G-N2-0085",
     "level": "N2",
     "subOrder": "80",
-    "totalOrder": "299",
     "pattern": "～なくはない/なくもない",
     "explanation": "表示并不是完全没有某种事情，“不是不……”。",
     "usage": [],
@@ -2627,7 +2542,6 @@
     "id": "G-N2-0086",
     "level": "N2",
     "subOrder": "81",
-    "totalOrder": "300",
     "pattern": "～ならともかく",
     "formation": [
       "動辞書形/イ形/ナ形語幹/名＋ならともかく"
@@ -2656,7 +2570,6 @@
     "id": "G-N2-0087",
     "level": "N2",
     "subOrder": "82",
-    "totalOrder": "301",
     "pattern": "～にあたって/にあたり",
     "formation": [
       "動辞書形/名＋にあたって/にあたり"
@@ -2685,7 +2598,6 @@
     "id": "G-N2-0088",
     "level": "N2",
     "subOrder": "83",
-    "totalOrder": "302",
     "pattern": "～に 応[おう]じて（は）/に応じ",
     "formation": [
       "名＋に応じて（は）/に応じ"
@@ -2714,7 +2626,6 @@
     "id": "G-N2-0089",
     "level": "N2",
     "subOrder": "84",
-    "totalOrder": "303",
     "pattern": "～に（は）かかわらず/に（は）かかわりなく",
     "explanation": "“不管……”“无论……”。",
     "usage": [],
@@ -2741,7 +2652,6 @@
     "id": "G-N2-0090",
     "level": "N2",
     "subOrder": "85",
-    "totalOrder": "304",
     "pattern": "～にかかわる",
     "formation": [
       "名＋にかかわる"
@@ -2770,7 +2680,6 @@
     "id": "G-N2-0091",
     "level": "N2",
     "subOrder": "86（1）",
-    "totalOrder": "305",
     "pattern": "～に 限[か ぎ]って/に限り",
     "formation": [
       "名＋に限って/に限り"
@@ -2799,7 +2708,6 @@
     "id": "G-N2-0092",
     "level": "N2",
     "subOrder": "86（2）",
-    "totalOrder": "306",
     "pattern": "～に 限[かぎ]って",
     "formation": [
       "名＋に限って"
@@ -2828,7 +2736,6 @@
     "id": "G-N2-0093",
     "level": "N2",
     "subOrder": "87",
-    "totalOrder": "307",
     "pattern": "～に 限[かぎ]らず",
     "formation": [
       "名＋に限らず"
@@ -2857,7 +2764,6 @@
     "id": "G-N2-0094",
     "level": "N2",
     "subOrder": "88",
-    "totalOrder": "308",
     "pattern": "～に 限[かぎ]る",
     "formation": [
       "動辞書形·ない形－ない/名＋に限る"
@@ -2886,7 +2792,6 @@
     "id": "G-N2-0095",
     "level": "N2",
     "subOrder": "89",
-    "totalOrder": "309",
     "pattern": "～にかけては/にかけても",
     "formation": [
       "名＋にかけては/にかけても"
@@ -2915,7 +2820,6 @@
     "id": "G-N2-0096",
     "level": "N2",
     "subOrder": "90",
-    "totalOrder": "310",
     "pattern": "～に 決[き]まっている",
     "explanation": "表示比较确切的推测，“一定……”“肯定……”。",
     "usage": [],
@@ -2941,7 +2845,6 @@
     "id": "G-N2-0097",
     "level": "N2",
     "subOrder": "91",
-    "totalOrder": "311",
     "pattern": "～に 加[くわ]えて/に加え",
     "formation": [
       "名＋に加えて/に加え"
@@ -2970,7 +2873,6 @@
     "id": "G-N2-0098",
     "level": "N2",
     "subOrder": "92",
-    "totalOrder": "312",
     "pattern": "～に 応[こた]えて/に応え",
     "formation": [
       "名＋に応えて/に応え"
@@ -2999,7 +2901,6 @@
     "id": "G-N2-0099",
     "level": "N2",
     "subOrder": "93",
-    "totalOrder": "313",
     "pattern": "～に 際[さい]して/に際し",
     "formation": [
       "動辞書形/名＋に際して/に際し"
@@ -3033,7 +2934,6 @@
     "id": "G-N2-0100",
     "level": "N2",
     "subOrder": "94",
-    "totalOrder": "314",
     "pattern": "～に 先[さき] 立[だ]って/に先立ち",
     "formation": [
       "名＋に先立って/に先立ち"
@@ -3062,7 +2962,6 @@
     "id": "G-N2-0101",
     "level": "N2",
     "subOrder": "95",
-    "totalOrder": "315",
     "pattern": "～に 従[したが]って/に従い",
     "formation": [
       "動辞書形/名＋に従って/に従い"
@@ -3106,7 +3005,6 @@
     "id": "G-N2-0102",
     "level": "N2",
     "subOrder": "96",
-    "totalOrder": "316",
     "pattern": "～にしたら/にすれば/にしても",
     "formation": [
       "名＋にしたら/にすれば/にしても"
@@ -3135,7 +3033,6 @@
     "id": "G-N2-0103",
     "level": "N2",
     "subOrder": "97",
-    "totalOrder": "317",
     "pattern": "～にしては",
     "explanation": "表示评价的标准，“就……而言”。",
     "usage": [],
@@ -3161,7 +3058,6 @@
     "id": "G-N2-0104",
     "level": "N2",
     "subOrder": "98",
-    "totalOrder": "318",
     "pattern": "～にしろ/にせよ/にしても",
     "formation": [
       "動/イ形普通形＋にしろ/にせよ/にしても＋動/イ形普通形＋にしろ/にせよ/にしても",
@@ -3206,7 +3102,6 @@
     "id": "G-N2-0105",
     "level": "N2",
     "subOrder": "99",
-    "totalOrder": "319",
     "pattern": "～に 過[す]ぎない",
     "explanation": "“只不过……而已”。",
     "usage": [],
@@ -3232,7 +3127,6 @@
     "id": "G-N2-0106",
     "level": "N2",
     "subOrder": "100",
-    "totalOrder": "320",
     "pattern": "～に 相[そう] 違[い]ない",
     "explanation": "表示断定，“一定……”“肯定……”。",
     "usage": [],
@@ -3258,7 +3152,6 @@
     "id": "G-N2-0107",
     "level": "N2",
     "subOrder": "101",
-    "totalOrder": "321",
     "pattern": "～に 沿[そ]って/に沿い",
     "formation": [
       "名＋に沿って/に沿い"
@@ -3287,7 +3180,6 @@
     "id": "G-N2-0108",
     "level": "N2",
     "subOrder": "102",
-    "totalOrder": "322",
     "pattern": "～に 違[ちが]いない",
     "explanation": "表示断定，“一定……”“肯定……”。",
     "usage": [],
@@ -3313,7 +3205,6 @@
     "id": "G-N2-0109",
     "level": "N2",
     "subOrder": "103",
-    "totalOrder": "323",
     "pattern": "～につき",
     "formation": [
       "名＋につき"
@@ -3353,7 +3244,6 @@
     "id": "G-N2-0110",
     "level": "N2",
     "subOrder": "104",
-    "totalOrder": "324",
     "pattern": "～につけ/につけては/につけても",
     "formation": [
       "動辞書形/名＋につけ/につけては/につけても",
@@ -3394,7 +3284,6 @@
     "id": "G-N2-0111",
     "level": "N2",
     "subOrder": "105",
-    "totalOrder": "325",
     "pattern": "～に 伴[ともな]って/に伴い",
     "formation": [
       "動辞書形/名＋に伴って/に伴い"
@@ -3423,7 +3312,6 @@
     "id": "G-N2-0112",
     "level": "N2",
     "subOrder": "106",
-    "totalOrder": "326",
     "pattern": "～に 反[はん]して/に反し",
     "formation": [
       "名＋に反して/に反し"
@@ -3452,7 +3340,6 @@
     "id": "G-N2-0113",
     "level": "N2",
     "subOrder": "107",
-    "totalOrder": "327",
     "pattern": "～にほかならない",
     "formation": [
       "名＋にほかならない",
@@ -3494,7 +3381,6 @@
     "id": "G-N2-0114",
     "level": "N2",
     "subOrder": "108",
-    "totalOrder": "328",
     "pattern": "～にもかかわらず",
     "explanation": "表示转折，“虽然……但是……”“尽管……却……”。",
     "usage": [],
@@ -3520,7 +3406,6 @@
     "id": "G-N2-0115",
     "level": "N2",
     "subOrder": "109",
-    "totalOrder": "329",
     "pattern": "～に 基[もと]づいて/に基づき",
     "formation": [
       "名＋に基づいて/に基づき"
@@ -3549,7 +3434,6 @@
     "id": "G-N2-0116",
     "level": "N2",
     "subOrder": "110",
-    "totalOrder": "330",
     "pattern": "～にわたって/にわたり",
     "formation": [
       "名＋にわたって/にわたり"
@@ -3578,7 +3462,6 @@
     "id": "G-N2-0117",
     "level": "N2",
     "subOrder": "111",
-    "totalOrder": "331",
     "pattern": "～ 抜[ぬ]きで/抜きに/を抜きにして/は抜きにして",
     "formation": [
       "名＋抜きで/抜きに/を抜きにして/は抜きにして"
@@ -3607,7 +3490,6 @@
     "id": "G-N2-0118",
     "level": "N2",
     "subOrder": "112",
-    "totalOrder": "332",
     "pattern": "～ 抜[ぬ]きでは/抜きには/を抜きにしては",
     "formation": [
       "名＋抜きでは/抜きには/を抜きにしては"
@@ -3636,7 +3518,6 @@
     "id": "G-N2-0119",
     "level": "N2",
     "subOrder": "113",
-    "totalOrder": "333",
     "pattern": "～ 抜[ぬ]く",
     "formation": [
       "動ます形＋抜く"
@@ -3665,7 +3546,6 @@
     "id": "G-N2-0120",
     "level": "N2",
     "subOrder": "114",
-    "totalOrder": "334",
     "pattern": "～のみならず",
     "explanation": "“不仅……，（而且……）”。",
     "usage": [],
@@ -3691,7 +3571,6 @@
     "id": "G-N2-0121",
     "level": "N2",
     "subOrder": "115（1）",
-    "totalOrder": "335",
     "pattern": "～のもとで/のもとに",
     "formation": [
       "名＋のもとで/のもとに"
@@ -3720,7 +3599,6 @@
     "id": "G-N2-0122",
     "level": "N2",
     "subOrder": "115（2）",
-    "totalOrder": "336",
     "pattern": "～の 名[な]のもとに",
     "formation": [
       "名＋の名のもとに"
@@ -3745,7 +3623,6 @@
     "id": "G-N2-0123",
     "level": "N2",
     "subOrder": "116",
-    "totalOrder": "337",
     "pattern": "～ばかりか",
     "explanation": "表示递进，“不但……”“不只是……”。",
     "usage": [],
@@ -3772,7 +3649,6 @@
     "id": "G-N2-0124",
     "level": "N2",
     "subOrder": "117",
-    "totalOrder": "338",
     "pattern": "～ばかりに",
     "explanation": "表示不好的原因，“就是因为……”“正因为……”。",
     "usage": [],
@@ -3798,7 +3674,6 @@
     "id": "G-N2-0125",
     "level": "N2",
     "subOrder": "118",
-    "totalOrder": "339",
     "pattern": "～はともかく（として）",
     "formation": [
       "名＋はともかく（として）"
@@ -3827,7 +3702,6 @@
     "id": "G-N2-0126",
     "level": "N2",
     "subOrder": "119",
-    "totalOrder": "340",
     "pattern": "～は 別[べつ]として",
     "explanation": "“……另当别论”“……暂且不论”。",
     "usage": [],
@@ -3853,7 +3727,6 @@
     "id": "G-N2-0127",
     "level": "N2",
     "subOrder": "120",
-    "totalOrder": "341",
     "pattern": "～はもちろん/はもとより",
     "formation": [
       "名＋はもちろん/はもとより"
@@ -3882,7 +3755,6 @@
     "id": "G-N2-0128",
     "level": "N2",
     "subOrder": "121",
-    "totalOrder": "342",
     "pattern": "～ 反[はん] 面[めん]/半面",
     "explanation": "“另一方面……”。",
     "usage": [],
@@ -3908,7 +3780,6 @@
     "id": "G-N2-0129",
     "level": "N2",
     "subOrder": "122",
-    "totalOrder": "343",
     "pattern": "～ほか（は）ない/よりほか（は）ない/ほかしかたがない",
     "formation": [
       "動辞書形＋ほか（は）ない/よりほか（は）ない/ほかしかたがない"
@@ -3937,7 +3808,6 @@
     "id": "G-N2-0130",
     "level": "N2",
     "subOrder": "123",
-    "totalOrder": "344",
     "pattern": "～まい/まいか",
     "formation": [
       "動辞書形＋まい/まいか",
@@ -3984,7 +3854,6 @@
     "id": "G-N2-0131",
     "level": "N2",
     "subOrder": "124",
-    "totalOrder": "345",
     "pattern": "～まま（に）",
     "formation": [
       "動辞書形/名－の＋まま（に）",
@@ -4029,7 +3898,6 @@
     "id": "G-N2-0132",
     "level": "N2",
     "subOrder": "125",
-    "totalOrder": "346",
     "pattern": "～もかまわず",
     "formation": [
       "動普通形－の/名＋もかまわず"
@@ -4058,7 +3926,6 @@
     "id": "G-N2-0133",
     "level": "N2",
     "subOrder": "126",
-    "totalOrder": "347",
     "pattern": "～も 当[とう] 然[ぜん]だ",
     "explanation": "“……也是理所当然的”。",
     "usage": [],
@@ -4084,7 +3951,6 @@
     "id": "G-N2-0134",
     "level": "N2",
     "subOrder": "127",
-    "totalOrder": "348",
     "pattern": "～も～なら～も～だ",
     "formation": [
       "名＋も＋ナ形語幹/名＋なら＋名＋も＋名＋だ"
@@ -4109,7 +3975,6 @@
     "id": "G-N2-0135",
     "level": "N2",
     "subOrder": "128",
-    "totalOrder": "349",
     "pattern": "～ものか/もんか",
     "formation": [
       "動/イ形/ナ形の名詞修飾形＋ものか/もんか"
@@ -4138,7 +4003,6 @@
     "id": "G-N2-0136",
     "level": "N2",
     "subOrder": "129",
-    "totalOrder": "350",
     "pattern": "～ものがある",
     "formation": [
       "動/イ形/ナ形の名詞修飾形＋ものがある"
@@ -4167,7 +4031,6 @@
     "id": "G-N2-0137",
     "level": "N2",
     "subOrder": "130",
-    "totalOrder": "351",
     "pattern": "～ものだから",
     "explanation": "表示原因，“因为……”。",
     "usage": [],
@@ -4193,7 +4056,6 @@
     "id": "G-N2-0138",
     "level": "N2",
     "subOrder": "131",
-    "totalOrder": "352",
     "pattern": "～ものではない",
     "formation": [
       "動辞書形＋ものではない"
@@ -4222,7 +4084,6 @@
     "id": "G-N2-0139",
     "level": "N2",
     "subOrder": "132",
-    "totalOrder": "353",
     "pattern": "～ものなら",
     "formation": [
       "動可能形＋ものなら",
@@ -4267,7 +4128,6 @@
     "id": "G-N2-0140",
     "level": "N2",
     "subOrder": "133",
-    "totalOrder": "354",
     "pattern": "～ものの",
     "explanation": "表示转折，“虽然……但是……”。",
     "usage": [],
@@ -4293,7 +4153,6 @@
     "id": "G-N2-0141",
     "level": "N2",
     "subOrder": "134",
-    "totalOrder": "355",
     "pattern": "～も～ば～も",
     "formation": [
       "名＋も＋動ば形/イ形ば形＋名＋も",
@@ -4319,7 +4178,6 @@
     "id": "G-N2-0142",
     "level": "N2",
     "subOrder": "135",
-    "totalOrder": "356",
     "pattern": "～やら～やら",
     "formation": [
       "動辞書形/イ形/名＋やら＋動辞書形/イ形/名＋やら"
@@ -4348,7 +4206,6 @@
     "id": "G-N2-0143",
     "level": "N2",
     "subOrder": "136",
-    "totalOrder": "357",
     "pattern": "～ようで",
     "explanation": "“看上去好像……，但……”。",
     "usage": [],
@@ -4374,7 +4231,6 @@
     "id": "G-N2-0144",
     "level": "N2",
     "subOrder": "137",
-    "totalOrder": "358",
     "pattern": "～ようでは",
     "formation": [
       "動辞書形·ない形－ない＋ようでは"
@@ -4403,7 +4259,6 @@
     "id": "G-N2-0145",
     "level": "N2",
     "subOrder": "138",
-    "totalOrder": "359",
     "pattern": "～ようなら（ば）/ようだったら/ようであれば",
     "explanation": "表示假定，“如果……”。",
     "usage": [],
@@ -4433,7 +4288,6 @@
     "id": "G-N2-0146",
     "level": "N2",
     "subOrder": "139",
-    "totalOrder": "360",
     "pattern": "～わりに（は）",
     "formation": [
       "動/イ形/ナ形/名の名詞修飾形＋わりに（は）"
@@ -4462,7 +4316,6 @@
     "id": "G-N2-0147",
     "level": "N2",
     "subOrder": "140",
-    "totalOrder": "361",
     "pattern": "～をかねて",
     "formation": [
       "名＋をかねて"
@@ -4491,7 +4344,6 @@
     "id": "G-N2-0148",
     "level": "N2",
     "subOrder": "141",
-    "totalOrder": "362",
     "pattern": "～を 中[ちゅう] 心[しん]に（して）/を中心として",
     "formation": [
       "名＋を中心に（して）/を中心として"
@@ -4520,7 +4372,6 @@
     "id": "G-N2-0149",
     "level": "N2",
     "subOrder": "142",
-    "totalOrder": "363",
     "pattern": "～を 通[つう]じて/を 通[とお]して",
     "formation": [
       "名＋を通じて/を通して"
@@ -4560,7 +4411,6 @@
     "id": "G-N2-0150",
     "level": "N2",
     "subOrder": "143",
-    "totalOrder": "364",
     "pattern": "～を 問[と]わず/は問わず",
     "formation": [
       "名＋を問わず/は問わず"
@@ -4589,7 +4439,6 @@
     "id": "G-N2-0151",
     "level": "N2",
     "subOrder": "144",
-    "totalOrder": "365",
     "pattern": "～を 除[のぞ]いて（は）/を除き",
     "formation": [
       "名＋を除いて（は）/を除き"
@@ -4618,7 +4467,6 @@
     "id": "G-N2-0152",
     "level": "N2",
     "subOrder": "145",
-    "totalOrder": "366",
     "pattern": "～をめぐって/をめぐり",
     "formation": [
       "名＋をめぐって/をめぐり"
@@ -4648,7 +4496,6 @@
     "id": "G-N2-0153",
     "level": "N2",
     "subOrder": "146",
-    "totalOrder": "367",
     "pattern": "～をもとに（して）",
     "formation": [
       "名＋をもとに（して）"
@@ -4677,7 +4524,6 @@
     "id": "G-N2-0154",
     "level": "N2",
     "subOrder": "147",
-    "totalOrder": "368",
     "pattern": "お/ご～いただけませんか",
     "explanation": "“能否请您……”，表示礼貌地请求对方为自己一方做某事。",
     "usage": [],
@@ -4701,7 +4547,6 @@
     "id": "G-N2-0155",
     "level": "N2",
     "subOrder": "148",
-    "totalOrder": "369",
     "pattern": "お/ご～ 願[ねが]えませんか",
     "explanation": "礼貌地请求对方做某事。",
     "usage": [],
@@ -4728,7 +4573,6 @@
     "id": "G-N2-0156",
     "level": "N2",
     "subOrder": "149",
-    "totalOrder": "370",
     "pattern": "お/ご～ 申[も う]し 上[あ]げる",
     "explanation": "比「お/ご～する/いたす」更谦恭的表达方式。",
     "usage": [],
@@ -4755,7 +4599,6 @@
     "id": "G-N2-0157",
     "level": "N2",
     "subOrder": "150",
-    "totalOrder": "371",
     "pattern": "～（さ）せていただけませんか",
     "formation": [
       "動使役形－て形＋いただけませんか"
@@ -4785,7 +4628,6 @@
     "id": "G-N2-0158",
     "level": "N2",
     "subOrder": "151",
-    "totalOrder": "372",
     "pattern": "～（さ）せてやっていただけませんか",
     "formation": [
       "動使役形－て形＋やっていただけませんか"
@@ -4815,7 +4657,6 @@
     "id": "G-N2-0159",
     "level": "N2",
     "subOrder": "152",
-    "totalOrder": "373",
     "pattern": "～ていただけるとありがたいんですが",
     "formation": [
       "動て形＋いただけるとありがたいんですが"

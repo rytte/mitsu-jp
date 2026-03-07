@@ -164,7 +164,6 @@ export type GrammarPoint = {
   examples?: GrammarExample[] | null;
   tags?: string[] | null;
   subOrder?: string | null;
-  totalOrder?: string | null;
   honorific?: string | null;
   gakkoConnectives?: string[] | null;
 };
