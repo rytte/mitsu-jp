@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Circle as SvgCircle, Line as SvgLine, Text as SvgText } from 'react-native-svg';
 import { GRAMMARS } from '../data/grammars';
 import { getGrammarLevelMeta } from '../data/levelMeta';
 import { GrammarStackParamList } from '../navigation/types';
@@ -36,6 +37,18 @@ type QuickEntry = {
   icon: keyof typeof Ionicons.glyphMap;
   accent: string;
   soft: string;
+};
+
+type PitchLevel = 'H' | 'L';
+
+type PitchPattern = {
+  key: string;
+  title: string;
+  contour: string;
+  note: string;
+  example: string;
+  labels: string[];
+  levels: PitchLevel[];
 };
 
 
@@ -175,6 +188,34 @@ const GRAMMAR_TERMS: GrammarTerm[] = [
     example: '本を読む。空が青い。',
   },
   {
+    key: 'keitaikei',
+    title: '敬体形',
+    layer: '文体（礼貌层级）',
+    formByPos: [
+      '动词：ます/ました/ません/ませんでした',
+      'い形容词：原形 + です（高いです）',
+      'な形容词：词干 + です（静かです）',
+      '名词：名词 + です（学生です）',
+    ],
+    role: '表达礼貌语气，常用于正式或不熟悉关系',
+    linking: '常位于句末，也可与接续表达组合',
+    example: '行きます。静かです。学生でした。',
+  },
+  {
+    key: 'futsuukei',
+    title: '普通形',
+    layer: '文体（常体层级）',
+    formByPos: [
+      '动词：辞书形/た形/ない形（書く・書いた・書かない）',
+      'い形容词：原形/过去/否定（高い・高かった・高くない）',
+      'な形容词：词干 + だ/だった/ではない',
+      '名词：名词 + だ/だった/ではない',
+    ],
+    role: '表达常体语气，也是多数从句和修饰结构的基础形',
+    linking: '可接助词、助动词，常用于简体陈述',
+    example: '行く。静かだ。学生ではない。',
+  },
+  {
     key: 'joshi',
     title: '助词',
     layer: '附属词',
@@ -212,17 +253,78 @@ const IMPORTANT_COMPARISONS = [
   '体言 vs 用言：体言通常不活用；用言可活用且常作谓语核心。',
   '连体词 vs 连体形：连体词是独立词类；连体形是用言活用后用于修饰体言的形式。',
   '连用形 vs 连体形 vs 终止形：连用形偏接续，连体形偏修饰体言，终止形偏句末陈述。',
+  '敬体形 vs 普通形：敬体形强调礼貌层级；普通形是简体陈述与多数从句的基础。',
   '助词 vs 助动词：助词主要标记成分关系；助动词主要补充时态、语态、语气等语法意义。',
   '副词 vs 连体词：副词修饰用言或整句；连体词只修饰体言。',
   '终助词 vs 终止形：终助词是句末语气标记；终止形是谓语的句末形态。',
 ];
 
+const PITCH_ACCENT_PATTERNS: PitchPattern[] = [
+  {
+    key: 'heiban',
+    title: '平板型（0）',
+    contour: '第1拍低，随后升高并保持高位',
+    note: '后接助词仍保持高位，不会立刻下降',
+    example: 'はし（桥）⓪、あした⓪',
+    labels: ['1', '2', '3', '助'],
+    levels: ['L', 'H', 'H', 'H'],
+  },
+  {
+    key: 'atamadaka',
+    title: '头高型（1）',
+    contour: '第1拍高，第2拍开始下降',
+    note: '起点高、很快下落，辨识度高',
+    example: 'あめ（雨）①、いま①',
+    labels: ['1', '2', '3', '助'],
+    levels: ['H', 'L', 'L', 'L'],
+  },
+  {
+    key: 'nakadaka',
+    title: '中高型（2～n-1）',
+    contour: '前低后高，在词中某拍后下降',
+    note: '高点出现在中间，后部回落',
+    example: 'あなた②、つかれる③、あたらしい④、ごめんなさい⑤',
+    labels: ['1', '2', '3', '助'],
+    levels: ['L', 'H', 'L', 'L'],
+  },
+  {
+    key: 'odaka',
+    title: '尾高型（n）',
+    contour: '词内上升并在词尾保持高位',
+    note: '后接助词时在助词前后出现下降',
+    example: 'はな（花）②、おとこ③、いもうと④、こんにちは⑤',
+    labels: ['1', '2', '3', '助'],
+    levels: ['L', 'H', 'H', 'L'],
+  },
+];
+
+const PITCH_ACCENT_TIPS = [
+  'n 表示该词的总拍数（モーラ数）；例如 ことば 是 3 拍，所以它的 n=3。',
+  '关注在哪一拍下降是核心，比如⓪型无下降，①型在第1拍后下降，②型在第2拍后下降，以此类推。',
+  '同形词常靠音调区分：如「あめ」可因音调不同表示“雨/糖”。',
+  '实际音调存在地域差，学习时先以标准语（东京式）为基准即可。',
+];
+
+const PITCH_GRAPH = {
+  width: 320,
+  height: 82,
+  x: [22, 108, 194, 280],
+  yHigh: 14,
+  yLow: 48,
+  labelY: 72,
+};
+
 function getLayerChip(layer: string) {
   return layer.split('（')[0];
 }
 
+function getPitchY(level: PitchLevel) {
+  return level === 'H' ? PITCH_GRAPH.yHigh : PITCH_GRAPH.yLow;
+}
+
 export default function GrammarScreen({ navigation }: Props) {
   const [showTerms, setShowTerms] = useState(false);
+  const [showPitch, setShowPitch] = useState(false);
   const [expandedTermKey, setExpandedTermKey] = useState<string | null>(null);
 
   return (
@@ -237,7 +339,7 @@ export default function GrammarScreen({ navigation }: Props) {
         <>
           <View style={styles.sectionHead}>
             <Text style={styles.sectionTitle}>学习前置</Text>
-            <Text style={styles.sectionHint}>先看核心名词，再学更顺畅。</Text>
+            <Text style={styles.sectionHint}>核心名词与术语速览，便于快速定位概念。</Text>
           </View>
 
           <View style={styles.termCard}>
@@ -330,10 +432,115 @@ export default function GrammarScreen({ navigation }: Props) {
             ) : null}
           </View>
 
+          <View style={styles.pitchCard}>
+            <Pressable
+              onPress={() => setShowPitch((prev) => !prev)}
+              style={({ pressed }) => [styles.pitchHeaderRow, pressed ? styles.pitchHeaderRowPressed : null]}
+            >
+              <View style={styles.pitchHeaderLeft}>
+                <Text style={styles.pitchTitle}>日语音调速览</Text>
+                <Text style={styles.pitchSubtitle}>日语是高低音调语言，核心看“在哪一拍下降”。</Text>
+              </View>
+              <Ionicons name={showPitch ? 'chevron-up' : 'chevron-down'} size={18} color={colors.muted} />
+            </Pressable>
+
+            {showPitch ? (
+              <View style={styles.pitchBody}>
+                <View style={styles.pitchPatternWrap}>
+                  {PITCH_ACCENT_PATTERNS.map((item) => (
+                    <View key={item.key} style={styles.pitchPatternItem}>
+                      <Text style={styles.pitchPatternTitle}>{item.title}</Text>
+                      <View style={styles.pitchGraphCard}>
+                        <Svg
+                          width="100%"
+                          height={PITCH_GRAPH.height}
+                          viewBox={`0 0 ${PITCH_GRAPH.width} ${PITCH_GRAPH.height}`}
+                        >
+                          <SvgLine
+                            x1={4}
+                            y1={PITCH_GRAPH.yHigh}
+                            x2={PITCH_GRAPH.width - 4}
+                            y2={PITCH_GRAPH.yHigh}
+                            stroke="#d6e3f3"
+                            strokeWidth={1}
+                          />
+                          <SvgLine
+                            x1={4}
+                            y1={PITCH_GRAPH.yLow}
+                            x2={PITCH_GRAPH.width - 4}
+                            y2={PITCH_GRAPH.yLow}
+                            stroke="#d6e3f3"
+                            strokeWidth={1}
+                          />
+
+                          {item.levels.map((level, index) => {
+                            if (index === item.levels.length - 1) {
+                              return null;
+                            }
+                            return (
+                              <SvgLine
+                                key={`${item.key}-line-${item.labels[index]}`}
+                                x1={PITCH_GRAPH.x[index]}
+                                y1={getPitchY(level)}
+                                x2={PITCH_GRAPH.x[index + 1]}
+                                y2={getPitchY(item.levels[index + 1])}
+                                stroke="#5078a6"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                              />
+                            );
+                          })}
+
+                          {item.levels.map((level, index) => (
+                            <SvgCircle
+                              key={`${item.key}-dot-${item.labels[index]}`}
+                              cx={PITCH_GRAPH.x[index]}
+                              cy={getPitchY(level)}
+                              r={3.5}
+                              fill="#31557e"
+                              stroke="#ffffff"
+                              strokeWidth={1}
+                            />
+                          ))}
+
+                          {item.labels.map((label, index) => (
+                            <SvgText
+                              key={`${item.key}-label-${label}`}
+                              x={PITCH_GRAPH.x[index]}
+                              y={PITCH_GRAPH.labelY}
+                              fill="#31557e"
+                              fontSize="11"
+                              fontWeight="700"
+                              textAnchor="middle"
+                            >
+                              {label}
+                            </SvgText>
+                          ))}
+
+                        </Svg>
+                      </View>
+                      <Text style={styles.pitchPatternLine}>音高走向：{item.contour}</Text>
+                      <Text style={styles.pitchPatternLine}>识别要点：{item.note}</Text>
+                      <Text style={styles.pitchPatternExample}>例：{item.example}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.pitchTipCard}>
+                  <Text style={styles.pitchTipTitle}>学习提示</Text>
+                  {PITCH_ACCENT_TIPS.map((tip) => (
+                    <Text key={tip} style={styles.pitchTipItem}>
+                      {`• ${tip}`}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+          </View>
+
           <View style={styles.quickSection}>
             <View style={styles.sectionHead}>
               <Text style={styles.sectionTitle}>文法配套速查</Text>
-              <Text style={styles.sectionHint}>常用文法速查入口，建议先查后学。</Text>
+              <Text style={styles.sectionHint}>常用文法速查入口，方便随时查阅。</Text>
             </View>
             <View style={styles.quickGrid}>
               {QUICK_ENTRIES.map((entry) => (
@@ -712,6 +919,108 @@ const styles = StyleSheet.create({
     color: '#334155',
     fontSize: 12,
     lineHeight: 18,
+  },
+  pitchCard: {
+    backgroundColor: '#f8fbff',
+    borderRadius: radius.l,
+    borderWidth: 1,
+    borderColor: '#ccddf4',
+    marginBottom: spacing.m,
+    overflow: 'hidden',
+  },
+  pitchHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    backgroundColor: '#eef4ff',
+  },
+  pitchHeaderRowPressed: {
+    opacity: 0.82,
+  },
+  pitchHeaderLeft: {
+    flex: 1,
+    paddingRight: spacing.s,
+  },
+  pitchTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1e3a8a',
+  },
+  pitchSubtitle: {
+    marginTop: 4,
+    color: '#475569',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  pitchBody: {
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: '#fbfdff',
+  },
+  pitchPatternWrap: {
+    marginTop: spacing.xs,
+  },
+  pitchPatternItem: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#dde6f2',
+    borderRadius: radius.m,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.s,
+    marginBottom: spacing.s,
+  },
+  pitchPatternTitle: {
+    color: '#31557e',
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  pitchGraphCard: {
+    marginTop: spacing.xs,
+    marginBottom: 4,
+    backgroundColor: '#f8fbff',
+    borderWidth: 1,
+    borderColor: '#dbe7f4',
+    borderRadius: radius.s,
+    paddingHorizontal: spacing.xs,
+    paddingTop: spacing.xs,
+    paddingBottom: 1,
+  },
+  pitchPatternLine: {
+    color: '#334155',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  pitchPatternExample: {
+    marginTop: 2,
+    color: '#334155',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  pitchTipCard: {
+    marginTop: spacing.xs,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#d2e1f2',
+    borderRadius: radius.m,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.s,
+  },
+  pitchTipTitle: {
+    color: '#31557e',
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  pitchTipItem: {
+    color: '#334155',
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 2,
   },
 });
 
