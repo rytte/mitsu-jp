@@ -40,8 +40,8 @@ const PARTICLE_SUBCLASS_ROWS: ParticleSubclassRow[] = [
   {
     name: '格助词',
     role: '标记句子成分关系（主语、宾语、到达点、场所等）',
-    markers: 'が / を / に / で / へ / と / から / まで / より',
-    sample: '猫がいます。/ 本を読む。/ 学校に行く。',
+    markers: 'が / を / に / で / へ / と / から / まで / より / の',
+    sample: '猫がいます。/ 本を読む。/ 学校に行く。/ 赤いのをください。',
   },
   {
     name: '提示助词',
@@ -72,12 +72,6 @@ const PARTICLE_SUBCLASS_ROWS: ParticleSubclassRow[] = [
     role: '放在句尾，表达说话人的语气、态度和语用功能',
     markers: 'か / ね / よ / な / ぞ / わ',
     sample: '行くよ。/ いいね。/ 本当か。',
-  },
-  {
-    name: '准体助词',
-    role: '把前面的成分名词化，或代用前文信息',
-    markers: 'の',
-    sample: '赤いのをください。/ 来るのが遅い。',
   },
 ];
 
@@ -552,7 +546,7 @@ export default function ParticleGuideScreen() {
           ))
         ) : (
           <Pressable onPress={() => setExpandedSubclass(true)}>
-            <Text style={styles.compactHint}>点击展开查看 7 类助词子类与判断重点</Text>
+            <Text style={styles.compactHint}>{`点击展开查看 ${PARTICLE_SUBCLASS_ROWS.length} 类助词子类与判断重点`}</Text>
           </Pressable>
         )}
       </View>
