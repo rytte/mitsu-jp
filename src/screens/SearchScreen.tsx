@@ -59,6 +59,70 @@ function splitTokens(value: string) {
     .filter(Boolean);
 }
 
+type GrammarPatternPiece =
+  | { type: 'text'; text: string }
+  | { type: 'ruby'; base: string; ruby: string };
+
+function isKanji(char: string) {
+  return /[\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFF々]/.test(char);
+}
+
+function splitGrammarPattern(text: string) {
+  if (!text) return [] as GrammarPatternPiece[];
+  const pieces: GrammarPatternPiece[] = [];
+  let index = 0;
+
+  while (index < text.length) {
+    const open = text.indexOf('[', index);
+    if (open === -1) {
+      const remaining = text.slice(index);
+      if (remaining) pieces.push({ type: 'text', text: remaining });
+      break;
+    }
+
+    const close = text.indexOf(']', open + 1);
+    if (close === -1) {
+      const remaining = text.slice(index);
+      if (remaining) pieces.push({ type: 'text', text: remaining });
+      break;
+    }
+
+    let baseStart = open;
+    while (baseStart - 1 >= index && isKanji(text[baseStart - 1])) {
+      baseStart -= 1;
+    }
+
+    if (baseStart === open) {
+      pieces.push({ type: 'text', text: text.slice(index, open + 1) });
+      index = open + 1;
+      continue;
+    }
+
+    if (baseStart > index) {
+      pieces.push({ type: 'text', text: text.slice(index, baseStart) });
+    }
+
+    pieces.push({
+      type: 'ruby',
+      base: text.slice(baseStart, open),
+      ruby: text.slice(open + 1, close),
+    });
+    index = close + 1;
+  }
+
+  return pieces;
+}
+
+function buildGrammarPatternVariants(pattern: string) {
+  const pieces = splitGrammarPattern(pattern);
+  const surface = pieces.map((piece) => (piece.type === 'text' ? piece.text : piece.base)).join('');
+  const reading = pieces.map((piece) => (piece.type === 'text' ? piece.text : piece.ruby)).join('');
+  return {
+    surface,
+    reading,
+  };
+}
+
 function getLevelRank(level?: Level | null) {
   if (!level) return 99;
   return LEVEL_RANK.get(level) ?? 99;
@@ -93,9 +157,11 @@ function scoreWord(word: Word, query: string) {
 }
 
 function buildGrammarHaystack(grammar: GrammarPoint) {
+  const { surface, reading } = buildGrammarPatternVariants(grammar.pattern ?? '');
   return normalizeText(
     [
-      grammar.pattern ?? '',
+      surface,
+      reading,
       grammar.explanation ?? '',
     ].join(' ')
   );
@@ -104,12 +170,19 @@ function buildGrammarHaystack(grammar: GrammarPoint) {
 function scoreGrammar(grammar: GrammarPoint, query: string) {
   const needle = normalizeText(query);
   if (!needle) return 0;
-  const pattern = normalizeText(grammar.pattern ?? '');
+  const { surface, reading } = buildGrammarPatternVariants(grammar.pattern ?? '');
+  const patternVariants = Array.from(
+    new Set([surface, reading].map((item) => normalizeText(item)).filter(Boolean))
+  );
   const meaning = normalizeText(grammar.explanation ?? '');
-  let score = 0;
-  if (pattern === needle) score += 120;
-  if (pattern.startsWith(needle)) score += 50;
-  if (pattern.includes(needle)) score += 20;
+  const patternScore = patternVariants.reduce((best, pattern) => {
+    let score = 0;
+    if (pattern === needle) score += 120;
+    if (pattern.startsWith(needle)) score += 50;
+    if (pattern.includes(needle)) score += 20;
+    return Math.max(best, score);
+  }, 0);
+  let score = patternScore;
   if (meaning.startsWith(needle)) score += 24;
   if (meaning.includes(needle)) score += 14;
   return score;
