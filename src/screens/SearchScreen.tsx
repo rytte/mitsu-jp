@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -44,6 +44,8 @@ const LEVEL_FILTERS: { id: LevelFilter; label: string }[] = [
   { id: 'ALL', label: '全部' },
   ...LEXICONS.map((item) => ({ id: item.id, label: item.label })),
 ];
+const EMPTY_WORD_RESULTS: Word[] = [];
+const EMPTY_GRAMMAR_RESULTS: GrammarPoint[] = [];
 
 function normalizeText(value: string) {
   return value.toLowerCase().replace(/\s+/g, '');
@@ -183,6 +185,9 @@ export default function SearchScreen() {
   const compactMode = settings.compact_mode;
   const compactSingleExpand = settings.compact_single_expand;
   const fontScale = settings.font_scale;
+  const mode: Mode = tabIndex === 0 ? 'word' : tabIndex === 1 ? 'grammar' : 'ai-dict';
+  const deferredQuery = useDeferredValue(query);
+  const searchQuery = query.trim().length === 0 ? '' : deferredQuery;
 
   useEffect(() => {
     let active = true;
@@ -241,16 +246,20 @@ export default function SearchScreen() {
     await persistSettings({ ...settings, compact_mode: value });
   };
 
-  const tokens = useMemo(() => splitTokens(query), [query]);
-  const filteredWords = useMemo(() => searchWords(words, tokens, query, levelFilter), [levelFilter, query, tokens, words]);
+  const tokens = useMemo(() => splitTokens(searchQuery), [searchQuery]);
+  const filteredWords = useMemo(() => {
+    if (mode !== 'word') return EMPTY_WORD_RESULTS;
+    return searchWords(words, tokens, searchQuery, levelFilter);
+  }, [levelFilter, mode, searchQuery, tokens, words]);
   const filteredGrammars = useMemo(
-    () => searchGrammars(grammars, tokens, query, levelFilter),
-    [grammars, levelFilter, query, tokens]
+    () => (mode === 'grammar' ? searchGrammars(grammars, tokens, searchQuery, levelFilter) : EMPTY_GRAMMAR_RESULTS),
+    [grammars, levelFilter, mode, searchQuery, tokens]
   );
-  const mode: Mode = tabIndex === 0 ? 'word' : tabIndex === 1 ? 'grammar' : 'ai-dict';
+  const searchPending = mode !== 'ai-dict' && query.trim().length > 0 && deferredQuery !== query;
   const totalResults = mode === 'word' ? filteredWords.length : mode === 'grammar' ? filteredGrammars.length : 0;
-  const showHint = mode !== 'ai-dict' && tokens.length === 0 && !loading;
-  const showEmpty = mode !== 'ai-dict' && tokens.length > 0 && totalResults === 0 && !loading;
+  const showHint = mode !== 'ai-dict' && query.trim().length === 0 && !loading;
+  const showSearching = mode !== 'ai-dict' && searchPending && !loading;
+  const showEmpty = mode !== 'ai-dict' && !searchPending && tokens.length > 0 && totalResults === 0 && !loading;
 
   const wordFontSizes = useMemo(() => {
     const effective = compactMode ? fontScale : bumpFontScale(fontScale);
@@ -703,7 +712,7 @@ export default function SearchScreen() {
           </View>
         ) : null}
 
-        {mode !== 'ai-dict' && tokens.length > 0 ? (
+        {mode !== 'ai-dict' && !showSearching && tokens.length > 0 ? (
           <Text style={styles.resultText}>
             {mode === 'word' ? '词汇' : '文法'}结果：{totalResults} 条
           </Text>
