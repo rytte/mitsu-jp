@@ -70,19 +70,49 @@ const ROWS: KeigoRow[] = [
     politeExampleZh: '我看那份资料。',
   },
   {
-    plain: '行く / 来る',
+    plain: '見せる',
+    respectful: 'お見せになる',
+    humble: 'ご覧に入れる / お目にかける',
+    polite: '見せます',
+    gloss: '给人看 / 出示',
+    respectfulIntro: '描述对方展示资料、作品时，可用「お見せになる」。',
+    humbleIntro: '把东西给上级或客户过目时，常用「ご覧に入れる / お目にかける」。',
+    respectfulExampleJa: '先生が新作をお見せになります。',
+    respectfulExampleZh: '老师会展示新作品。',
+    humbleExampleJa: '資料を先生にお目にかけます。',
+    humbleExampleZh: '我把资料呈给老师过目。',
+    politeExampleJa: '写真をみなさんに見せます。',
+    politeExampleZh: '我把照片给大家看。',
+  },
+  {
+    plain: '行く',
     respectful: 'いらっしゃる / おいでになる',
     humble: '伺う / 参る',
-    polite: '行きます / 来ます',
-    gloss: '去 / 来',
-    respectfulIntro: '谈对方来访或到场时，用「いらっしゃる / おいでになる」。',
+    polite: '行きます',
+    gloss: '去',
+    respectfulIntro: '谈对方前往某地时，可用「いらっしゃる / おいでになる」。',
     humbleIntro: '自己去拜访对方时，多用「伺う / 参る」。',
-    respectfulExampleJa: '部長は午後にいらっしゃいます。',
-    respectfulExampleZh: '部长下午会来。',
+    respectfulExampleJa: '部長はこのあと本社へいらっしゃいます。',
+    respectfulExampleZh: '部长等会儿会去总公司。',
     humbleExampleJa: '明日、私が先方へ伺います。',
     humbleExampleZh: '明天我去拜访对方。',
     politeExampleJa: '明日、東京へ行きます。',
     politeExampleZh: '明天我去东京。',
+  },
+  {
+    plain: '来る',
+    respectful: 'いらっしゃる / おいでになる / お見えになる / お越しになる',
+    humble: '参る',
+    polite: '来ます',
+    gloss: '来',
+    respectfulIntro: '谈对方来访、到场时，常用「いらっしゃる / おいでになる」，较正式也常见「お見えになる / お越しになる」。',
+    humbleIntro: '自己来到对方处或活动现场时，可用「参る」。',
+    respectfulExampleJa: '本日、田中様がお見えになります。',
+    respectfulExampleZh: '田中先生今天会到场。',
+    humbleExampleJa: 'のちほど私も会場に参ります。',
+    humbleExampleZh: '稍后我也会到会场。',
+    politeExampleJa: '友だちは夕方に来ます。',
+    politeExampleZh: '朋友傍晚会来。',
   },
   {
     plain: 'いる',
@@ -175,13 +205,13 @@ const ROWS: KeigoRow[] = [
     politeExampleZh: '我觉得很好。',
   },
   {
-    plain: '与える',
+    plain: 'あげる / くれる',
     respectful: 'くださる',
     humble: '差し上げる',
-    polite: 'あげます',
-    gloss: '给',
-    respectfulIntro: '对方给我方时，用「くださる」。',
-    humbleIntro: '我方给对方时，用「差し上げる」。',
+    polite: 'あげます / くれます',
+    gloss: '给（授受）',
+    respectfulIntro: '对方给我方时，用「くださる」来抬高对方的行为。',
+    humbleIntro: '我方给对方时，用「差し上げる」来压低自己一方的动作。',
     respectfulExampleJa: '部長が資料をくださいます。',
     respectfulExampleZh: '部长会给我资料。',
     humbleExampleJa: '私が先生に資料を差し上げます。',
@@ -222,17 +252,181 @@ const ROWS: KeigoRow[] = [
   {
     plain: '聞く / 尋ねる',
     respectful: 'お聞きになる / お尋ねになる',
-    humble: '伺う / お聞きする',
+    humble: '伺う / お聞きする / 承る',
     polite: '聞きます / 尋ねます',
     gloss: '听 / 询问',
     respectfulIntro: '谈对方“听、询问”时，用「お聞きになる / お尋ねになる」。',
-    humbleIntro: '自己向对方请教、询问时，用「伺う / お聞きする」。',
+    humbleIntro: '自己向对方请教、询问时，用「伺う / お聞きする」；接受预约、委托、意见时，也常用「承る」。',
     respectfulExampleJa: '部長がお客様のご意見をお聞きになります。',
     respectfulExampleZh: '部长会听取客户的意见。',
     humbleExampleJa: '不明点は私が伺います。',
     humbleExampleZh: '有不明白的地方我来请教。',
     politeExampleJa: '受付で道を尋ねます。',
     politeExampleZh: '我在前台问路。',
+  },
+  {
+    plain: '借りる',
+    respectful: 'お借りになる',
+    humble: '拝借する',
+    polite: '借ります',
+    gloss: '借',
+    respectfulIntro: '描述对方借用某物时，可用「お借りになる」。',
+    humbleIntro: '自己向上级、客户借用东西时，常用「拝借する」。',
+    respectfulExampleJa: '社長がお車をお借りになります。',
+    respectfulExampleZh: '社长会借用车子。',
+    humbleExampleJa: '少々お時間を拝借します。',
+    humbleExampleZh: '占用您一点时间。',
+    politeExampleJa: '図書館で本を借ります。',
+    politeExampleZh: '我在图书馆借书。',
+  },
+];
+
+const RESPECTFUL_PATTERN_ROWS: RequestRow[] = [
+  {
+    pattern: 'お/ご～になる',
+    usage: '最常见的一般尊敬句型',
+    intro: '把对方动作抬高的标准做法。和语动词多接「お+ます形去ます」，汉语词多接「ご+汉语词干+になる」。',
+    exampleJa: '先生は先にお帰りになりました。',
+    exampleZh: '老师已经先回去了。',
+  },
+  {
+    pattern: 'お/ご～なさる',
+    usage: '「する」系动词和部分固定搭配的郑重尊敬',
+    intro: '比单纯「～する」更郑重，常见于说明、連絡、案内等サ变词。',
+    exampleJa: '部長がご説明なさいます。',
+    exampleZh: '部长会进行说明。',
+  },
+  {
+    pattern: 'お/ご～になれる',
+    usage: '尊敬可能表达“您能……”',
+    intro: '表示“对方能够……、可以……”，比直接用可能形更礼貌。',
+    exampleJa: '先生は明日の会にご出席になれますか。',
+    exampleZh: '老师明天能出席会议吗？',
+  },
+  {
+    pattern: 'お/ご～ください',
+    usage: '礼貌请求对方做某事',
+    intro: '常见于店铺提示、现场引导、商务邮件，比直接命令更柔和正式。',
+    exampleJa: '内容をご確認ください。',
+    exampleZh: '请确认内容。',
+  },
+  {
+    pattern: 'お/ご～です',
+    usage: '把对方的状态或动作结果说得更郑重',
+    intro: '多用于到达、外出、在宅、就座等场景，带有说明状态的语感。',
+    exampleJa: '社長はただ今お出かけです。',
+    exampleZh: '社长现在外出了。',
+  },
+  {
+    pattern: '～(a)れる / られる',
+    usage: '敬意较轻的尊敬说法',
+    intro: '语法上像被动/可能，但在敬语里可表示尊敬。正式度通常低于固定敬语或「お/ご～になる」。',
+    exampleJa: '先生はもう帰られました。',
+    exampleZh: '老师已经回去了。',
+  },
+  {
+    pattern: '～ていらっしゃる / ～ておいでになる',
+    usage: '「～ている」的尊敬表达',
+    intro: '描述对方正在做、持续处于某状态时很常用，口语里「～ていらっしゃる」最常见。',
+    exampleJa: '部長は今、会議をしていらっしゃいます。',
+    exampleZh: '部长现在正在开会。',
+  },
+  {
+    pattern: '寝る → お休みになる',
+    usage: '固定尊敬词',
+    intro: '「寝る」不太用一般句型直改，实际表达里更常直接用固定说法「お休みになる」。',
+    exampleJa: '社長はもうお休みになりました。',
+    exampleZh: '社长已经休息了。',
+  },
+  {
+    pattern: '着る → 召す',
+    usage: '固定尊敬词',
+    intro: '谈对方穿衣时，可直接用「召す」或状态说法「お召しです」。',
+    exampleJa: '先生は黒いスーツをお召しです。',
+    exampleZh: '老师穿着黑色西装。',
+  },
+];
+
+const HUMBLE_PATTERN_ROWS: RequestRow[] = [
+  {
+    pattern: 'お/ご～する',
+    usage: '最常见的一般自谦句型',
+    intro: '表示“我来为您做……”。适合服务、说明、帮助等朝向对方的动作。',
+    exampleJa: '私がお荷物をお持ちします。',
+    exampleZh: '我来帮您拿行李。',
+  },
+  {
+    pattern: 'お/ご～いたす',
+    usage: '比「お/ご～する」更郑重',
+    intro: '商务场合很常见，用来进一步压低自己一方的动作。',
+    exampleJa: 'こちらでご案内いたします。',
+    exampleZh: '这边由我来为您带路。',
+  },
+  {
+    pattern: 'お/ご～できる',
+    usage: '自谦可能表达“我能为您……”',
+    intro: '强调自己有能力为对方做某事，常带服务、应对的语感。',
+    exampleJa: '私がご説明できます。',
+    exampleZh: '这部分我可以为您说明。',
+  },
+  {
+    pattern: 'お/ご～いただく',
+    usage: '承蒙对方做某事 / 受益表达',
+    intro: '说“请对方做”或“承蒙对方做了”时非常常见，重点在自己接受了对方的行为。',
+    exampleJa: '先生に原稿をご確認いただきました。',
+    exampleZh: '承蒙老师确认了稿件。',
+  },
+  {
+    pattern: 'お/ご～申し上げる',
+    usage: '郑重地向对方进行说明、报告、感谢等',
+    intro: '常和「報告・案内・連絡・説明・挨拶」等名词搭配，语气很郑重。',
+    exampleJa: '結果をご報告申し上げます。',
+    exampleZh: '谨向您汇报结果。',
+  },
+  {
+    pattern: '～ておる',
+    usage: '「～ている」的自谦/郑重说法',
+    intro: '用于自己或己方状态，也常见于公司对外说明。',
+    exampleJa: '担当はただ今席を外しております。',
+    exampleZh: '负责人目前暂时离席。',
+  },
+  {
+    pattern: 'ご覧いただく',
+    usage: '「見てもらう」的固定谦让表达',
+    intro: '不是“我看”，而是“承蒙您看/请您看”，所以更适合放在受益型自谦里记。',
+    exampleJa: '資料を先にご覧いただければ幸いです。',
+    exampleZh: '如果您能先过目资料就太好了。',
+  },
+  {
+    pattern: '承る',
+    usage: '「聞く / 受ける / 引き受ける」的固定谦让词',
+    intro: '接电话、接预约、受理意见时很常见，商务感很强。',
+    exampleJa: 'ご予約はお電話でも承っております。',
+    exampleZh: '预约也可以通过电话受理。',
+  },
+  {
+    pattern: '承知する',
+    usage: '表示“知道了 / 明白了 / 接受安排”的自谦应答',
+    intro: '比「分かりました」更正式，也更适合职场对上、对外回应。',
+    exampleJa: '承知しました。すぐ対応いたします。',
+    exampleZh: '知道了，我马上处理。',
+  },
+];
+
+const POLITE_PATTERN_ROWS: RequestRow[] = [
+  {
+    pattern: 'ございます',
+    usage: '「ある」的郑重丁宁语',
+    intro: '比「あります」更郑重，店铺、通知、接待场景特别常见。',
+    exampleJa: 'お席はまだございます。',
+    exampleZh: '座位还有。',
+  },
+  {
+    pattern: 'でございます',
+    usage: '「です」的更郑重商务说法',
+    intro: '常用于接待、广播、客服、店员说明，比「です」更正式。',
+    exampleJa: 'こちらが来月の予定でございます。',
+    exampleZh: '这边是下个月的安排。',
   },
 ];
 
@@ -271,6 +465,13 @@ const GIVE_ROWS: GiveRow[] = [
 
 const REQUEST_ROWS: RequestRow[] = [
   {
+    pattern: 'ご覧ください',
+    usage: '请看 / 请过目',
+    intro: '是「ご覧になる」的请求形，比单纯「見てください」更正式，适合资料、公告、现场提示。',
+    exampleJa: 'こちらの資料をご覧ください。',
+    exampleZh: '请看这份资料。',
+  },
+  {
     pattern: '～をください / ～をちょうだい',
     usage: '请求对方给东西（ちょうだい较随意）',
     intro: '「ください」较正式，适用于店铺、职场、陌生场合；「ちょうだい」更口语化。',
@@ -285,11 +486,74 @@ const REQUEST_ROWS: RequestRow[] = [
     exampleZh: '请在这里写上名字。',
   },
   {
+    pattern: 'お/ご～願う',
+    usage: '书面或通知里的郑重请求',
+    intro: '常见于公告、表格、邮件标题，如「ご確認願います」。语气郑重，但比会话表达更书面。',
+    exampleJa: '内容のご確認願います。',
+    exampleZh: '敬请确认内容。',
+  },
+  {
+    pattern: 'お/ご～願えませんか',
+    usage: '请对方做某事的委婉请求',
+    intro: '比直接请求更绕一步，常见于较郑重但仍想保留距离感的场合。',
+    exampleJa: 'もう一度ご説明願えませんか。',
+    exampleZh: '能否请您再说明一次？',
+  },
+  {
+    pattern: 'お/ご～いただけませんか',
+    usage: '请对方做某事的高礼貌请求',
+    intro: '商务和服务场景很常见，语气比「～てください」更柔和、更抬高对方。',
+    exampleJa: 'こちらにご記入いただけませんか。',
+    exampleZh: '能否请您在这里填写一下？',
+  },
+  {
+    pattern: '～ていただけますか',
+    usage: '请对方帮忙做某事',
+    intro: '比「～てください」更客气，也带有“拜托您帮我做”的受益感。',
+    exampleJa: '窓を閉めていただけますか。',
+    exampleZh: '能否请您把窗户关上？',
+  },
+  {
+    pattern: '～ていただけるとありがたいんですが',
+    usage: '非常委婉地提出请求',
+    intro: '把请求说成“如果能……我会很感激”，柔和度高，适合邮件、对上或对外沟通。',
+    exampleJa: '明日までにご返信いただけるとありがたいんですが。',
+    exampleZh: '如果您能在明天前回复就太感谢了。',
+  },
+  {
+    pattern: '～てもよろしいでしょうか',
+    usage: '请求许可“我可以……吗”',
+    intro: '比「～てもいいですか」正式得多，适合向客户、老师、上级确认许可。',
+    exampleJa: 'こちらで写真を撮ってもよろしいでしょうか。',
+    exampleZh: '我可以在这里拍照吗？',
+  },
+  {
     pattern: '～させてください',
     usage: '请求许可“让我做…”',
     intro: '用于向对方申请许可，语气是“请允许我……”。',
     exampleJa: '先に失礼させてください。',
     exampleZh: '请允许我先告辞。',
+  },
+  {
+    pattern: '（さ）せていただく',
+    usage: '在获得许可或受益前提下“由我来……”',
+    intro: '商务场合常见，但前提最好真有许可、照顾或受益关系，否则容易显得过度敬语。',
+    exampleJa: '本日は私からご説明させていただきます。',
+    exampleZh: '今天由我来向您说明。',
+  },
+  {
+    pattern: '（さ）せていただけませんか',
+    usage: '请求对方允许自己去做某事',
+    intro: '比「～させてください」更委婉、更正式，常用于争取担当或发言机会。',
+    exampleJa: 'その件は私に担当させていただけませんか。',
+    exampleZh: '那件事能否由我来负责？',
+  },
+  {
+    pattern: '（さ）せてやっていただけませんか',
+    usage: '请求对方允许己方晚辈/第三者去做某事',
+    intro: '带有“请您让他/她做一下”的语感，多用于替晚辈、孩子、下属争取机会。',
+    exampleJa: 'この子にも参加させてやっていただけませんか。',
+    exampleZh: '也能让这孩子参加一下吗？',
   },
   {
     pattern: '～ないでください',
@@ -304,7 +568,7 @@ const NOTES: string[] = [
   '尊敬语：抬高对方的动作或状态',
   '谦让语：降低自己的动作或状态',
   '丁宁语：用礼貌形式表达',
-  '遇到固定表达，优先使用固定敬语',
+  '第一张“核心词条”会进入练习，后面的句型表和请求表用于补规则，不混进主练习',
 ];
 
 const KEIGO_PRACTICE_SIZE = 18;
@@ -454,6 +718,43 @@ function RequestRowItem({ pattern, usage, active, onPress }: RequestRowItemProps
       <Text style={[styles.cell, active ? styles.activeCell : null]}>{pattern}</Text>
       <Text style={[styles.cell, active ? styles.activeCell : null]}>{usage}</Text>
     </Pressable>
+  );
+}
+
+type ExpandablePatternTableProps = {
+  rows: RequestRow[];
+  selectedKey: string | null;
+  onToggle: (key: string) => void;
+};
+
+function ExpandablePatternTable({ rows, selectedKey, onToggle }: ExpandablePatternTableProps) {
+  return (
+    <View style={[styles.card, styles.sectionCard]}>
+      <RequestHeaderRow />
+      {rows.map((row) => {
+        const rowKey = row.pattern;
+        const expanded = selectedKey === rowKey;
+        return (
+          <View key={rowKey} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
+            <RequestRowItem
+              {...row}
+              active={expanded}
+              onPress={() => onToggle(rowKey)}
+            />
+            {expanded ? (
+              <View style={styles.inlineIntroCard}>
+                <Text style={styles.introDetailText}>{row.intro}</Text>
+                <View style={styles.introLine}>
+                  <Text style={[styles.introLabel, styles.exampleLabel]}>例</Text>
+                  <Text style={styles.introValue}>{row.exampleJa}</Text>
+                </View>
+                <Text style={styles.exampleZh}>{row.exampleZh}</Text>
+              </View>
+            ) : null}
+          </View>
+        );
+      })}
+    </View>
   );
 }
 
@@ -626,9 +927,15 @@ export default function KeigoChartScreen() {
   const topPadding = useScreenTopPadding();
   const [showPractice, setShowPractice] = useState(false);
   const [selectedPlain, setSelectedPlain] = useState<string | null>(null);
+  const [selectedRespectfulPatternKey, setSelectedRespectfulPatternKey] = useState<string | null>(null);
+  const [selectedHumblePatternKey, setSelectedHumblePatternKey] = useState<string | null>(null);
+  const [selectedPolitePatternKey, setSelectedPolitePatternKey] = useState<string | null>(null);
   const [selectedGiveKey, setSelectedGiveKey] = useState<string | null>(null);
   const [selectedRequestKey, setSelectedRequestKey] = useState<string | null>(null);
   const handleToggleRow = (plain: string) => setSelectedPlain((value) => (value === plain ? null : plain));
+  const handleToggleRespectfulPattern = (key: string) => setSelectedRespectfulPatternKey((value) => (value === key ? null : key));
+  const handleToggleHumblePattern = (key: string) => setSelectedHumblePatternKey((value) => (value === key ? null : key));
+  const handleTogglePolitePattern = (key: string) => setSelectedPolitePatternKey((value) => (value === key ? null : key));
   const handleToggleGive = (key: string) => setSelectedGiveKey((value) => (value === key ? null : key));
   const handleToggleRequest = (key: string) => setSelectedRequestKey((value) => (value === key ? null : key));
 
@@ -648,6 +955,7 @@ export default function KeigoChartScreen() {
         <KeigoPracticePanel />
       ) : (
         <>
+          <Text style={styles.sectionTitle}>核心词条</Text>
           <View style={styles.card}>
             <HeaderRow />
             {ROWS.map((row) => {
@@ -698,8 +1006,28 @@ export default function KeigoChartScreen() {
             })}
           </View>
 
+          <Text style={styles.sectionTitle}>尊敬语句型</Text>
+          <ExpandablePatternTable
+            rows={RESPECTFUL_PATTERN_ROWS}
+            selectedKey={selectedRespectfulPatternKey}
+            onToggle={handleToggleRespectfulPattern}
+          />
+
+          <Text style={styles.sectionTitle}>谦让语句型</Text>
+          <ExpandablePatternTable
+            rows={HUMBLE_PATTERN_ROWS}
+            selectedKey={selectedHumblePatternKey}
+            onToggle={handleToggleHumblePattern}
+          />
+
+          <Text style={styles.sectionTitle}>丁宁语补充</Text>
+          <ExpandablePatternTable
+            rows={POLITE_PATTERN_ROWS}
+            selectedKey={selectedPolitePatternKey}
+            onToggle={handleTogglePolitePattern}
+          />
+
           <Text style={styles.sectionTitle}>授受表达</Text>
-          <Text style={styles.sectionSubtitle}>常用的给与 / 接受敬语表达</Text>
           <View style={[styles.card, styles.sectionCard]}>
             <GiveHeaderRow />
             {GIVE_ROWS.map((row) => {
@@ -733,33 +1061,11 @@ export default function KeigoChartScreen() {
           </View>
 
           <Text style={styles.sectionTitle}>请求表达</Text>
-          <Text style={styles.sectionSubtitle}>常用的请求/许可表达</Text>
-          <View style={[styles.card, styles.sectionCard]}>
-            <RequestHeaderRow />
-            {REQUEST_ROWS.map((row) => {
-              const rowKey = row.pattern;
-              const expanded = selectedRequestKey === rowKey;
-              return (
-                <View key={rowKey} style={[styles.expandWrap, expanded ? styles.expandWrapActive : null]}>
-                  <RequestRowItem
-                    {...row}
-                    active={expanded}
-                    onPress={() => handleToggleRequest(rowKey)}
-                  />
-                  {expanded ? (
-                    <View style={styles.inlineIntroCard}>
-                      <Text style={styles.introDetailText}>{row.intro}</Text>
-                      <View style={styles.introLine}>
-                        <Text style={[styles.introLabel, styles.exampleLabel]}>例</Text>
-                        <Text style={styles.introValue}>{row.exampleJa}</Text>
-                      </View>
-                      <Text style={styles.exampleZh}>{row.exampleZh}</Text>
-                    </View>
-                  ) : null}
-                </View>
-              );
-            })}
-          </View>
+          <ExpandablePatternTable
+            rows={REQUEST_ROWS}
+            selectedKey={selectedRequestKey}
+            onToggle={handleToggleRequest}
+          />
 
           <View style={styles.noteCard}>
             <Text style={styles.noteTitle}>使用提示</Text>
@@ -793,7 +1099,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.s,
   },
   pageActionBtn: {
     borderWidth: 1,
@@ -813,13 +1119,14 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginTop: spacing.m,
+    marginBottom: spacing.s,
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
   },
   sectionSubtitle: {
     marginTop: spacing.xs,
-    marginBottom: spacing.s,
+    marginBottom: spacing.l,
     color: colors.muted,
   },
   card: {
