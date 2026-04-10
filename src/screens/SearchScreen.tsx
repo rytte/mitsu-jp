@@ -797,6 +797,7 @@ export default function SearchScreen() {
         renderScene={renderScene}
         renderTabBar={() => null}
         initialLayout={{ width: layout.width }}
+        keyboardDismissMode="none"
         style={styles.tabView}
       />
       </View>
